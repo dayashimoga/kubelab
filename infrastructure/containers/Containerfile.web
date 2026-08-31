@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Dependencies & Build
 # ==========================================
-FROM docker.io/library/node:20-alpine AS builder
+FROM docker.io/library/node:22-alpine AS builder
 
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
@@ -33,7 +33,7 @@ RUN pnpm --filter @kubelab/web build
 # ==========================================
 # Stage 2: Production Runner
 # ==========================================
-FROM docker.io/library/node:20-alpine AS runner
+FROM docker.io/library/node:22-alpine AS runner
 
 WORKDIR /app
 

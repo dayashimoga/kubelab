@@ -51,6 +51,8 @@ All notable changes to KubeLab are documented in this file.
 - **Enforced Strict Rustfmt**: Normalized codebase formatting so `cargo fmt --all -- --check` passes with zero diff.
 - **Modernized Node 22 Toolchain in CI**: Upgraded GitHub Actions runners to `node-version: 22` and removed lockfile cache constraints preventing `pnpm install` in monorepo workflows.
 - **Synchronized Bash Certification Harness**: Updated `scripts/validate-production.sh` with full security tests and lifecycle script validations.
+- **Rust Edition 2024 & Node 22 Container Support**: Upgraded `Containerfile.api` builder to `rust:latest` for full compatibility with modern crates requiring `edition2024` features, and upgraded `Containerfile.web` to `node:22-alpine`.
+
 
 
 
