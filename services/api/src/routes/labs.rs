@@ -1,3 +1,5 @@
+use crate::events::publisher;
+use crate::routes::auth::AuthClaims;
 use crate::state::AppState;
 use axum::{
     extract::{Path, State},
@@ -50,11 +52,37 @@ async fn get_lab(
 
 async fn start_lab(
     State(state): State<AppState>,
+    auth: Option<AuthClaims>,
     Json(payload): Json<StartLabRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
-    let user_id = "test-learner-1";
-    match state.labs.start_session(user_id, payload).await {
-        Ok(session) => Ok((StatusCode::CREATED, Json(session))),
+    let user_id = match auth {
+        Some(AuthClaims(user)) => user.id.to_string(),
+        None => "default-learner".to_string(),
+    };
+
+    let lab_id = payload.lab_id.clone();
+    match state.labs.start_session(&user_id, payload).await {
+        Ok(session) => {
+            // Publish NATS event if event bus is active
+            if let (Some(ref bus), Ok(uid)) = (&state.events, Uuid::parse_str(&user_id)) {
+                let _ = bus
+                    .publisher()
+                    .emit_lab_started(&publisher::LabStartedEvent {
+                        session_id: session.id,
+                        user_id: uid,
+                        lab_id: lab_id.clone(),
+                        namespace: session.namespace.clone(),
+                        timestamp: chrono::Utc::now(),
+                    })
+                    .await;
+            }
+            // Persist session to PostgreSQL if active
+            if let (Some(ref db), Ok(uid)) = (&state.db, Uuid::parse_str(&user_id)) {
+                let _ = db.labs().create_session(uid, &lab_id, &session.namespace, session.expires_at).await;
+            }
+
+            Ok((StatusCode::CREATED, Json(session)))
+        }
         Err(e) => Err((
             StatusCode::BAD_REQUEST,
             Json(ErrorResponse {
@@ -131,7 +159,35 @@ async fn validate_task(
     Json(payload): Json<ValidateLabRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
     match state.labs.validate_task(&session_id, payload).await {
-        Ok(result) => Ok(Json(result)),
+        Ok(result) => {
+            // Update session score in PostgreSQL if active
+            if let Ok(session) = state.labs.get_session(&session_id).await {
+                if let Some(ref db) = state.db {
+                    let status_str = if session.completed_at.is_some() { "completed" } else { "in_progress" };
+                    let _ = db
+                        .labs()
+                        .update_score(session_id, session.score as i32, status_str)
+                        .await;
+                }
+                if session.completed_at.is_some() {
+                    if let (Some(ref bus), Ok(uid)) = (&state.events, Uuid::parse_str(&session.user_id)) {
+                        let _ = bus
+                            .publisher()
+                            .emit_lab_completed(&publisher::LabCompletedEvent {
+                                session_id,
+                                user_id: uid,
+                                lab_id: session.lab_id.clone(),
+                                score: session.score as i32,
+                                xp_earned: (session.score * 10) as i32,
+                                timestamp: chrono::Utc::now(),
+                            })
+                            .await;
+                    }
+                }
+            }
+
+            Ok(Json(result))
+        }
         Err(e) => Err((
             StatusCode::BAD_REQUEST,
             Json(ErrorResponse {

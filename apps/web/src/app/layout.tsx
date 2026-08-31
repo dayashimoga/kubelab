@@ -18,6 +18,8 @@ export const metadata = {
   title: 'KubeLab — Cloud-Native Learning & Lab Platform',
   description:
     'Production-grade open-source platform for learning, practicing, and proving cloud-native skills with real clusters, deterministic grading, and incident simulation.',
+  manifest: '/manifest.json',
+  themeColor: '#0a0e17',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

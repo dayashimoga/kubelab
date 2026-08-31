@@ -1,0 +1,72 @@
+id: k8s-liveness-readiness
+title: Health Probes (Liveness, Readiness, Startup)
+difficulty: intermediate
+duration_minutes: 20
+track: kubernetes
+objectives:
+- Master Health Probes (Liveness, Readiness, Startup) in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Configure HTTP liveness probe on /healthz and readiness probe on /readyz with 5s periodSeconds.
+tasks:
+- id: task-1
+  title: Liveness probe on /healthz
+  description: Verify spec.containers[0].livenessProbe.httpGet.path on pods 'healthy-web'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: healthy-web
+    namespace: null
+    assertions:
+    - field: spec.containers[0].livenessProbe.httpGet.path
+      operator: equals
+      expected: /healthz
+      actual: null
+      passed: null
+      error_message: null
+- id: task-2
+  title: Readiness probe on /readyz
+  description: Verify spec.containers[0].readinessProbe.httpGet.path on pods 'healthy-web'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: healthy-web
+    namespace: null
+    assertions:
+    - field: spec.containers[0].readinessProbe.httpGet.path
+      operator: equals
+      expected: /readyz
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Define livenessProbe and readinessProbe under container spec.
+  penalty_points: 10
+solution: kubectl apply -f healthy-web.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

@@ -1,0 +1,56 @@
+id: mesh-03-traffic-shifting-canary
+title: 90/10 Canary Traffic Shifting with VirtualService
+difficulty: intermediate
+duration_minutes: 20
+track: service-mesh
+objectives:
+- Master 90/10 Canary Traffic Shifting with VirtualService in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Route 90% traffic to v1 and 10% to v2 canary
+tasks:
+- id: task-verify-mesh-03-traffic-shifting-canary
+  title: Verify 90/10 Canary Traffic Shifting with VirtualService
+  description: Verify metadata.name on virtualservices 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: virtualservices
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `virtualservices` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f mesh-03-traffic-shifting-canary.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

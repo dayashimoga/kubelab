@@ -1,56 +1,72 @@
-id: "k8s-pod-basics"
-title: "Create and Configure Your First Pod"
-difficulty: "beginner"
+id: k8s-pod-basics
+title: Create and Configure Your First Pod
+difficulty: beginner
 duration_minutes: 15
-track: "kubernetes"
+track: kubernetes
+objectives:
+- Master Create and Configure Your First Pod in Kubernetes
+- Execute and verify deterministic live cluster state
 prerequisites: []
 environment:
-  type: "kubernetes"
-  cluster: "disposable"
+  cluster: disposable
   namespace_isolation: true
   resources:
-    cpu_limit: "500m"
-    memory_limit: "512Mi"
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
 initial_state:
   manifests: []
-scenario: |
-  A stateless frontend container needs to be deployed to serve user requests.
-  Deploy a Pod named `web-server` running `nginx:alpine` listening on port 80 with the label `app=frontend`.
+scenario: Deploy a stateless frontend container named web-server on port 80 with label app=frontend.
 tasks:
-  - id: "task-deploy-pod"
-    title: "Deploy the web-server Pod"
-    description: "Create pod named web-server with image nginx:alpine and label app=frontend"
-    points: 50
-    validation:
-      type: "k8s_resource"
-      resource: "pods"
-      name: "web-server"
-      assertions:
-        - field: "status.phase"
-          operator: "equals"
-          expected: "Running"
-        - field: "metadata.labels.app"
-          operator: "equals"
-          expected: "frontend"
-  - id: "task-verify-port"
-    title: "Verify Container Port"
-    description: "Ensure container specifies containerPort 80"
-    points: 50
-    validation:
-      type: "k8s_resource"
-      resource: "pods"
-      name: "web-server"
-      assertions:
-        - field: "spec.containers[0].ports[0].containerPort"
-          operator: "equals"
-          expected: 80
+- id: task-deploy-pod
+  title: Deploy web-server pod
+  description: Verify status.phase on pods 'web-server'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: web-server
+    namespace: null
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+      actual: null
+      passed: null
+      error_message: null
+- id: task-verify-port
+  title: Verify container port
+  description: Verify spec.containers[0].ports[0].containerPort on pods 'web-server'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: web-server
+    namespace: null
+    assertions:
+    - field: spec.containers[0].ports[0].containerPort
+      operator: equals
+      expected: 80
+      actual: null
+      passed: null
+      error_message: null
 hints:
-  - text: "Use `kubectl run web-server --image=nginx:alpine --port=80 -l app=frontend`"
-    penalty_points: 15
-solution: |
-  kubectl run web-server --image=nginx:alpine --port=80 --labels=app=frontend --restart=Always
+- text: Use `kubectl run web-server --image=nginx:alpine --port=80 -l app=frontend`
+  penalty_points: 10
+solution: kubectl run web-server --image=nginx:alpine --port=80 -l app=frontend
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 20
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

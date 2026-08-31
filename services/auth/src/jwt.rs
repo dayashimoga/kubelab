@@ -25,9 +25,17 @@ impl JwtService {
     }
 
     pub fn generate_token(&self, user: &User) -> Result<(String, usize), JwtError> {
+        let (access_token, _, expires_in) = self.generate_tokens(user)?;
+        Ok((access_token, expires_in))
+    }
+
+    pub fn generate_tokens(&self, user: &User) -> Result<(String, String, usize), JwtError> {
         let now = Utc::now();
         let expires_at = now + Duration::hours(self.duration_hours);
         let exp = expires_at.timestamp() as usize;
+
+        let refresh_expires_at = now + Duration::days(7);
+        let refresh_exp = refresh_expires_at.timestamp() as usize;
 
         let role_str = match user.role {
             crate::models::UserRole::Admin => "admin",
@@ -35,22 +43,39 @@ impl JwtService {
             crate::models::UserRole::Learner => "learner",
         };
 
-        let claims = Claims {
+        let access_claims = Claims {
             sub: user.id.to_string(),
             email: user.email.clone(),
             role: role_str.to_string(),
             exp,
             iat: now.timestamp() as usize,
+            token_type: Some("access".to_string()),
         };
 
-        let token = encode(
+        let refresh_claims = Claims {
+            sub: user.id.to_string(),
+            email: user.email.clone(),
+            role: role_str.to_string(),
+            exp: refresh_exp,
+            iat: now.timestamp() as usize,
+            token_type: Some("refresh".to_string()),
+        };
+
+        let access_token = encode(
             &Header::default(),
-            &claims,
+            &access_claims,
             &EncodingKey::from_secret(self.secret.as_bytes()),
         )
         .map_err(|_| JwtError::CreationError)?;
 
-        Ok((token, (self.duration_hours * 3600) as usize))
+        let refresh_token = encode(
+            &Header::default(),
+            &refresh_claims,
+            &EncodingKey::from_secret(self.secret.as_bytes()),
+        )
+        .map_err(|_| JwtError::CreationError)?;
+
+        Ok((access_token, refresh_token, (self.duration_hours * 3600) as usize))
     }
 
     pub fn verify_token(&self, token: &str) -> Result<Claims, JwtError> {
@@ -62,6 +87,16 @@ impl JwtService {
         .map_err(|_| JwtError::ValidationError)?;
 
         Ok(decoded.claims)
+    }
+
+    pub fn verify_refresh_token(&self, token: &str) -> Result<Claims, JwtError> {
+        let claims = self.verify_token(token)?;
+        if let Some(ref t) = claims.token_type {
+            if t != "refresh" {
+                return Err(JwtError::ValidationError);
+            }
+        }
+        Ok(claims)
     }
 }
 
@@ -84,12 +119,17 @@ mod tests {
             updated_at: Utc::now(),
         };
 
-        let (token, expires_in) = jwt.generate_token(&user).unwrap();
+        let (access, refresh, expires_in) = jwt.generate_tokens(&user).unwrap();
         assert!(expires_in > 0);
+        assert!(!access.is_empty());
+        assert!(!refresh.is_empty());
 
-        let claims = jwt.verify_token(&token).unwrap();
+        let claims = jwt.verify_token(&access).unwrap();
         assert_eq!(claims.sub, user.id.to_string());
         assert_eq!(claims.email, "learner@kubelab.io");
         assert_eq!(claims.role, "learner");
+
+        let refresh_claims = jwt.verify_refresh_token(&refresh).unwrap();
+        assert_eq!(refresh_claims.sub, user.id.to_string());
     }
 }

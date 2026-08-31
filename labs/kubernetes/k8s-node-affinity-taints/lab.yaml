@@ -1,0 +1,72 @@
+id: k8s-node-affinity-taints
+title: Scheduling Control with NodeAffinity, Taints & Tolerations
+difficulty: advanced
+duration_minutes: 25
+track: kubernetes
+objectives:
+- Master Scheduling Control with NodeAffinity, Taints & Tolerations in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Configure tolerations for taint `dedicated=gpu:NoSchedule` and nodeAffinity for `accelerator=nvidia`.
+tasks:
+- id: task-1
+  title: Tolerate dedicated taint
+  description: Verify spec.tolerations[0].key on pods 'gpu-worker'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: gpu-worker
+    namespace: null
+    assertions:
+    - field: spec.tolerations[0].key
+      operator: equals
+      expected: dedicated
+      actual: null
+      passed: null
+      error_message: null
+- id: task-2
+  title: Ensure pod placed
+  description: Verify status.phase on pods 'gpu-worker'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: gpu-worker
+    namespace: null
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Add tolerations array and affinity.nodeAffinity in pod spec.
+  penalty_points: 10
+solution: kubectl apply -f gpu-worker.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 30
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

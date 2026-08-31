@@ -1,0 +1,56 @@
+id: linux-05-containerfile-builds
+title: Multi-Stage Containerfile Optimization
+difficulty: intermediate
+duration_minutes: 20
+track: linux-containers
+objectives:
+- Master Multi-Stage Containerfile Optimization in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Deploy a hardened minimal container utilizing distroless/alpine base images.
+tasks:
+- id: task-1
+  title: Deploy alpine-based runner
+  description: Verify status.phase on pods 'micro-runner'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: micro-runner
+    namespace: null
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Use alpine:3.19 or gcr.io/distroless/static.
+  penalty_points: 10
+solution: kubectl run micro-runner --image=alpine:3.19 -- sleep 3600
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

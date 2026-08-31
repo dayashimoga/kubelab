@@ -1,0 +1,56 @@
+id: k8s-ephemeral-containers
+title: Live Pod Debugging with Ephemeral Debug Containers
+difficulty: advanced
+duration_minutes: 25
+track: kubernetes
+objectives:
+- Master Live Pod Debugging with Ephemeral Debug Containers in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Attach an ephemeral debug container with busybox to inspect network sockets on a live running pod.
+tasks:
+- id: task-1
+  title: Deploy base application
+  description: Verify status.phase on pods 'live-app'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: live-app
+    namespace: null
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: kubectl debug pod/live-app -it --image=busybox:1.36
+  penalty_points: 10
+solution: kubectl debug pod/live-app -it --image=busybox:1.36
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 30
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

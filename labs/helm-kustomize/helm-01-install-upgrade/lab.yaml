@@ -1,0 +1,56 @@
+id: helm-01-install-upgrade
+title: Helm v3 Release Management & Rollbacks
+difficulty: intermediate
+duration_minutes: 20
+track: helm-kustomize
+objectives:
+- Master Helm v3 Release Management & Rollbacks in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Install chart, upgrade values, and perform atomic rollback
+tasks:
+- id: task-verify-helm-01-install-upgrade
+  title: Verify Helm v3 Release Management & Rollbacks
+  description: Verify metadata.name on deployments 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `deployments` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f helm-01-install-upgrade.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

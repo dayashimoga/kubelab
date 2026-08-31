@@ -1,4 +1,4 @@
-use crate::catalog::get_default_lab_catalog;
+use crate::catalog::load_labs_from_disk;
 use crate::models::{
     AppliedResource, ApplyManifestRequest, ApplyManifestResponse, K8sResourceSummary, LabSession,
     LabSummary, SessionStatus, StartLabRequest, ValidateLabRequest,
@@ -39,7 +39,7 @@ impl Default for LabService {
 
 impl LabService {
     pub fn new() -> Self {
-        let catalog = get_default_lab_catalog();
+        let catalog = load_labs_from_disk();
         let mut map = HashMap::new();
         for lab in catalog {
             map.insert(lab.id.clone(), lab);

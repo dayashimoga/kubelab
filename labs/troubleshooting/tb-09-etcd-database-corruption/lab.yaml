@@ -1,0 +1,56 @@
+id: tb-09-etcd-database-corruption
+title: Restoring Quorum & Defragging Unhealthy etcd
+difficulty: intermediate
+duration_minutes: 20
+track: troubleshooting
+objectives:
+- Master Restoring Quorum & Defragging Unhealthy etcd in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Defragment database and restore etcd cluster health
+tasks:
+- id: task-verify-tb-09-etcd-database-corruption
+  title: Verify Restoring Quorum & Defragging Unhealthy etcd
+  description: Verify metadata.name on pods 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `pods` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f tb-09-etcd-database-corruption.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

@@ -1,0 +1,56 @@
+id: net-07-gateway-api-httproute
+title: Gateway API HTTPRoute Configuration
+difficulty: intermediate
+duration_minutes: 20
+track: networking
+objectives:
+- Master Gateway API HTTPRoute Configuration in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Deploy modern Gateway and HTTPRoute resources
+tasks:
+- id: task-verify-net-07-gateway-api-httproute
+  title: Verify Gateway API HTTPRoute Configuration
+  description: Verify metadata.name on httproutes 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: httproutes
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `httproutes` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f net-07-gateway-api-httproute.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

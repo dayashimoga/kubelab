@@ -1,0 +1,56 @@
+id: mesh-01-istio-control-plane
+title: Deploying Istio Service Mesh Operator
+difficulty: intermediate
+duration_minutes: 20
+track: service-mesh
+objectives:
+- Master Deploying Istio Service Mesh Operator in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Install istiod and ingressgateway components
+tasks:
+- id: task-verify-mesh-01-istio-control-plane
+  title: Verify Deploying Istio Service Mesh Operator
+  description: Verify metadata.name on deployments 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `deployments` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f mesh-01-istio-control-plane.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

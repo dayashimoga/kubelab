@@ -1,0 +1,72 @@
+id: k8s-secrets-mounts
+title: Secure Secret Storage & Volume Mount Injection
+difficulty: intermediate
+duration_minutes: 15
+track: kubernetes
+objectives:
+- Master Secure Secret Storage & Volume Mount Injection in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Create generic secret api-credentials containing api-token and mount it read-only at /etc/secrets.
+tasks:
+- id: task-1
+  title: Create Secret
+  description: Verify type on secrets 'api-credentials'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: secrets
+    name: api-credentials
+    namespace: null
+    assertions:
+    - field: type
+      operator: equals
+      expected: Opaque
+      actual: null
+      passed: null
+      error_message: null
+- id: task-2
+  title: Mount Secret Volume
+  description: Verify spec.volumes[0].secret.secretName on pods 'secure-api-client'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: secure-api-client
+    namespace: null
+    assertions:
+    - field: spec.volumes[0].secret.secretName
+      operator: equals
+      expected: api-credentials
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: kubectl create secret generic api-credentials --from-literal=api-token=s3cr3t
+  penalty_points: 10
+solution: kubectl create secret generic api-credentials --from-literal=api-token=s3cr3t
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 20
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

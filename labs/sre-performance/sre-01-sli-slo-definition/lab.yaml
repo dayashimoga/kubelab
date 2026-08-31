@@ -1,0 +1,56 @@
+id: sre-01-sli-slo-definition
+title: Defining Latency & Availability SLIs
+difficulty: intermediate
+duration_minutes: 20
+track: sre-performance
+objectives:
+- Master Defining Latency & Availability SLIs in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Define 99.9% availability target with Prometheus rules
+tasks:
+- id: task-verify-sre-01-sli-slo-definition
+  title: Verify Defining Latency & Availability SLIs
+  description: Verify metadata.name on prometheusrules 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: prometheusrules
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `prometheusrules` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f sre-01-sli-slo-definition.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

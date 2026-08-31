@@ -69,12 +69,29 @@ pub struct DeclarativeLabDef {
     pub duration_minutes: u32,
     pub track: String,
     #[serde(default)]
+    pub objectives: Vec<String>,
+    #[serde(default)]
     pub prerequisites: Vec<String>,
+    #[serde(default)]
+    pub environment: Option<serde_json::Value>,
+    #[serde(default)]
+    pub initial_state: Option<serde_json::Value>,
     pub scenario: String,
     pub tasks: Vec<LabTask>,
     #[serde(default)]
     pub hints: Vec<LabHint>,
+    #[serde(default)]
     pub solution: String,
+    #[serde(default)]
+    pub cleanup: Option<serde_json::Value>,
+    #[serde(default)]
+    pub limits: Option<serde_json::Value>,
+    #[serde(default)]
+    pub security: Option<serde_json::Value>,
+    #[serde(default)]
+    pub resources: Option<serde_json::Value>,
+    #[serde(default)]
+    pub tested_versions: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

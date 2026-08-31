@@ -1,0 +1,56 @@
+id: k8s-daemonsets-logging
+title: DaemonSets for Node-Level Log Collection
+difficulty: intermediate
+duration_minutes: 20
+track: kubernetes
+objectives:
+- Master DaemonSets for Node-Level Log Collection in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Deploy DaemonSet fluent-bit-collector ensuring an agent runs on every schedulable worker node.
+tasks:
+- id: task-1
+  title: Deploy DaemonSet
+  description: Verify status.desiredNumberScheduled on daemonsets 'fluent-bit-collector'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: daemonsets
+    name: fluent-bit-collector
+    namespace: null
+    assertions:
+    - field: status.desiredNumberScheduled
+      operator: greater_than
+      expected: 0
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: 'Create DaemonSet with kind: DaemonSet and template matching labels.'
+  penalty_points: 10
+solution: kubectl apply -f fluent-bit-ds.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

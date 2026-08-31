@@ -16,6 +16,8 @@ pub enum AuthError {
     InvalidCredentials,
     #[error("User not found")]
     UserNotFound,
+    #[error("Invalid or expired refresh token")]
+    InvalidRefreshToken,
     #[error("Internal auth error")]
     InternalError,
 }
@@ -31,6 +33,10 @@ impl AuthService {
             users: Arc::new(RwLock::new(HashMap::new())),
             jwt: JwtService::new(jwt_secret),
         }
+    }
+
+    pub fn jwt(&self) -> &JwtService {
+        &self.jwt
     }
 
     pub async fn register(
@@ -59,9 +65,9 @@ impl AuthService {
             updated_at: now,
         };
 
-        let (token, expires_in) = self
+        let (access_token, refresh_token, expires_in) = self
             .jwt
-            .generate_token(&user)
+            .generate_tokens(&user)
             .map_err(|_| AuthError::InternalError)?;
 
         users.insert(email.to_string(), user.clone());
@@ -69,7 +75,8 @@ impl AuthService {
         Ok(AuthResponse {
             user,
             tokens: AuthTokens {
-                access_token: token,
+                access_token,
+                refresh_token: Some(refresh_token),
                 token_type: "Bearer".to_string(),
                 expires_in,
             },
@@ -87,18 +94,41 @@ impl AuthService {
             return Err(AuthError::InvalidCredentials);
         }
 
-        let (token, expires_in) = self
+        let (access_token, refresh_token, expires_in) = self
             .jwt
-            .generate_token(user)
+            .generate_tokens(user)
             .map_err(|_| AuthError::InternalError)?;
 
         Ok(AuthResponse {
             user: user.clone(),
             tokens: AuthTokens {
-                access_token: token,
+                access_token,
+                refresh_token: Some(refresh_token),
                 token_type: "Bearer".to_string(),
                 expires_in,
             },
+        })
+    }
+
+    pub async fn refresh_tokens(&self, refresh_token: &str) -> Result<AuthTokens, AuthError> {
+        let claims = self
+            .jwt
+            .verify_refresh_token(refresh_token)
+            .map_err(|_| AuthError::InvalidRefreshToken)?;
+
+        let user_id = Uuid::parse_str(&claims.sub).map_err(|_| AuthError::InvalidRefreshToken)?;
+        let user = self.get_user_by_id(&user_id).await?;
+
+        let (access_token, new_refresh_token, expires_in) = self
+            .jwt
+            .generate_tokens(&user)
+            .map_err(|_| AuthError::InternalError)?;
+
+        Ok(AuthTokens {
+            access_token,
+            refresh_token: Some(new_refresh_token),
+            token_type: "Bearer".to_string(),
+            expires_in,
         })
     }
 
@@ -112,7 +142,7 @@ impl AuthService {
         Err(AuthError::UserNotFound)
     }
 
-    pub fn jwt(&self) -> &JwtService {
-        &self.jwt
+    pub fn verify_token(&self, token: &str) -> Result<crate::models::Claims, crate::jwt::JwtError> {
+        self.jwt.verify_token(token)
     }
 }

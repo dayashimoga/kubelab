@@ -1,6 +1,10 @@
 use crate::models::{TutorMode, TutorRequest, TutorResponse};
+use serde_json::json;
+use std::time::Duration;
 
-pub struct AiTutorService;
+pub struct AiTutorService {
+    http_client: reqwest::Client,
+}
 
 impl Default for AiTutorService {
     fn default() -> Self {
@@ -10,55 +14,166 @@ impl Default for AiTutorService {
 
 impl AiTutorService {
     pub fn new() -> Self {
-        Self
+        Self {
+            http_client: reqwest::Client::builder()
+                .timeout(Duration::from_secs(10))
+                .build()
+                .unwrap_or_default(),
+        }
     }
 
     pub async fn query_tutor(&self, req: &TutorRequest) -> TutorResponse {
+        // 1. Try querying local containerized Ollama if configured
+        if let Ok(ollama_host) = std::env::var("OLLAMA_HOST") {
+            if let Ok(resp) = self.query_ollama(&ollama_host, req).await {
+                return resp;
+            }
+        }
+
+        // 2. Try querying OpenAI-compatible endpoint if API key configured
+        if let Ok(api_key) = std::env::var("OPENAI_API_KEY") {
+            if let Ok(resp) = self.query_openai_compatible(&api_key, req).await {
+                return resp;
+            }
+        }
+
+        // 3. Fallback to rich contextual pedagogical engine
+        self.pedagogical_contextual_response(req)
+    }
+
+    async fn query_ollama(&self, host: &str, req: &TutorRequest) -> Result<TutorResponse, Box<dyn std::error::Error>> {
+        let endpoint = format!("{}/api/generate", host.trim_end_matches('/'));
+        let system_prompt = self.build_system_prompt(&req.mode);
+        let prompt = format!("System: {}\nUser Prompt: {}\nContext: YAML: {:?}\nError: {:?}", 
+            system_prompt, req.user_prompt, req.current_yaml, req.current_error_log);
+
+        let body = json!({
+            "model": std::env::var("AI_MODEL_NAME").unwrap_or_else(|_| "llama3:8b".to_string()),
+            "prompt": prompt,
+            "stream": false
+        });
+
+        let res = self.http_client.post(&endpoint).json(&body).send().await?;
+        let json_res: serde_json::Value = res.json().await?;
+        let reply = json_res["response"].as_str().unwrap_or("No response generated").to_string();
+
+        Ok(TutorResponse {
+            reply_markdown: reply,
+            suggested_followups: self.get_suggested_followups(&req.mode),
+            references: self.get_references(&req.mode),
+        })
+    }
+
+    async fn query_openai_compatible(&self, api_key: &str, req: &TutorRequest) -> Result<TutorResponse, Box<dyn std::error::Error>> {
+        let endpoint = std::env::var("OPENAI_BASE_URL").unwrap_or_else(|_| "https://api.openai.com/v1/chat/completions".to_string());
+        let system_prompt = self.build_system_prompt(&req.mode);
+
+        let messages = vec![
+            json!({ "role": "system", "content": system_prompt }),
+            json!({ 
+                "role": "user", 
+                "content": format!("Prompt: {}\nYAML: {:?}\nError: {:?}", req.user_prompt, req.current_yaml, req.current_error_log) 
+            }),
+        ];
+
+        let body = json!({
+            "model": std::env::var("AI_MODEL_NAME").unwrap_or_else(|_| "gpt-4o-mini".to_string()),
+            "messages": messages,
+            "temperature": 0.3
+        });
+
+        let res = self.http_client.post(&endpoint)
+            .header("Authorization", format!("Bearer {}", api_key))
+            .json(&body)
+            .send()
+            .await?;
+
+        let json_res: serde_json::Value = res.json().await?;
+        let reply = json_res["choices"][0]["message"]["content"].as_str().unwrap_or("No response generated").to_string();
+
+        Ok(TutorResponse {
+            reply_markdown: reply,
+            suggested_followups: self.get_suggested_followups(&req.mode),
+            references: self.get_references(&req.mode),
+        })
+    }
+
+    fn build_system_prompt(&self, mode: &TutorMode) -> &'static str {
+        match mode {
+            TutorMode::Explain => "You are an expert Kubernetes and Cloud-Native SRE tutor. Provide deep architectural explanations with clear ASCII diagrams, control plane mechanics, and practical implications.",
+            TutorMode::Socratic => "You are a Socratic Kubernetes instructor. DO NOT give direct answers. Ask targeted, thought-provoking questions that guide the learner to inspect their own cluster state and discover the solution.",
+            TutorMode::Hint => "You are a helpful Kubernetes lab assistant. Provide minimal, progressive, non-spoiling hints pointing directly to relevant kubectl commands, API fields, or Kubernetes documentation.",
+            TutorMode::Diagnose => "You are a principal Kubernetes incident commander. Analyze the provided error logs and YAML manifests forensically. Identify the root cause (e.g. OOM, DNS, probe failure, NetworkPolicy) and propose diagnostic verification steps.",
+            TutorMode::Review => "You are a Kubernetes security and reliability auditor. Review the provided YAML manifest against production best practices (resource requests/limits, securityContext, readinessProbes, PodDisruptionBudgets).",
+        }
+    }
+
+    fn pedagogical_contextual_response(&self, req: &TutorRequest) -> TutorResponse {
         match req.mode {
             TutorMode::Explain => TutorResponse {
                 reply_markdown: format!(
-                    "### Concept Explanation\n\nIn cloud-native architecture, **{}** plays a fundamental role. Kubernetes decouples compute from physical infrastructure through declarative reconciliation loops. Let's break down the components:\n\n1. **Control Plane**: Evaluates desired vs actual state.\n2. **Kubelet & Worker Nodes**: Enforce container boundaries.\n3. **Network Plane**: Assigns unique routable IP per Pod.",
+                    "### Concept Explanation & Architecture Deep-Dive\n\nIn Kubernetes, **{}** represents a core cloud-native primitive. The control plane reconciles desired state against live cluster state via continuous control loops.\n\n```text\n[kubectl / API Request] ──> [kube-apiserver] ──> [etcd (Source of Truth)]\n                                  │\n                           [kube-controller-manager]\n                                  │\n                    [kubelet on Node Worker] ──> [Container Runtime (CRI)]\n```\n\n#### Key Mechanics:\n1. **Declarative Reconciliation**: You declare target state in YAML; Kubernetes continuously converges reality towards it.\n2. **Decoupled Architecture**: Workloads (Pods) communicate across flat overlay networks without host port collision.\n3. **Self-Healing**: Pods killed or nodes failing automatically trigger replacement replica scheduling.",
                     req.user_prompt
                 ),
-                suggested_followups: vec![
-                    "How does kube-proxy route traffic to this Pod?".to_string(),
-                    "What happens when a node fails?".to_string(),
-                ],
-                references: vec!["https://kubernetes.io/docs/concepts/workloads/pods/".to_string()],
+                suggested_followups: self.get_suggested_followups(&req.mode),
+                references: self.get_references(&req.mode),
             },
             TutorMode::Socratic => TutorResponse {
-                reply_markdown: "Let's think through this step-by-step:\n\n1. What does the `kubectl describe pod` output reveal in the `Events` section?\n2. Is the container crashing on startup, or is it failing a readiness probe?\n3. What would you check first: image pull secrets or environment variable bindings?".to_string(),
-                suggested_followups: vec![
-                    "I see CrashLoopBackOff in the status".to_string(),
-                    "The readiness probe failed on /healthz".to_string(),
-                ],
-                references: vec!["docs/troubleshooting/TROUBLESHOOTING.md".to_string()],
+                reply_markdown: "Let's think through this step-by-step:\n\n1. What does `kubectl get pods -o wide` show for the pod status and node assignment?\n2. In `kubectl describe pod <name>`, what exact message appears in the `Events` table?\n3. If a container is restarting repeatedly, what is the exit code reported in `Last State: Terminated` (e.g., exit code 137 for OOMKilled vs 1 for application exception)?".to_string(),
+                suggested_followups: self.get_suggested_followups(&req.mode),
+                references: self.get_references(&req.mode),
             },
             TutorMode::Hint => TutorResponse {
-                reply_markdown: "💡 **Guiding Hint**: Check the label selectors on your Service definition. If `spec.selector` in your Service does not match `spec.template.metadata.labels` on your Deployment, no endpoints will be attached, and curl requests will hang.".to_string(),
-                suggested_followups: vec![
-                    "How do I view endpoints for a service?".to_string(),
-                ],
-                references: vec![],
+                reply_markdown: "💡 **Guiding Hint & Targeted Guidance**: Check the label selectors in your manifest. If `spec.selector.matchLabels` on your Deployment does not match `spec.template.metadata.labels`, the deployment controller cannot adopt the Pods, and `kubectl get pods` will show no instances.".to_string(),
+                suggested_followups: self.get_suggested_followups(&req.mode),
+                references: self.get_references(&req.mode),
             },
             TutorMode::Diagnose => {
-                let error = req.current_error_log.as_deref().unwrap_or("No error provided");
+                let error = req.current_error_log.as_deref().unwrap_or("Application startup failed");
                 TutorResponse {
                     reply_markdown: format!(
-                        "🔍 **Diagnostic Analysis**\n\nReceived error:\n```\n{}\n```\n\n**Root Cause Assessment**:\n- If you see `ImagePullBackOff`, check registry authentication or image name typo.\n- If you see `OOMKilled`, increase the container memory limit in `resources.limits.memory`.\n- If you see `ErrImageNeverPull`, verify the image exists in local Podman/Docker storage.",
+                        "🔍 **Diagnostic Analysis & Forensic Root Cause**\n\n**Log Snippet Analyzed**:\n```\n{}\n```\n\n**Potential Failure Modes**:\n- **Exit Code 137 (OOMKilled)**: The Linux cgroup memory limit (`resources.limits.memory`) was exceeded by the container process.\n- **CrashLoopBackOff**: Container failed its startup or liveness probe, or crashed on initial entrypoint.\n- **ImagePullBackOff / ErrImagePull**: Typo in image name, missing tag, or unauthenticated private container registry.\n\n**Remediation Steps**:\n1. Inspect pod logs: `kubectl logs <pod-name> --previous`\n2. Describe events: `kubectl describe pod <pod-name>`",
                         error
                     ),
-                    suggested_followups: vec![
-                        "How do I increase memory limits in YAML?".to_string(),
-                    ],
-                    references: vec![],
+                    suggested_followups: self.get_suggested_followups(&req.mode),
+                    references: self.get_references(&req.mode),
                 }
             }
             TutorMode::Review => TutorResponse {
-                reply_markdown: "✅ **YAML Review**\n\nYour manifest structure follows Kubernetes best practices! Remember to specify both `requests` and `limits` to give the scheduler reliable placement constraints.".to_string(),
-                suggested_followups: vec![],
-                references: vec![],
-            },
+                reply_markdown: "🛡️ **YAML Review & Production Manifest Audit**\n\n1. **Resource Constraints**: Verify both `requests` and `limits` are configured to prevent node starvation.\n2. **Security Hardening**: Ensure `securityContext.runAsNonRoot: true` and `allowPrivilegeEscalation: false` are set.\n3. **Probes**: Ensure both `readinessProbe` and `livenessProbe` are configured with appropriate `initialDelaySeconds`.".to_string(),
+                suggested_followups: self.get_suggested_followups(&req.mode),
+                references: self.get_references(&req.mode),
+            }
         }
+    }
+
+    fn get_suggested_followups(&self, mode: &TutorMode) -> Vec<String> {
+        match mode {
+            TutorMode::Explain => vec![
+                "How does kube-proxy handle iptables vs IPVS mode?".to_string(),
+                "What happens when etcd loses quorum?".to_string(),
+            ],
+            TutorMode::Socratic => vec![
+                "I see CrashLoopBackOff with Exit Code 137".to_string(),
+                "The readiness probe failed on port 8080".to_string(),
+            ],
+            TutorMode::Hint => vec![
+                "How do I check endpoints with kubectl?".to_string(),
+            ],
+            TutorMode::Diagnose => vec![
+                "How do I profile memory consumption inside the container?".to_string(),
+                "How do I increase limits without restarting the deployment?".to_string(),
+            ],
+            TutorMode::Review => vec![
+                "How do I validate this manifest with kubeval or kubeconform?".to_string(),
+            ],
+        }
+    }
+
+    fn get_references(&self, _mode: &TutorMode) -> Vec<String> {
+        vec![
+            "https://kubernetes.io/docs/concepts/workloads/pods/".to_string(),
+            "https://kubernetes.io/docs/tasks/debug/debug-application/".to_string(),
+        ]
     }
 }

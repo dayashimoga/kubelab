@@ -1,0 +1,56 @@
+id: linux-07-systemd-units
+title: Container Orchestration with Systemd & Restart Policies
+difficulty: advanced
+duration_minutes: 25
+track: linux-containers
+objectives:
+- Master Container Orchestration with Systemd & Restart Policies in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: 'Configure automated restartPolicy: Always on production daemon workloads.'
+tasks:
+- id: task-1
+  title: Configure restartPolicy Always
+  description: Verify spec.restartPolicy on pods 'auto-heal-daemon'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: auto-heal-daemon
+    namespace: null
+    assertions:
+    - field: spec.restartPolicy
+      operator: equals
+      expected: Always
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Ensure restartPolicy is set to Always.
+  penalty_points: 10
+solution: kubectl run auto-heal-daemon --image=redis:alpine --restart=Always
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 30
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

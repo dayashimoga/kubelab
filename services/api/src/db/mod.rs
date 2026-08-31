@@ -40,6 +40,18 @@ impl Database {
         &self.pool
     }
 
+    pub fn users(&self) -> users::UserRepository<'_> {
+        users::UserRepository::new(&self.pool)
+    }
+
+    pub fn progress(&self) -> progress::ProgressRepository<'_> {
+        progress::ProgressRepository::new(&self.pool)
+    }
+
+    pub fn labs(&self) -> labs::LabRepository<'_> {
+        labs::LabRepository::new(&self.pool)
+    }
+
     pub async fn ping(&self) -> Result<(), sqlx::Error> {
         sqlx::query("SELECT 1")
             .execute(&self.pool)

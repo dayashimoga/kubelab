@@ -36,11 +36,15 @@ pub struct Claims {
     pub role: String,
     pub exp: usize,
     pub iat: usize,
+    #[serde(default)]
+    pub token_type: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthTokens {
     pub access_token: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub refresh_token: Option<String>,
     pub token_type: String,
     pub expires_in: usize,
 }

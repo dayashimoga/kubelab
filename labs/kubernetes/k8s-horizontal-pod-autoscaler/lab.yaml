@@ -1,0 +1,72 @@
+id: k8s-horizontal-pod-autoscaler
+title: Metric-Driven Autoscaling with HPA v2
+difficulty: advanced
+duration_minutes: 25
+track: kubernetes
+objectives:
+- Master Metric-Driven Autoscaling with HPA v2 in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: 'Create HPA for deployment payment-svc with minReplicas: 2, maxReplicas: 10, target CPU 70%.'
+tasks:
+- id: task-1
+  title: HPA minReplicas 2
+  description: Verify spec.minReplicas on horizontalpodautoscalers 'payment-hpa'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: horizontalpodautoscalers
+    name: payment-hpa
+    namespace: null
+    assertions:
+    - field: spec.minReplicas
+      operator: equals
+      expected: 2
+      actual: null
+      passed: null
+      error_message: null
+- id: task-2
+  title: HPA maxReplicas 10
+  description: Verify spec.maxReplicas on horizontalpodautoscalers 'payment-hpa'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: horizontalpodautoscalers
+    name: payment-hpa
+    namespace: null
+    assertions:
+    - field: spec.maxReplicas
+      operator: equals
+      expected: 10
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: kubectl autoscale deployment payment-svc --min=2 --max=10 --cpu-percent=70 --name=payment-hpa
+  penalty_points: 10
+solution: kubectl autoscale deployment payment-svc --min=2 --max=10 --cpu-percent=70 --name=payment-hpa
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 30
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

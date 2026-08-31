@@ -1,0 +1,56 @@
+id: gitops-06-drift-detection
+title: Configuration Drift Detection & Alerts
+difficulty: intermediate
+duration_minutes: 20
+track: gitops
+objectives:
+- Master Configuration Drift Detection & Alerts in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Detect out-of-sync drift and notify webhook
+tasks:
+- id: task-verify-gitops-06-drift-detection
+  title: Verify Configuration Drift Detection & Alerts
+  description: Verify metadata.name on applications 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: applications
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `applications` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f gitops-06-drift-detection.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

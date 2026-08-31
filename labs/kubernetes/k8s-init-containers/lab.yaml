@@ -1,0 +1,72 @@
+id: k8s-init-containers
+title: Init Containers for Pre-Flight Dependency Bootstrapping
+difficulty: intermediate
+duration_minutes: 20
+track: kubernetes
+objectives:
+- Master Init Containers for Pre-Flight Dependency Bootstrapping in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Configure initContainer wait-for-db to verify database connectivity before launching app container.
+tasks:
+- id: task-1
+  title: Define initContainer
+  description: Verify spec.initContainers[0].name on pods 'app-with-init'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: app-with-init
+    namespace: null
+    assertions:
+    - field: spec.initContainers[0].name
+      operator: equals
+      expected: wait-for-db
+      actual: null
+      passed: null
+      error_message: null
+- id: task-2
+  title: Ensure main container running
+  description: Verify status.phase on pods 'app-with-init'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: app-with-init
+    namespace: null
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Add initContainers array with nc/curl check in pod spec.
+  penalty_points: 10
+solution: kubectl apply -f app-init.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

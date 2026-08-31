@@ -1,0 +1,56 @@
+id: cert-03-cka-mock-network
+title: 'CKA Mock: Ingress Routing & NetworkPolicies'
+difficulty: intermediate
+duration_minutes: 20
+track: certification
+objectives:
+- 'Master CKA Mock: Ingress Routing & NetworkPolicies in Kubernetes'
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Configure Ingress TLS and ingress/egress NetworkPolicies
+tasks:
+- id: task-verify-cert-03-cka-mock-network
+  title: 'Verify CKA Mock: Ingress Routing & NetworkPolicies'
+  description: Verify metadata.name on networkpolicies 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: networkpolicies
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `networkpolicies` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f cert-03-cka-mock-network.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

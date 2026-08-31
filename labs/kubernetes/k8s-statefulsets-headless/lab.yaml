@@ -1,0 +1,72 @@
+id: k8s-statefulsets-headless
+title: StatefulSets & Headless Services for Clustered State
+difficulty: advanced
+duration_minutes: 25
+track: kubernetes
+objectives:
+- Master StatefulSets & Headless Services for Clustered State in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: 'Deploy 3-replica StatefulSet database-cluster with headless Service clusterIP: None.'
+tasks:
+- id: task-1
+  title: Headless service clusterIP None
+  description: Verify spec.clusterIP on services 'db-headless'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: services
+    name: db-headless
+    namespace: null
+    assertions:
+    - field: spec.clusterIP
+      operator: equals
+      expected: None
+      actual: null
+      passed: null
+      error_message: null
+- id: task-2
+  title: StatefulSet with 3 replicas
+  description: Verify spec.replicas on statefulsets 'database-cluster'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: statefulsets
+    name: database-cluster
+    namespace: null
+    assertions:
+    - field: spec.replicas
+      operator: equals
+      expected: 3
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: 'Set spec.clusterIP: None on Service and serviceName: db-headless on StatefulSet.'
+  penalty_points: 10
+solution: kubectl apply -f statefulset-cluster.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 30
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

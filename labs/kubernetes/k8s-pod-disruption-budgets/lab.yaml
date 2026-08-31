@@ -1,0 +1,56 @@
+id: k8s-pod-disruption-budgets
+title: High Availability with PodDisruptionBudgets (PDB)
+difficulty: intermediate
+duration_minutes: 20
+track: kubernetes
+objectives:
+- Master High Availability with PodDisruptionBudgets (PDB) in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: 'Create PodDisruptionBudget api-pdb with minAvailable: 2 targeting app=api pods.'
+tasks:
+- id: task-1
+  title: Configure minAvailable 2
+  description: Verify spec.minAvailable on poddisruptionbudgets 'api-pdb'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: poddisruptionbudgets
+    name: api-pdb
+    namespace: null
+    assertions:
+    - field: spec.minAvailable
+      operator: equals
+      expected: 2
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: kubectl create pdb api-pdb --selector=app=api --min-available=2
+  penalty_points: 10
+solution: kubectl create pdb api-pdb --selector=app=api --min-available=2
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

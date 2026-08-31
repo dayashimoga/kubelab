@@ -1,59 +1,56 @@
-id: "k8s-deployments-scaling"
-title: "Deployments, Scaling and Rolling Updates"
-difficulty: "intermediate"
+id: k8s-deployments-scaling
+title: Deployments, Scaling and Rolling Updates
+difficulty: beginner
 duration_minutes: 20
-track: "kubernetes"
-prerequisites:
-  - "k8s-pod-basics"
+track: kubernetes
+objectives:
+- Master Deployments, Scaling and Rolling Updates in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
 environment:
-  type: "kubernetes"
-  cluster: "disposable"
+  cluster: disposable
   namespace_isolation: true
   resources:
-    cpu_limit: "1000m"
-    memory_limit: "1024Mi"
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
 initial_state:
   manifests: []
-scenario: |
-  Deploy a scalable web API with 3 replicas and a RollingUpdate deployment strategy.
+scenario: Deploy a 3-replica API deployment and verify all 3 replicas are in Ready state.
 tasks:
-  - id: "task-create-deployment"
-    title: "Create the Deployment"
-    description: "Create a Deployment named `api-server` using image `nginx:1.25-alpine` with 3 replicas."
-    points: 50
-    validation:
-      type: "k8s_resource"
-      resource: "deployments"
-      name: "api-server"
-      assertions:
-        - field: "spec.replicas"
-          operator: "equals"
-          expected: 3
-        - field: "status.readyReplicas"
-          operator: "equals"
-          expected: 3
-  - id: "task-rolling-strategy"
-    title: "Configure RollingUpdate Strategy"
-    description: "Ensure maxSurge is set to 1 and maxUnavailable is set to 0."
-    points: 50
-    validation:
-      type: "k8s_resource"
-      resource: "deployments"
-      name: "api-server"
-      assertions:
-        - field: "spec.strategy.rollingUpdate.maxSurge"
-          operator: "equals"
-          expected: 1
-        - field: "spec.strategy.rollingUpdate.maxUnavailable"
-          operator: "equals"
-          expected: 0
+- id: task-1
+  title: Verify 3 ready replicas
+  description: Verify status.readyReplicas on deployments 'api-deployment'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: api-deployment
+    namespace: null
+    assertions:
+    - field: status.readyReplicas
+      operator: equals
+      expected: 3
+      actual: null
+      passed: null
+      error_message: null
 hints:
-  - text: "Specify `.spec.strategy.type: RollingUpdate` and `.spec.strategy.rollingUpdate` parameters."
-    penalty_points: 10
-solution: |
-  kubectl create deployment api-server --image=nginx:1.25-alpine --replicas=3
+- text: kubectl create deployment api-deployment --image=nginx:alpine --replicas=3
+  penalty_points: 10
+solution: kubectl create deployment api-deployment --image=nginx:alpine --replicas=3
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

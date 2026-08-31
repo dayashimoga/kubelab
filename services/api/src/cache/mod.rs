@@ -21,4 +21,8 @@ impl Cache {
     pub fn manager(&self) -> ConnectionManager {
         self.manager.clone()
     }
+
+    pub fn session_store(&self) -> session_store::SessionStore {
+        session_store::SessionStore::new(self.manager.clone())
+    }
 }

@@ -1,0 +1,56 @@
+id: cert-05-cka-mock-troubleshoot
+title: 'CKA Mock: Triage Broken Node & System Pods'
+difficulty: intermediate
+duration_minutes: 20
+track: certification
+objectives:
+- 'Master CKA Mock: Triage Broken Node & System Pods in Kubernetes'
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Fix kubelet systemd service and restart failed API server
+tasks:
+- id: task-verify-cert-05-cka-mock-troubleshoot
+  title: 'Verify CKA Mock: Triage Broken Node & System Pods'
+  description: Verify metadata.name on nodes 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: nodes
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `nodes` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f cert-05-cka-mock-troubleshoot.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

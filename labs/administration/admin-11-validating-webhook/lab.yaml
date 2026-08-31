@@ -1,0 +1,56 @@
+id: admin-11-validating-webhook
+title: Validating Admission Webhook Constraints
+difficulty: intermediate
+duration_minutes: 20
+track: administration
+objectives:
+- Master Validating Admission Webhook Constraints in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Reject non-compliant manifests before admission
+tasks:
+- id: task-verify-admin-11-validating-webhook
+  title: Verify Validating Admission Webhook Constraints
+  description: Verify metadata.name on validatingwebhookconfigurations 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: validatingwebhookconfigurations
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `validatingwebhookconfigurations` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f admin-11-validating-webhook.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

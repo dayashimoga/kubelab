@@ -24,6 +24,11 @@ pub struct LoginDto {
     pub password: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct RefreshTokenDto {
+    pub refresh_token: String,
+}
+
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
     pub error: String,
@@ -34,6 +39,7 @@ pub struct AuthenticatedUser {
     pub id: Uuid,
     pub email: String,
     pub role: UserRole,
+    pub token: String,
 }
 
 pub struct AuthClaims(pub AuthenticatedUser);
@@ -72,6 +78,19 @@ where
         }
 
         let token = &auth_header[7..];
+
+        // Check if token was blacklisted/revoked in Redis
+        if let Some(ref cache) = app_state.cache {
+            if cache.session_store().is_revoked(token).await.unwrap_or(false) {
+                return Err((
+                    StatusCode::UNAUTHORIZED,
+                    Json(ErrorResponse {
+                        error: "Token has been revoked".to_string(),
+                    }),
+                ));
+            }
+        }
+
         let claims = app_state
             .auth
             .jwt()
@@ -104,6 +123,7 @@ where
             id: user_id,
             email: claims.email,
             role,
+            token: token.to_string(),
         }))
     }
 }
@@ -112,6 +132,8 @@ pub fn router() -> Router<AppState> {
     Router::new()
         .route("/register", post(register))
         .route("/login", post(login))
+        .route("/refresh", post(refresh))
+        .route("/logout", post(logout))
         .route("/me", get(get_me))
 }
 
@@ -149,12 +171,24 @@ async fn register(
         ));
     }
 
+    let role_str = match payload.role.as_ref().unwrap_or(&UserRole::Learner) {
+        UserRole::Admin => "admin",
+        UserRole::Instructor => "instructor",
+        UserRole::Learner => "learner",
+    };
+
     match state
         .auth
         .register(email, name, &payload.password, payload.role)
         .await
     {
-        Ok(res) => Ok((StatusCode::CREATED, Json(res))),
+        Ok(res) => {
+            // If PostgreSQL is configured, persist user
+            if let Some(ref db) = state.db {
+                let _ = db.users().create_user(email, name, &payload.password, role_str).await;
+            }
+            Ok((StatusCode::CREATED, Json(res)))
+        }
         Err(e) => Err((
             StatusCode::BAD_REQUEST,
             Json(ErrorResponse {
@@ -169,7 +203,27 @@ async fn login(
     Json(payload): Json<LoginDto>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
     match state.auth.login(&payload.email, &payload.password).await {
-        Ok(res) => Ok((StatusCode::OK, Json(res))),
+        Ok(res) => {
+            // Cache active session in Redis if connected
+            if let Some(ref cache) = state.cache {
+                let role_str = match res.user.role {
+                    UserRole::Admin => "admin",
+                    UserRole::Instructor => "instructor",
+                    UserRole::Learner => "learner",
+                };
+                let cached = crate::cache::session_store::CachedSession {
+                    user_id: res.user.id,
+                    email: res.user.email.clone(),
+                    role: role_str.to_string(),
+                    session_id: res.tokens.access_token.clone(),
+                };
+                let _ = cache
+                    .session_store()
+                    .set_session(&res.tokens.access_token, &cached, 86400)
+                    .await;
+            }
+            Ok((StatusCode::OK, Json(res)))
+        }
         Err(e) => Err((
             StatusCode::UNAUTHORIZED,
             Json(ErrorResponse {
@@ -177,6 +231,35 @@ async fn login(
             }),
         )),
     }
+}
+
+async fn refresh(
+    State(state): State<AppState>,
+    Json(payload): Json<RefreshTokenDto>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
+    match state.auth.refresh_tokens(&payload.refresh_token).await {
+        Ok(tokens) => Ok((StatusCode::OK, Json(tokens))),
+        Err(e) => Err((
+            StatusCode::UNAUTHORIZED,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )),
+    }
+}
+
+async fn logout(
+    State(state): State<AppState>,
+    AuthClaims(user): AuthClaims,
+) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
+    // Add access token to revocation blacklist
+    if let Some(ref cache) = state.cache {
+        let _ = cache
+            .session_store()
+            .revoke_token(&user.token, 86400)
+            .await;
+    }
+    Ok((StatusCode::OK, Json(serde_json::json!({ "message": "Successfully logged out" }))))
 }
 
 async fn get_me(

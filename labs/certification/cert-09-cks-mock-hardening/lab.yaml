@@ -1,0 +1,56 @@
+id: cert-09-cks-mock-hardening
+title: 'CKS Mock: Restricted PodSecurity & Seccomp'
+difficulty: intermediate
+duration_minutes: 20
+track: certification
+objectives:
+- 'Master CKS Mock: Restricted PodSecurity & Seccomp in Kubernetes'
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Enforce Restricted profile, drop ALL caps, enable seccomp
+tasks:
+- id: task-verify-cert-09-cks-mock-hardening
+  title: 'Verify CKS Mock: Restricted PodSecurity & Seccomp'
+  description: Verify metadata.name on pods 'target-resource'
+  points: 100
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: target-resource
+    namespace: null
+    assertions:
+    - field: metadata.name
+      operator: equals
+      expected: target-resource
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Inspect Kubernetes documentation for `pods` resource specifications.
+  penalty_points: 10
+solution: kubectl apply -f cert-09-cks-mock-hardening.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

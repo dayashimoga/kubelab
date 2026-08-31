@@ -1,0 +1,72 @@
+id: linux-04-cgroups-limits
+title: Control Groups (cgroups v2) CPU & Memory Constraints
+difficulty: intermediate
+duration_minutes: 20
+track: linux-containers
+objectives:
+- Master Control Groups (cgroups v2) CPU & Memory Constraints in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Apply cgroup limits (500m CPU, 256Mi RAM) on worker container to prevent node starvation.
+tasks:
+- id: task-1
+  title: Set CPU limit to 500m
+  description: Verify spec.containers[0].resources.limits.cpu on pods 'cgroup-worker'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: cgroup-worker
+    namespace: null
+    assertions:
+    - field: spec.containers[0].resources.limits.cpu
+      operator: equals
+      expected: 500m
+      actual: null
+      passed: null
+      error_message: null
+- id: task-2
+  title: Set memory limit to 256Mi
+  description: Verify spec.containers[0].resources.limits.memory on pods 'cgroup-worker'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: cgroup-worker
+    namespace: null
+    assertions:
+    - field: spec.containers[0].resources.limits.memory
+      operator: equals
+      expected: 256Mi
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: Add limits under resources block in container spec.
+  penalty_points: 10
+solution: kubectl apply -f cgroup-worker.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

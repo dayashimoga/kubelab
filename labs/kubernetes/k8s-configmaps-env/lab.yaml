@@ -1,0 +1,72 @@
+id: k8s-configmaps-env
+title: Decoupling Configuration with ConfigMaps
+difficulty: beginner
+duration_minutes: 15
+track: kubernetes
+objectives:
+- Master Decoupling Configuration with ConfigMaps in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Create a ConfigMap app-config with key DB_HOST=postgres.internal and mount as environment variable.
+tasks:
+- id: task-1
+  title: Create ConfigMap
+  description: Verify data.DB_HOST on configmaps 'app-config'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: configmaps
+    name: app-config
+    namespace: null
+    assertions:
+    - field: data.DB_HOST
+      operator: equals
+      expected: postgres.internal
+      actual: null
+      passed: null
+      error_message: null
+- id: task-2
+  title: Deploy consumer pod
+  description: Verify status.phase on pods 'app-consumer'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: app-consumer
+    namespace: null
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: kubectl create configmap app-config --from-literal=DB_HOST=postgres.internal
+  penalty_points: 10
+solution: kubectl create configmap app-config --from-literal=DB_HOST=postgres.internal
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 20
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

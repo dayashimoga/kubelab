@@ -1,0 +1,72 @@
+id: k8s-services-clusterip
+title: ClusterIP Service Discovery & Endpoint Resolution
+difficulty: beginner
+duration_minutes: 15
+track: kubernetes
+objectives:
+- Master ClusterIP Service Discovery & Endpoint Resolution in Kubernetes
+- Execute and verify deterministic live cluster state
+prerequisites: []
+environment:
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+  type: kubernetes
+initial_state:
+  manifests: []
+scenario: Create a ClusterIP service named backend-svc exposing port 8080 targeting container port 80.
+tasks:
+- id: task-1
+  title: Verify ClusterIP service
+  description: Verify spec.type on services 'backend-svc'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: services
+    name: backend-svc
+    namespace: null
+    assertions:
+    - field: spec.type
+      operator: equals
+      expected: ClusterIP
+      actual: null
+      passed: null
+      error_message: null
+- id: task-2
+  title: Verify port 8080 mapping
+  description: Verify spec.ports[0].port on services 'backend-svc'
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: services
+    name: backend-svc
+    namespace: null
+    assertions:
+    - field: spec.ports[0].port
+      operator: equals
+      expected: 8080
+      actual: null
+      passed: null
+      error_message: null
+hints:
+- text: kubectl expose deployment backend --name=backend-svc --port=8080 --target-port=80
+  penalty_points: 10
+solution: kubectl expose deployment backend --name=backend-svc --port=8080 --target-port=80
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 20
+security:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0
