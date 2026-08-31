@@ -38,15 +38,33 @@ async fn ws_handler(
     Query(query): Query<HashMap<String, String>>,
     State(state): State<AppState>,
 ) -> impl IntoResponse {
-    // Authenticate token if provided
-    let is_authenticated = match query.get("token") {
-        Some(token) => state.auth.verify_token(token).is_ok(),
-        None => true, // Support internal sandbox / dev connections
+    // 1. Mandatory JWT Authentication
+    let token = match query.get("token") {
+        Some(t) if !t.trim().is_empty() => t.trim(),
+        _ => {
+            tracing::warn!("Terminal connection rejected: missing authentication token for session {}", session_id);
+            return StatusCode::UNAUTHORIZED.into_response();
+        }
     };
 
-    if !is_authenticated {
-        return StatusCode::UNAUTHORIZED.into_response();
+    // 2. Check if token is revoked in Redis
+    if let Some(ref cache) = state.cache {
+        if cache.session_store().is_revoked(token).await.unwrap_or(false) {
+            tracing::warn!("Terminal connection rejected: revoked token for session {}", session_id);
+            return StatusCode::UNAUTHORIZED.into_response();
+        }
     }
+
+    // 3. Verify JWT validity
+    let claims = match state.auth.jwt().verify_token(token) {
+        Ok(c) => c,
+        Err(e) => {
+            tracing::warn!("Terminal connection rejected: invalid JWT ({:?}) for session {}", e, session_id);
+            return StatusCode::UNAUTHORIZED.into_response();
+        }
+    };
+
+    tracing::info!("Terminal connection authenticated for user {} (session: {})", claims.sub, session_id);
 
     ws.on_upgrade(move |socket| handle_terminal_socket(socket, session_id, state))
         .into_response()

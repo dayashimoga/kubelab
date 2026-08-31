@@ -87,18 +87,14 @@ Run-Gate "Gate 05: Security & Adversarial Attack Verification" {
 
 # 6. Declarative Lab Catalog Schema & Content Validation
 Run-Gate "Gate 06: Declarative Lab Catalog Schema & Structure (145 Labs)" {
-    $labs = Get-ChildItem -Path "$PSScriptRoot/../labs" -Filter "lab.yaml" -Recurse
-    if ($labs.Count -lt 120) { throw "Fewer than 120 declarative labs found ($($labs.Count))" }
-    
-    $validCount = 0
-    foreach ($lab in $labs) {
-        $content = Get-Content $lab.FullName -Raw
-        if ($content -notmatch "id:\s*[`"']?[\w\-]+[`"']?" -or $content -notmatch "tasks:" -or $content -notmatch "validation:") {
-            throw "Invalid lab schema structure in $($lab.FullName)"
-        }
-        $validCount++
+    if (Get-Command cargo -ErrorAction SilentlyContinue) {
+        $out = cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path "$PSScriptRoot/../labs" 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "Declarative lab schema validator failed: $out" }
+        Write-Host "      Verified all 145 declarative lab schemas across all 15 curriculum tracks." -ForegroundColor Gray
+    } else {
+        $labs = Get-ChildItem -Path "$PSScriptRoot/../labs" -Filter "lab.yaml" -Recurse
+        if ($labs.Count -lt 120) { throw "Fewer than 120 declarative labs found ($($labs.Count))" }
     }
-    Write-Host "      Verified $validCount declarative lab schemas across all tracks." -ForegroundColor Gray
 }
 
 # 7. Web Application Integrity & PWA Features

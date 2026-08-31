@@ -70,6 +70,9 @@ jobs:
           NATS_URL: nats://127.0.0.1:4222
         run: cargo test --workspace -- --ignored --nocapture
 
+      - name: Validate Declarative Lab Catalog (145 Labs)
+        run: cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path labs/
+
       - name: Execute 13-Gate Production Certification Script
         run: chmod +x ./scripts/validate-production.sh && ./scripts/validate-production.sh
 
@@ -93,12 +96,19 @@ jobs:
       - name: Install Monorepo Dependencies
         run: pnpm install --frozen-lockfile=false
 
-      - name: Web Application Typecheck & Build
-        run: pnpm --filter @kubelab/web typecheck
+      - name: Web Application Typecheck & Lint
+        run: |
+          pnpm --filter @kubelab/web typecheck
+          pnpm --filter @kubelab/web lint
+
+      - name: Install Playwright Browsers
+        run: pnpm --filter @kubelab/web exec playwright install --with-deps chromium
 
       - name: Validate Containerfiles & OCI Definitions
         run: |
           test -f infrastructure/containers/Containerfile.api
           test -f infrastructure/containers/Containerfile.web
+          test -f infrastructure/containers/Containerfile.toolchain
           test -f infrastructure/containers/podman-compose.yml
           test -f infrastructure/containers/podman-compose.test.yml
+          test -f infrastructure/containers/otel-collector-config.yaml

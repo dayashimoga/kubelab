@@ -10,6 +10,8 @@ volumes:
   nats_data:
   prometheus_data:
   grafana_data:
+  tempo_data:
+  loki_data:
 
 services:
   postgres:
@@ -63,6 +65,29 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  tempo:
+    image: docker.io/grafana/tempo:2.5.0
+    container_name: kubelab-tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - tempo_data:/var/tempo
+    ports:
+      - "3200:3200" # Tempo HTTP
+      - "4317"      # OTLP gRPC
+    networks:
+      - kubelab-net
+
+  loki:
+    image: docker.io/grafana/loki:3.1.0
+    container_name: kubelab-loki
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    volumes:
+      - loki_data:/loki
+    ports:
+      - "3100:3100" # Loki HTTP
+    networks:
+      - kubelab-net
 
   otel-collector:
     image: docker.io/otel/opentelemetry-collector-contrib:0.108.0

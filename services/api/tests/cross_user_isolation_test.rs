@@ -1,6 +1,5 @@
 use kubelab_auth::AuthService;
-use kubelab_labs::{LabService, StartLabRequest, ApplyManifestRequest, ValidateLabRequest};
-use uuid::Uuid;
+use kubelab_labs::{ApplyManifestRequest, LabService, StartLabRequest};
 
 #[tokio::test]
 async fn test_cross_user_session_and_namespace_isolation() {

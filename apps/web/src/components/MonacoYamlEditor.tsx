@@ -24,8 +24,36 @@ export const MonacoYamlEditor: React.FC<MonacoYamlEditorProps> = ({ initialYaml,
   const [isApplying, setIsApplying] = useState(false);
   const [applied, setApplied] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [securityWarning, setSecurityWarning] = useState<string | null>(null);
+
+  const validateSecurityConstraints = (yaml: string): string | null => {
+    // Check for privileged or host-level escape vectors
+    if (/privileged:\s*true/i.test(yaml)) {
+      return 'Security Policy Violation: Privileged containers are strictly forbidden in sandbox namespaces.';
+    }
+    if (/hostNetwork:\s*true/i.test(yaml)) {
+      return 'Security Policy Violation: hostNetwork mode is disabled in multi-tenant environments.';
+    }
+    if (/hostPID:\s*true/i.test(yaml) || /hostIPC:\s*true/i.test(yaml)) {
+      return 'Security Policy Violation: hostPID / hostIPC sharing is restricted.';
+    }
+    if (/hostPath:/i.test(yaml)) {
+      return 'Security Policy Violation: hostPath volume mounts are prohibited. Use emptyDir or PersistentVolumeClaim.';
+    }
+    if (/namespace:\s*(kube-system|default|kube-public|kubelab-system)/i.test(yaml)) {
+      return 'Security Policy Violation: Target namespace restricted. Manifests are automatically scoped to your sandbox.';
+    }
+    return null;
+  };
 
   const handleApply = async () => {
+    const violation = validateSecurityConstraints(yamlContent);
+    if (violation) {
+      setSecurityWarning(violation);
+      return;
+    }
+    setSecurityWarning(null);
+
     setIsApplying(true);
     try {
       await onApply(yamlContent);
@@ -47,6 +75,7 @@ export const MonacoYamlEditor: React.FC<MonacoYamlEditorProps> = ({ initialYaml,
   const handleEditorChange = useCallback((value: string | undefined) => {
     if (value !== undefined) {
       setYamlContent(value);
+      setSecurityWarning(null);
     }
   }, []);
 
@@ -72,7 +101,10 @@ export const MonacoYamlEditor: React.FC<MonacoYamlEditorProps> = ({ initialYaml,
           </button>
 
           <button
-            onClick={() => setYamlContent(initialYaml)}
+            onClick={() => {
+              setYamlContent(initialYaml);
+              setSecurityWarning(null);
+            }}
             className="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-800 transition-colors"
             title="Reset Manifest"
           >
@@ -103,6 +135,14 @@ export const MonacoYamlEditor: React.FC<MonacoYamlEditorProps> = ({ initialYaml,
           </button>
         </div>
       </div>
+
+      {/* Security Warning Alert Banner */}
+      {securityWarning && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-rose-500/10 border-b border-rose-500/20 text-rose-400 text-xs">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span className="font-sans font-medium">{securityWarning}</span>
+        </div>
+      )}
 
       {/* Monaco Editor Viewport */}
       <div className="flex-1 relative overflow-hidden" style={{ minHeight: '300px' }}>

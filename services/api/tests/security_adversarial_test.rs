@@ -1,6 +1,5 @@
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
-use http_body_util::BodyExt;
 use kubelab_api::routes::create_routes;
 use kubelab_api::state::AppState;
 use serde_json::json;

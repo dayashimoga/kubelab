@@ -1,5 +1,5 @@
 use kubelab_api::events::EventBus;
-use kubelab_api::events::publisher::{DomainEventPublisher, LabStartedEvent, ProgressUpdatedEvent};
+use kubelab_api::events::publisher::{DomainEventPublisher, LabStartedEvent};
 use uuid::Uuid;
 use chrono::Utc;
 use futures::StreamExt;
