@@ -51,3 +51,34 @@ pub struct LabSummary {
     pub task_count: usize,
     pub total_points: u32,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplyManifestRequest {
+    pub yaml_content: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppliedResource {
+    pub kind: String,
+    pub name: String,
+    pub namespace: String,
+    pub status: String,
+    pub action: String, // "created", "configured", "unchanged"
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ApplyManifestResponse {
+    pub success: bool,
+    pub applied_resources: Vec<AppliedResource>,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct K8sResourceSummary {
+    pub kind: String,
+    pub name: String,
+    pub namespace: String,
+    pub status: String,
+    pub age: String,
+    pub details: String,
+}

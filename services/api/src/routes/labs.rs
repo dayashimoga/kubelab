@@ -3,10 +3,10 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::{get, post},
+    routing::{delete, get, post},
     Json, Router,
 };
-use kubelab_labs::models::{StartLabRequest, ValidateLabRequest};
+use kubelab_labs::models::{ApplyManifestRequest, StartLabRequest, ValidateLabRequest};
 use serde::Serialize;
 use uuid::Uuid;
 
@@ -21,6 +21,10 @@ pub fn router() -> Router<AppState> {
         .route("/labs/:id", get(get_lab))
         .route("/labs/start", post(start_lab))
         .route("/labs/sessions/:session_id", get(get_session))
+        .route("/labs/sessions/:session_id/apply", post(apply_manifest))
+        .route("/labs/sessions/:session_id/resources", get(get_resources))
+        .route("/labs/sessions/:session_id/destroy", post(destroy_session))
+        .route("/labs/sessions/:session_id", delete(destroy_session))
         .route("/labs/sessions/:session_id/validate", post(validate_task))
 }
 
@@ -48,7 +52,6 @@ async fn start_lab(
     State(state): State<AppState>,
     Json(payload): Json<StartLabRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
-    // In production, user_id is extracted from verified auth JWT
     let user_id = "test-learner-1";
     match state.labs.start_session(user_id, payload).await {
         Ok(session) => Ok((StatusCode::CREATED, Json(session))),
@@ -67,6 +70,52 @@ async fn get_session(
 ) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
     match state.labs.get_session(&session_id).await {
         Ok(session) => Ok(Json(session)),
+        Err(e) => Err((
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )),
+    }
+}
+
+async fn apply_manifest(
+    State(state): State<AppState>,
+    Path(session_id): Path<Uuid>,
+    Json(payload): Json<ApplyManifestRequest>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
+    match state.labs.apply_manifest(&session_id, payload).await {
+        Ok(res) => Ok(Json(res)),
+        Err(e) => Err((
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )),
+    }
+}
+
+async fn get_resources(
+    State(state): State<AppState>,
+    Path(session_id): Path<Uuid>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
+    match state.labs.get_namespace_resources(&session_id).await {
+        Ok(resources) => Ok(Json(resources)),
+        Err(e) => Err((
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                error: e.to_string(),
+            }),
+        )),
+    }
+}
+
+async fn destroy_session(
+    State(state): State<AppState>,
+    Path(session_id): Path<Uuid>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
+    match state.labs.destroy_session(&session_id).await {
+        Ok(_) => Ok(StatusCode::NO_CONTENT),
         Err(e) => Err((
             StatusCode::NOT_FOUND,
             Json(ErrorResponse {

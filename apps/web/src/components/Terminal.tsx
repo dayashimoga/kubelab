@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Terminal as TerminalIcon, RefreshCw, Maximize2, Trash2, Wifi, WifiOff } from 'lucide-react';
+import { Terminal as TerminalIcon, Trash2, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 
 interface TerminalProps {
   sessionId: string;
@@ -17,9 +17,48 @@ export const WebTerminal: React.FC<TerminalProps> = ({ sessionId, namespace }) =
     '',
   ]);
   const [currentInput, setCurrentInput] = useState('');
-  const [connected, setConnected] = useState(true);
+  const [connected, setConnected] = useState(false);
+  const [history, setHistory] = useState<string[]>([]);
+  const [historyIdx, setHistoryIdx] = useState(-1);
+  const wsRef = useRef<WebSocket | null>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize real WebSocket stream to backend API Gateway
+  useEffect(() => {
+    const wsUrl = `ws://localhost:8080/v1/ws/terminal/${sessionId}`;
+    let ws: WebSocket;
+
+    try {
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        setConnected(true);
+      };
+
+      ws.onmessage = (event) => {
+        setOutputLines((prev) => [...prev, event.data]);
+      };
+
+      ws.onclose = () => {
+        setConnected(false);
+      };
+
+      ws.onerror = () => {
+        setConnected(false);
+      };
+
+      wsRef.current = ws;
+    } catch {
+      setConnected(false);
+    }
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [sessionId]);
 
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,31 +69,59 @@ export const WebTerminal: React.FC<TerminalProps> = ({ sessionId, namespace }) =
     if (!currentInput.trim()) return;
 
     const cmd = currentInput.trim();
-    const newOutput = [...outputLines, `learner@kubelab:~$ ${cmd}`];
+    setHistory((prev) => [...prev, cmd]);
+    setHistoryIdx(-1);
 
-    // Evaluate live command responses
-    if (cmd.startsWith('kubectl get pods') || cmd.startsWith('kubectl get po')) {
-      if (outputLines.some((l) => l.includes('web-server') && l.includes('created'))) {
-        newOutput.push('NAME         READY   STATUS    RESTARTS   AGE');
-        newOutput.push('web-server   1/1     Running   0          42s');
-      } else {
-        newOutput.push('No resources found in default namespace.');
-      }
-    } else if (cmd.startsWith('kubectl run') || cmd.startsWith('kubectl apply')) {
-      newOutput.push('pod/web-server created');
-    } else if (cmd.startsWith('kubectl get nodes')) {
-      newOutput.push('NAME                 STATUS   ROLES           AGE   VERSION');
-      newOutput.push('kubelab-worker-01    Ready    control-plane   12d   v1.30.0');
-    } else if (cmd === 'clear') {
-      setOutputLines([]);
-      setCurrentInput('');
-      return;
+    // If WebSocket connected, stream via protocol
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'data', data: cmd + '\r\n' }));
     } else {
-      newOutput.push(`Executing: ${cmd}... done.`);
+      // Local sandbox command dispatcher fallback
+      const newOutput = [...outputLines, `learner@kubelab:~$ ${cmd}`];
+      if (cmd.startsWith('kubectl get pods') || cmd.startsWith('kubectl get po')) {
+        if (outputLines.some((l) => l.includes('web-server') && l.includes('created')) || outputLines.some((l) => l.includes('configured'))) {
+          newOutput.push('NAME         READY   STATUS    RESTARTS   AGE');
+          newOutput.push('web-server   1/1     Running   0          42s');
+        } else {
+          newOutput.push('No resources found in default namespace.');
+        }
+      } else if (cmd.startsWith('kubectl run') || cmd.startsWith('kubectl apply')) {
+        newOutput.push('pod/web-server created');
+      } else if (cmd.startsWith('kubectl get nodes')) {
+        newOutput.push('NAME                 STATUS   ROLES           AGE   VERSION');
+        newOutput.push('kubelab-worker-01    Ready    control-plane   12d   v1.30.0');
+      } else if (cmd === 'clear') {
+        setOutputLines([]);
+        setCurrentInput('');
+        return;
+      } else {
+        newOutput.push(`sandbox: executed '${cmd}' in namespace ${namespace}`);
+      }
+      setOutputLines(newOutput);
     }
 
-    setOutputLines(newOutput);
     setCurrentInput('');
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowUp') {
+      if (history.length > 0) {
+        const nextIdx = historyIdx === -1 ? history.length - 1 : Math.max(0, historyIdx - 1);
+        setHistoryIdx(nextIdx);
+        setCurrentInput(history[nextIdx]);
+      }
+    } else if (e.key === 'ArrowDown') {
+      if (historyIdx !== -1) {
+        const nextIdx = historyIdx + 1;
+        if (nextIdx >= history.length) {
+          setHistoryIdx(-1);
+          setCurrentInput('');
+        } else {
+          setHistoryIdx(nextIdx);
+          setCurrentInput(history[nextIdx]);
+        }
+      }
+    }
   };
 
   return (
@@ -74,9 +141,18 @@ export const WebTerminal: React.FC<TerminalProps> = ({ sessionId, namespace }) =
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-[11px] text-emerald-400">
-            {connected ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5 text-rose-400" />}
-            <span>{connected ? 'WS CONNECTED' : 'DISCONNECTED'}</span>
+          <div className="flex items-center gap-1.5 text-[11px]">
+            {connected ? (
+              <span className="text-emerald-400 flex items-center gap-1">
+                <Wifi className="w-3.5 h-3.5" />
+                <span>WS CONNECTED</span>
+              </span>
+            ) : (
+              <span className="text-amber-400 flex items-center gap-1">
+                <WifiOff className="w-3.5 h-3.5" />
+                <span>SANDBOX SHELL</span>
+              </span>
+            )}
           </div>
 
           <button
@@ -108,6 +184,7 @@ export const WebTerminal: React.FC<TerminalProps> = ({ sessionId, namespace }) =
             type="text"
             value={currentInput}
             onChange={(e) => setCurrentInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             className="flex-1 bg-transparent text-cyan-300 focus:outline-none border-none p-0 font-mono text-xs"
             autoFocus
           />

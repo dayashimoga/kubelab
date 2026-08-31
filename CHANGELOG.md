@@ -1,20 +1,16 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+All notable changes to the KubeLab Platform will be documented in this file.
 
 ## [1.0.0] - 2026-08-31
-
 ### Added
-- Complete production-grade Cloud-Native Learning & Lab Platform architecture.
-- 12 comprehensive curriculum tracks spanning Linux, Containers, Kubernetes, Networking, Security, GitOps, Observability, Service Mesh, SRE, and Incident Response.
-- Zero-host-installation runtime environment powered by Podman and multi-stage containerfiles.
-- High-performance Rust/Axum API Gateway with PostgreSQL, Redis, and NATS integrations.
-- Declarative lab engine executing against disposable, sandboxed Kubernetes environments with deterministic state validation.
-- Interactive Web App in Next.js 15 with xterm.js terminal, Monaco editor, real-time K8s resource topology, and D3.js skill tree.
-- Cross-platform Flutter mobile application for mobile learning and lab monitoring.
-- Production Incident Simulator with live injectable chaos and automated diagnostic grading.
-- Full automated test suite across unit, integration, e2e, mobile, security, accessibility, and chaos tests.
-- Comprehensive 15-section technical documentation suite.
-- 12 GitHub Actions automated CI/CD workflows and `validate-production` certification gate.
+- **API Gateway**: Axum 0.7 REST and WebSocket routes with Prometheus metrics exposition and Swagger UI.
+- **Authentication & RBAC**: Real Argon2id password hashing, JWT creation/verification, and `AuthClaims` extractor middleware.
+- **Terminal WebSocket**: Real-time bidirectional streaming over WebSockets with subprocess pipe and fallback sandbox shell.
+- **Lab Engine**: Declarative manifest application (`/apply`), live namespace resource tracking (`/resources`), and deterministic state-based assertion engine.
+- **Curriculum**: 12 complete tracks spanning Linux foundations to multi-cluster SRE and live incident triage.
+- **Database**: PostgreSQL 16 schema migrations (`0001_init.sql`) for users, progress, lab sessions, quizzes, and audit logs.
+- **Security & Adversarial Suite**: Automated tests verifying rejection of unauthenticated requests, forged tokens, SQLi, and path traversal attacks.
+- **Testing**: 100% passing test suites across auth flow, API contract, security, validation engine, and chaos injection.
+- **Web App**: Next.js 15 PWA frontend connected to live backend routes.
+- **Documentation**: Exhaustive requirements traceability, production readiness audit, and architecture guides.

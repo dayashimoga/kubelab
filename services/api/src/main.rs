@@ -1,8 +1,5 @@
-mod routes;
-mod state;
-
-use routes::create_routes;
-use state::AppState;
+use kubelab_api::routes::create_routes;
+use kubelab_api::state::AppState;
 use std::net::SocketAddr;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;

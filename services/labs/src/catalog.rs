@@ -16,7 +16,7 @@ pub fn get_default_lab_catalog() -> Vec<DeclarativeLabDef> {
             scenario: "Deploy an nginx web container named 'web-server' listening on port 80 with label app=frontend.".to_string(),
             tasks: vec![
                 LabTask {
-                    id: "task-1".to_string(),
+                    id: "task-deploy-pod".to_string(),
                     title: "Deploy the Pod".to_string(),
                     description: "Create pod web-server running nginx:alpine".to_string(),
                     points: 50,
@@ -38,6 +38,28 @@ pub fn get_default_lab_catalog() -> Vec<DeclarativeLabDef> {
                                 field: "metadata.labels.app".to_string(),
                                 operator: ValidationOperator::Equals,
                                 expected: json!("frontend"),
+                                actual: None,
+                                passed: None,
+                                error_message: None,
+                            },
+                        ],
+                    },
+                },
+                LabTask {
+                    id: "task-verify-port".to_string(),
+                    title: "Verify Container Port".to_string(),
+                    description: "Ensure container specifies containerPort 80".to_string(),
+                    points: 50,
+                    validation: TaskValidation {
+                        validation_type: TaskValidationType::K8sResource,
+                        resource: Some("pods".to_string()),
+                        name: Some("web-server".to_string()),
+                        namespace: None,
+                        assertions: vec![
+                            StateAssertion {
+                                field: "spec.containers[0].ports[0].containerPort".to_string(),
+                                operator: ValidationOperator::Equals,
+                                expected: json!(80),
                                 actual: None,
                                 passed: None,
                                 error_message: None,

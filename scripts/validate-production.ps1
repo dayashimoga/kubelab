@@ -29,60 +29,92 @@ function Run-Gate {
     }
 }
 
-# 1. Repository Integrity
-Run-Gate "Repository Integrity & Clean Slate" {
-    if (-not (Test-Path "$PSScriptRoot/../README.md")) { throw "README.md missing" }
-    if (-not (Test-Path "$PSScriptRoot/../LICENSE")) { throw "LICENSE missing" }
-    if (-not (Test-Path "$PSScriptRoot/../SECURITY.md")) { throw "SECURITY.md missing" }
+# 1. Repository Integrity & Structure
+Run-Gate "Repository Integrity & Required Artifacts" {
+    $requiredFiles = @(
+        'README.md', 'LICENSE', 'SECURITY.md', 'ARCHITECTURE.md',
+        'IMPLEMENTATION.md', 'TODO.md', 'CHANGELOG.md',
+        'PRODUCTION_READINESS_AUDIT.md', 'REQUIREMENTS_TRACEABILITY.md',
+        'GAP_ANALYSIS.md', 'TEST_EVIDENCE.md', 'SECURITY_AUDIT.md',
+        'PERFORMANCE_AUDIT.md', 'LAB_CERTIFICATION.md'
+    )
+    foreach ($f in $requiredFiles) {
+        if (-not (Test-Path "$PSScriptRoot/../$f")) { throw "Missing critical file: $f" }
+    }
 }
 
-# 2. Dependency & Vulnerability Audit
-Run-Gate "Dependency & License Compliance" {
-    Write-Host "      Checking open-source license adherence (Apache-2.0, MIT, BSD)..." -ForegroundColor Gray
+# 2. Database Schema & Migration Verification
+Run-Gate "Database Schema & Migration DDL" {
+    if (-not (Test-Path "$PSScriptRoot/../services/api/migrations/0001_init.sql")) {
+        throw "PostgreSQL migration file 0001_init.sql is missing"
+    }
+    $sql = Get-Content "$PSScriptRoot/../services/api/migrations/0001_init.sql" -Raw
+    if ($sql -notmatch "CREATE TABLE IF NOT EXISTS users") { throw "Missing users DDL" }
+    if ($sql -notmatch "CREATE TABLE IF NOT EXISTS lab_sessions") { throw "Missing lab_sessions DDL" }
 }
 
-# 3. Format & Linting
-Run-Gate "Static Analysis & Linting (Clippy/ESLint)" {
+# 3. Static Analysis & Type Checking
+Run-Gate "Static Analysis & Type Checking (Cargo Check)" {
     if (Get-Command cargo -ErrorAction SilentlyContinue) {
         $out = cargo check --workspace 2>&1
         if ($LASTEXITCODE -ne 0) { throw "Cargo check failed: $out" }
+    } else {
+        throw "Rust toolchain (cargo) not found on host"
     }
 }
 
-# 4. Unit & Integration Test Suite (Coverage >= 95%)
-Run-Gate "Backend Services Unit & Integration Tests" {
+# 4. Backend Unit, Integration & API Contract Tests
+Run-Gate "Backend Services Test Suite (100% Pass Required)" {
     if (Get-Command cargo -ErrorAction SilentlyContinue) {
-        $out = cargo test --workspace 2>&1
-        if ($LASTEXITCODE -ne 0) { throw "Cargo test failed: $out" }
+        $out = cargo test --workspace -- --nocapture 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "Backend test suite failed: $out" }
     }
 }
 
-# 5. Declarative Lab Schema Verification
-Run-Gate "Lab Catalog Schema & Deterministic State Rules" {
+# 5. Security & Adversarial Attack Test Suite
+Run-Gate "Security & Adversarial Attack Verification" {
+    if (Get-Command cargo -ErrorAction SilentlyContinue) {
+        $out = cargo test -p kubelab-api --test security_adversarial_test 2>&1
+        if ($LASTEXITCODE -ne 0) { throw "Security adversarial tests failed: $out" }
+    }
+}
+
+# 6. Declarative Lab Catalog & State-Based Assertion Rules
+Run-Gate "Declarative Lab Catalog Schema & Grading Rules" {
     $labs = Get-ChildItem -Path "$PSScriptRoot/../labs" -Filter "lab.yaml" -Recurse
-    if ($labs.Count -eq 0) { throw "No declarative labs found" }
+    if ($labs.Count -lt 5) { throw "Fewer than 5 declarative labs found ($($labs.Count))" }
     Write-Host "      Verified $($labs.Count) declarative lab definitions across all categories." -ForegroundColor Gray
 }
 
-# 6. Incident Simulator Scenarios
-Run-Gate "Production Incident Simulator Scenarios" {
-    $incidents = Get-ChildItem -Path "$PSScriptRoot/../labs/incidents" -Filter "lab.yaml" -Recurse -ErrorAction SilentlyContinue
-    Write-Host "      Verified incident scenarios and fault injection schemas." -ForegroundColor Gray
+# 7. Web Application Integrity & Component Structure
+Run-Gate "Web Application Component & Page Integrity" {
+    $webPages = @(
+        'apps/web/src/app/page.tsx',
+        'apps/web/src/app/learn/page.tsx',
+        'apps/web/src/app/labs/page.tsx',
+        'apps/web/src/app/practice/page.tsx',
+        'apps/web/src/app/incidents/page.tsx',
+        'apps/web/src/app/skills/page.tsx',
+        'apps/web/src/app/progress/page.tsx',
+        'apps/web/src/app/certifications/page.tsx',
+        'apps/web/src/app/docs/page.tsx',
+        'apps/web/src/components/Terminal.tsx',
+        'apps/web/src/components/MonacoYamlEditor.tsx',
+        'apps/web/src/components/K8sVisualizer.tsx'
+    )
+    foreach ($p in $webPages) {
+        if (-not (Test-Path "$PSScriptRoot/../$p")) { throw "Missing web component: $p" }
+    }
 }
 
-# 7. Security Isolation & Sandbox Hardening
-Run-Gate "Security & Sandboxing Hardening" {
-    Write-Host "      Validating non-root UID enforcement, seccomp, and NetworkPolicies..." -ForegroundColor Gray
+# 8. Mobile Application Integrity
+Run-Gate "Mobile Client Scaffold & Test Integrity" {
+    if (-not (Test-Path "$PSScriptRoot/../apps/mobile/pubspec.yaml")) { throw "Mobile pubspec.yaml missing" }
+    if (-not (Test-Path "$PSScriptRoot/../apps/mobile/lib/main.dart")) { throw "Mobile main.dart missing" }
 }
 
-# 8. Web & Mobile Client Integrity
-Run-Gate "Web & Mobile Client Builds" {
-    if (-not (Test-Path "$PSScriptRoot/../apps/web")) { throw "Web app directory missing" }
-    if (-not (Test-Path "$PSScriptRoot/../apps/mobile")) { throw "Mobile app directory missing" }
-}
-
-# 9. Complete Documentation Integrity
-Run-Gate "Documentation Verification" {
+# 9. Complete Documentation Suite Integrity
+Run-Gate "Documentation & Architecture Specifications" {
     $docDirs = @('architecture', 'curriculum', 'labs', 'security', 'testing', 'operations', 'api')
     foreach ($d in $docDirs) {
         if (-not (Test-Path "$PSScriptRoot/../docs/$d")) {
@@ -98,7 +130,7 @@ Write-Host "=================================================================" -
 $report | Format-Table -AutoSize
 
 if ($globalSuccess) {
-    Write-Host "RESULT: PRODUCTION CERTIFICATION PASSED! [100% READY]" -ForegroundColor Green
+    Write-Host "RESULT: PRODUCTION CERTIFICATION PASSED! [100% PRODUCTION READY]" -ForegroundColor Green
     exit 0
 } else {
     Write-Host "RESULT: PRODUCTION CERTIFICATION FAILED! [BLOCKERS FOUND]" -ForegroundColor Red

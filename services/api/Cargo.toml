@@ -31,3 +31,7 @@ utoipa = { workspace = true }
 utoipa-swagger-ui = { workspace = true }
 futures = { workspace = true }
 futures-util = { workspace = true }
+
+[dev-dependencies]
+http-body-util = "0.1"
+tower = { workspace = true }

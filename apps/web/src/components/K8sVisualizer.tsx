@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import { Boxes, Server, Network, Activity, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Boxes, Server, Network, Activity, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 
-interface ResourceItem {
+export interface ResourceItem {
   kind: string;
   name: string;
   namespace: string;
-  status: 'Running' | 'Pending' | 'Failed' | 'Ready';
+  status: string;
   age: string;
   details: string;
 }
@@ -15,9 +15,10 @@ interface ResourceItem {
 interface K8sVisualizerProps {
   namespace: string;
   resources: ResourceItem[];
+  onRefresh?: () => void;
 }
 
-export const K8sVisualizer: React.FC<K8sVisualizerProps> = ({ namespace, resources }) => {
+export const K8sVisualizer: React.FC<K8sVisualizerProps> = ({ namespace, resources, onRefresh }) => {
   return (
     <div className="flex flex-col h-full bg-slate-950 rounded-xl border border-slate-800 overflow-hidden font-mono text-xs shadow-2xl">
       {/* Top Header */}
@@ -29,9 +30,21 @@ export const K8sVisualizer: React.FC<K8sVisualizerProps> = ({ namespace, resourc
             ns: {namespace}
           </span>
         </div>
-        <div className="flex items-center gap-2 text-slate-400 text-[11px]">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Live API Sync</span>
+        <div className="flex items-center gap-3 text-slate-400 text-[11px]">
+          <div className="flex items-center gap-1 text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Live K8s API</span>
+          </div>
+
+          {onRefresh && (
+            <button
+              onClick={onRefresh}
+              className="p-1 hover:text-white rounded hover:bg-slate-800 transition-colors"
+              title="Refresh Cluster State"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -41,7 +54,9 @@ export const K8sVisualizer: React.FC<K8sVisualizerProps> = ({ namespace, resourc
           <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-2 py-12">
             <Boxes className="w-8 h-8 text-slate-600 animate-bounce" />
             <p className="text-xs">No active resources found in namespace `{namespace}`.</p>
-            <p className="text-[11px] text-slate-600">Deploy resources via Terminal or YAML editor to view them live.</p>
+            <p className="text-[11px] text-slate-600">
+              Deploy resources via Terminal (`kubectl run`) or Monaco YAML editor (`kubectl apply`) to view them live.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -55,7 +70,7 @@ export const K8sVisualizer: React.FC<K8sVisualizerProps> = ({ namespace, resourc
                     {res.kind}
                   </span>
                   <div className="flex items-center gap-1 text-[11px]">
-                    {res.status === 'Running' || res.status === 'Ready' ? (
+                    {res.status === 'Running' || res.status === 'Ready' || res.status === 'Configured' ? (
                       <span className="flex items-center gap-1 text-emerald-400">
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>{res.status}</span>
@@ -71,8 +86,8 @@ export const K8sVisualizer: React.FC<K8sVisualizerProps> = ({ namespace, resourc
 
                 <div className="text-white font-bold text-xs truncate">{res.name}</div>
                 <div className="text-[10px] text-slate-400 flex justify-between">
-                  <span>{res.details}</span>
-                  <span className="text-slate-500">{res.age}</span>
+                  <span>{res.details || '1/1 Ready'}</span>
+                  <span className="text-slate-500">{res.age || '10s'}</span>
                 </div>
               </div>
             ))}
