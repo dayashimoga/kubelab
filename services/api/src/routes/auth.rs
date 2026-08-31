@@ -119,9 +119,39 @@ async fn register(
     State(state): State<AppState>,
     Json(payload): Json<RegisterDto>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
+    let email = payload.email.trim();
+    let name = payload.name.trim();
+
+    if name.is_empty() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: "Name cannot be empty".to_string(),
+            }),
+        ));
+    }
+
+    if !email.contains('@') || !email.contains('.') {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: "Invalid email address format".to_string(),
+            }),
+        ));
+    }
+
+    if payload.password.len() < 8 {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: "Password must be at least 8 characters long".to_string(),
+            }),
+        ));
+    }
+
     match state
         .auth
-        .register(&payload.email, &payload.name, &payload.password, payload.role)
+        .register(email, name, &payload.password, payload.role)
         .await
     {
         Ok(res) => Ok((StatusCode::CREATED, Json(res))),

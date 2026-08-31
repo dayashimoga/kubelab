@@ -1,4 +1,4 @@
-name: CI
+name: CI & Production Quality Gate
 
 on:
   push:
@@ -6,25 +6,50 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  contents: read
+
 jobs:
-  lint-and-test:
+  backend-and-security:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Source Code
+        uses: actions/checkout@v4.1.7
 
-      - name: Set up Rust
+      - name: Set up Stable Rust Toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
 
-      - name: Rust Format Check
+      - name: Rust Formatting Check
         run: cargo fmt --all -- --check
 
-      - name: Rust Clippy
+      - name: Rust Clippy Linting
         run: cargo clippy --workspace --all-targets -- -D warnings
 
-      - name: Rust Unit & Integration Tests
-        run: cargo test --workspace --all-targets
+      - name: Run Full Test Suite (Unit, Integration, Security, Metrics, Labs)
+        run: cargo test --workspace --all-targets -- --nocapture
 
-      - name: Validate Declarative Labs
+      - name: Declarative Lab Schema & State Assertion Tests
         run: cargo test -p kubelab-validation-engine
+
+      - name: Security & Adversarial Attack Verification
+        run: cargo test -p kubelab-api --test security_adversarial_test --test input_validation_test --test rate_limit_test
+
+  container-and-manifest-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4.1.7
+
+      - name: Verify PostgreSQL Migrations DDL
+        run: |
+          test -f services/api/migrations/0001_init.sql
+          grep "CREATE TABLE IF NOT EXISTS users" services/api/migrations/0001_init.sql
+          grep "CREATE TABLE IF NOT EXISTS lab_sessions" services/api/migrations/0001_init.sql
+
+      - name: Verify OpenTelemetry & Prometheus Configs
+        run: |
+          test -f infrastructure/containers/otel-collector-config.yaml
+          test -f infrastructure/containers/prometheus.yml
+          test -f infrastructure/containers/podman-compose.yml
