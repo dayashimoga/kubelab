@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-drift-monitor-config
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: argocd-drift-monitor
+    app.kubernetes.io/part-of: kubelab
+data:
+  check-interval-seconds: "10"
+  auto-remediation: "true"
+  alert-webhook-url: "http://kubelab-api.kubelab.svc.cluster.local:8080/v1/notifications/dispatch"
+  policy: |
+    rules:
+      - name: reject-manual-replica-mutation
+        resource: "apps/v1/Deployment"
+        action: "self-heal"
+      - name: audit-out-of-sync
+        resource: "all"
+        action: "notify"

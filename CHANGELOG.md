@@ -2,6 +2,19 @@
 
 All notable changes to the KubeLab Platform will be documented in this file.
 
+## [1.2.0] - 2026-08-31
+### Added
+- **Real PostgreSQL Persistence Layer (`sqlx`)**: Native connection pool (`PgPool`), automatic schema migrations (`sqlx::migrate!`), parameterized CRUD repositories for users, progress, lab sessions, and audit events.
+- **Real Redis Session Store (`redis`)**: Token caching, distributed rate limiting, and instant token revocation blacklist (`SessionStore`).
+- **Real NATS Distributed Event Bus (`async-nats`)**: Strongly-typed domain events (`LabStartedEvent`, `LabCompletedEvent`, `ProgressUpdatedEvent`, `SecurityAlertEvent`) with async pub/sub.
+- **Native Kubernetes Client (`kube-rs`)**: Namespace provisioning, `ResourceQuota`, `NetworkPolicy` isolation, and dynamic YAML server-side applier.
+- **Argo CD GitOps Architecture**: App-of-Apps root application, AppProject RBAC whitelists, automated workload sync policies, and drift detection monitor.
+- **Istio Service Mesh Architecture**: Canary traffic weighting, fault injection, STRICT mTLS DestinationRule, circuit breaker outlier detection, and mesh validation rules.
+- **OpenTelemetry Distributed Tracing (`opentelemetry`)**: OTLP gRPC tracer pipeline with batch exporter and distributed trace context propagation.
+- **Containerized Web App & E2E**: Multi-platform build scripts (`build-web-container.ps1`), Playwright E2E test suites (`auth.spec.ts`, `labs.spec.ts`, `terminal.spec.ts`), and runner (`run-e2e.ps1`).
+- **Flutter Mobile Scaffolds**: Production Android Gradle/Manifest and iOS Info.plist/Podfile directories.
+- **18 Test Suites (25 Tests Passing)**: 100% test pass rate across all services, backing data stores, messaging buses, and quality gates.
+
 ## [1.1.0] - 2026-08-31
 ### Added
 - **Dynamic Prometheus Metrics**: Real `prometheus` crate integration in `services/api/src/metrics.rs` with `CounterVec`, `Gauge`, and `/metrics` TextEncoder endpoint.

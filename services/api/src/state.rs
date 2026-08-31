@@ -6,6 +6,9 @@ use kubelab_labs::LabService;
 use kubelab_learning::LearningService;
 use kubelab_notification::NotificationService;
 use kubelab_progress::ProgressService;
+use crate::db::Database;
+use crate::cache::Cache;
+use crate::events::EventBus;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -19,6 +22,9 @@ pub struct AppState {
     pub progress: Arc<ProgressService>,
     pub notification: Arc<NotificationService>,
     pub ai_tutor: Arc<AiTutorService>,
+    pub db: Option<Arc<Database>>,
+    pub cache: Option<Arc<Cache>>,
+    pub events: Option<Arc<EventBus>>,
 }
 
 impl AppState {
@@ -32,6 +38,21 @@ impl AppState {
             progress: Arc::new(ProgressService::new()),
             notification: Arc::new(NotificationService::new()),
             ai_tutor: Arc::new(AiTutorService::new()),
+            db: None,
+            cache: None,
+            events: None,
         }
+    }
+
+    pub fn with_backing_services(
+        mut self,
+        db: Option<Database>,
+        cache: Option<Cache>,
+        events: Option<EventBus>,
+    ) -> Self {
+        self.db = db.map(Arc::new);
+        self.cache = cache.map(Arc::new);
+        self.events = events.map(Arc::new);
+        self
     }
 }

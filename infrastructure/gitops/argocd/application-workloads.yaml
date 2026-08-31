@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: lab-workloads
+  namespace: argocd
+spec:
+  project: kubelab-project
+  source:
+    repoURL: https://github.com/dayashimoga/kubelab.git
+    targetRevision: main
+    path: labs/kubernetes/k8s-deployments-scaling
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: sandbox-workloads
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

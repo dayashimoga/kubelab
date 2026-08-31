@@ -32,6 +32,14 @@ utoipa-swagger-ui = { workspace = true }
 futures = { workspace = true }
 futures-util = { workspace = true }
 prometheus = { workspace = true }
+sqlx = { workspace = true }
+redis = { workspace = true }
+async-nats = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
+opentelemetry-otlp = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+async-trait = { workspace = true }
 
 [dev-dependencies]
 http-body-util = "0.1"

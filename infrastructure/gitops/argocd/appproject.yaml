@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: kubelab-project
+  namespace: argocd
+spec:
+  description: KubeLab Cloud-Native Multi-Tenant Cluster Workloads
+  sourceRepos:
+    - "https://github.com/dayashimoga/kubelab.git"
+    - "https://github.com/kubelab/*"
+  destinations:
+    - namespace: "sandbox-*"
+      server: "https://kubernetes.default.svc"
+    - namespace: "kubelab-*"
+      server: "https://kubernetes.default.svc"
+    - namespace: "argocd"
+      server: "https://kubernetes.default.svc"
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: "networking.k8s.io"
+      kind: NetworkPolicy
+    - group: "rbac.authorization.k8s.io"
+      kind: ClusterRole
+    - group: "rbac.authorization.k8s.io"
+      kind: ClusterRoleBinding
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  roles:
+    - name: learner-readonly
+      description: Read-only access for sandbox inspection
+      policies:
+        - p, proj:kubelab-project:learner-readonly, applications, get, kubelab-project/*, allow
+      groups:
+        - "kubelab:learners"

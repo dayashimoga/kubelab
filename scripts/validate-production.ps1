@@ -51,6 +51,7 @@ Run-Gate "Database Schema & Migration DDL" {
     $sql = Get-Content "$PSScriptRoot/../services/api/migrations/0001_init.sql" -Raw
     if ($sql -notmatch "CREATE TABLE IF NOT EXISTS users") { throw "Missing users DDL" }
     if ($sql -notmatch "CREATE TABLE IF NOT EXISTS lab_sessions") { throw "Missing lab_sessions DDL" }
+    if ($sql -notmatch "CREATE TABLE IF NOT EXISTS user_progress") { throw "Missing user_progress DDL" }
 }
 
 # 3. Static Analysis & Type Checking
@@ -66,7 +67,7 @@ Run-Gate "Static Analysis & Type Checking (Cargo Check)" {
 # 4. Backend Unit, Integration & API Contract Tests
 Run-Gate "Backend Services Test Suite (100% Pass Required)" {
     if (Get-Command cargo -ErrorAction SilentlyContinue) {
-        $out = cargo test --workspace -- --nocapture 2>&1
+        $out = cargo test --workspace 2>&1
         if ($LASTEXITCODE -ne 0) { throw "Backend test suite failed: $out" }
     }
 }
@@ -111,13 +112,41 @@ Run-Gate "Web Application Component & Page Integrity" {
     }
 }
 
-# 8. Mobile Application Integrity
-Run-Gate "Mobile Client Scaffold & Test Integrity" {
+# 8. Mobile Client Scaffold & Multi-Platform Directories
+Run-Gate "Mobile Client Scaffold & Multi-Platform Scaffolds" {
     if (-not (Test-Path "$PSScriptRoot/../apps/mobile/pubspec.yaml")) { throw "Mobile pubspec.yaml missing" }
     if (-not (Test-Path "$PSScriptRoot/../apps/mobile/lib/main.dart")) { throw "Mobile main.dart missing" }
+    if (-not (Test-Path "$PSScriptRoot/../apps/mobile/android/app/build.gradle")) { throw "Mobile Android build.gradle missing" }
+    if (-not (Test-Path "$PSScriptRoot/../apps/mobile/ios/Runner/Info.plist")) { throw "Mobile iOS Info.plist missing" }
 }
 
-# 9. Complete Documentation Suite Integrity
+# 9. Cloud-Native GitOps & Service Mesh Manifests
+Run-Gate "Argo CD GitOps & Istio Service Mesh Architecture" {
+    $gitops = @(
+        'infrastructure/gitops/argocd/root-app.yaml',
+        'infrastructure/gitops/argocd/appproject.yaml',
+        'infrastructure/gitops/argocd/application-workloads.yaml',
+        'infrastructure/gitops/argocd/drift-detection.yaml',
+        'infrastructure/mesh/istio/virtualservice-canary.yaml',
+        'infrastructure/mesh/istio/destinationrule-mtls.yaml',
+        'infrastructure/mesh/istio/virtualservice-fault-injection.yaml',
+        'infrastructure/mesh/istio/gateway-ingress.yaml',
+        'infrastructure/mesh/istio/envoyfilter-telemetry.yaml'
+    )
+    foreach ($g in $gitops) {
+        if (-not (Test-Path "$PSScriptRoot/../$g")) { throw "Missing GitOps/Mesh manifest: $g" }
+    }
+}
+
+# 10. Playwright E2E Test Suite Integrity
+Run-Gate "Playwright E2E Test Specifications" {
+    if (-not (Test-Path "$PSScriptRoot/../apps/web/playwright.config.ts")) { throw "playwright.config.ts missing" }
+    if (-not (Test-Path "$PSScriptRoot/../apps/web/e2e/auth.spec.ts")) { throw "auth.spec.ts missing" }
+    if (-not (Test-Path "$PSScriptRoot/../apps/web/e2e/labs.spec.ts")) { throw "labs.spec.ts missing" }
+    if (-not (Test-Path "$PSScriptRoot/../apps/web/e2e/terminal.spec.ts")) { throw "terminal.spec.ts missing" }
+}
+
+# 11. Complete Documentation Suite Integrity
 Run-Gate "Documentation & Architecture Specifications" {
     $docDirs = @('architecture', 'curriculum', 'labs', 'security', 'testing', 'operations', 'api')
     foreach ($d in $docDirs) {
