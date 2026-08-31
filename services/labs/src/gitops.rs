@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub enum SyncStatusCode {
@@ -34,7 +34,9 @@ pub struct GitOpsEvaluator;
 
 impl GitOpsEvaluator {
     /// Parse raw Argo CD Application JSON/YAML status
-    pub fn parse_status_json(raw_json: &serde_json::Value) -> Result<GitOpsApplicationStatus, String> {
+    pub fn parse_status_json(
+        raw_json: &serde_json::Value,
+    ) -> Result<GitOpsApplicationStatus, String> {
         let name = raw_json["metadata"]["name"]
             .as_str()
             .unwrap_or("unnamed")
@@ -83,7 +85,13 @@ impl GitOpsEvaluator {
         let resources_synced = if sync_status == SyncStatusCode::Synced {
             resources_total
         } else {
-            resources.map(|r| r.iter().filter(|item| item["status"].as_str() == Some("Synced")).count()).unwrap_or(0)
+            resources
+                .map(|r| {
+                    r.iter()
+                        .filter(|item| item["status"].as_str() == Some("Synced"))
+                        .count()
+                })
+                .unwrap_or(0)
         };
 
         let drift_detected = sync_status == SyncStatusCode::OutOfSync;

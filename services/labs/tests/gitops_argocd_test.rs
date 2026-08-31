@@ -1,4 +1,4 @@
-use kubelab_labs::gitops::{GitOpsEvaluator, SyncStatusCode, HealthStatusCode};
+use kubelab_labs::gitops::{GitOpsEvaluator, HealthStatusCode, SyncStatusCode};
 
 #[test]
 fn test_argocd_application_status_and_drift_detection() {

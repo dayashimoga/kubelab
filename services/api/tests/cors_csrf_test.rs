@@ -15,13 +15,16 @@ async fn test_cors_headers_and_preflight_handling() {
         .uri("/v1/labs")
         .header(header::ORIGIN, "http://localhost:3000")
         .header(header::ACCESS_CONTROL_REQUEST_METHOD, "GET")
-        .header(header::ACCESS_CONTROL_REQUEST_HEADERS, "authorization, content-type")
+        .header(
+            header::ACCESS_CONTROL_REQUEST_HEADERS,
+            "authorization, content-type",
+        )
         .body(Body::empty())
         .unwrap();
 
     let response = app.clone().oneshot(preflight).await.unwrap();
     assert_eq!(response.status(), StatusCode::OK);
-    
+
     // Check CORS response headers
     let headers = response.headers();
     assert!(

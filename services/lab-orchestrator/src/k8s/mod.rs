@@ -1,5 +1,5 @@
-pub mod namespace_provisioner;
 pub mod manifest_applier;
+pub mod namespace_provisioner;
 
 use kube::Client;
 use tracing::info;

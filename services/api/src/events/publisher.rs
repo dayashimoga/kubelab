@@ -1,7 +1,7 @@
 use super::EventBus;
-use serde::{Serialize, Deserialize};
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LabStartedEvent {
@@ -53,15 +53,26 @@ impl<'a> DomainEventPublisher<'a> {
         self.bus.publish_event("events.lab.started", event).await
     }
 
-    pub async fn emit_lab_completed(&self, event: &LabCompletedEvent) -> Result<(), async_nats::Error> {
+    pub async fn emit_lab_completed(
+        &self,
+        event: &LabCompletedEvent,
+    ) -> Result<(), async_nats::Error> {
         self.bus.publish_event("events.lab.completed", event).await
     }
 
-    pub async fn emit_progress_updated(&self, event: &ProgressUpdatedEvent) -> Result<(), async_nats::Error> {
-        self.bus.publish_event("events.progress.updated", event).await
+    pub async fn emit_progress_updated(
+        &self,
+        event: &ProgressUpdatedEvent,
+    ) -> Result<(), async_nats::Error> {
+        self.bus
+            .publish_event("events.progress.updated", event)
+            .await
     }
 
-    pub async fn emit_security_alert(&self, event: &SecurityAlertEvent) -> Result<(), async_nats::Error> {
+    pub async fn emit_security_alert(
+        &self,
+        event: &SecurityAlertEvent,
+    ) -> Result<(), async_nats::Error> {
         self.bus.publish_event("events.security.alert", event).await
     }
 }

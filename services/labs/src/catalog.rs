@@ -29,7 +29,11 @@ pub fn load_labs_from_disk() -> Vec<DeclarativeLabDef> {
                 }
             }
             if !loaded_labs.is_empty() {
-                tracing::info!("Loaded {} declarative lab definitions from {:?}", loaded_labs.len(), base_path);
+                tracing::info!(
+                    "Loaded {} declarative lab definitions from {:?}",
+                    loaded_labs.len(),
+                    base_path
+                );
                 return loaded_labs;
             }
         }

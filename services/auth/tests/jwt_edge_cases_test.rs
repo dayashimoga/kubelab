@@ -79,5 +79,8 @@ fn test_jwt_token_type_mismatch_guards() {
 
     // Verify access token is REJECTED if passed to refresh token validator
     let cross_type_check = jwt_service.verify_refresh_token(&access_token);
-    assert!(cross_type_check.is_err(), "Access token must not be accepted as a refresh token");
+    assert!(
+        cross_type_check.is_err(),
+        "Access token must not be accepted as a refresh token"
+    );
 }

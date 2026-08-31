@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MeshValidationResult {
@@ -14,7 +14,10 @@ pub struct IstioMeshValidator;
 
 impl IstioMeshValidator {
     /// Validates an Istio VirtualService + DestinationRule specification
-    pub fn validate_service_mesh(virtual_service_yaml: &str, destination_rule_yaml: &str) -> MeshValidationResult {
+    pub fn validate_service_mesh(
+        virtual_service_yaml: &str,
+        destination_rule_yaml: &str,
+    ) -> MeshValidationResult {
         let mut details = Vec::new();
         let mut has_canary = false;
         let mut has_retries = false;
@@ -41,13 +44,19 @@ impl IstioMeshValidator {
 
         // Parse DestinationRule
         if let Ok(dr) = serde_yaml::from_str::<serde_json::Value>(destination_rule_yaml) {
-            let tls_mode = dr["spec"]["trafficPolicy"]["tls"]["mode"].as_str().unwrap_or("");
+            let tls_mode = dr["spec"]["trafficPolicy"]["tls"]["mode"]
+                .as_str()
+                .unwrap_or("");
             if tls_mode == "ISTIO_MUTUAL" || tls_mode == "MUTUAL" {
                 has_mtls = true;
                 details.push("Found STRICT mTLS policy".to_string());
             }
 
-            if dr["spec"]["trafficPolicy"]["outlierDetection"]["consecutive5xxErrors"].as_i64().unwrap_or(0) > 0 {
+            if dr["spec"]["trafficPolicy"]["outlierDetection"]["consecutive5xxErrors"]
+                .as_i64()
+                .unwrap_or(0)
+                > 0
+            {
                 has_cb = true;
                 details.push("Found outlier detection circuit breaker".to_string());
             }

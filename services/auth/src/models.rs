@@ -2,18 +2,13 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum UserRole {
+    #[default]
     Learner,
     Instructor,
     Admin,
-}
-
-impl Default for UserRole {
-    fn default() -> Self {
-        UserRole::Learner
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -39,7 +39,8 @@ pub fn evaluate_assertion(assertion: &mut StateAssertion, actual_state: &Value) 
         Some(val) => match assertion.operator {
             ValidationOperator::Equals => val == &assertion.expected,
             ValidationOperator::Contains => {
-                if let (Some(val_str), Some(exp_str)) = (val.as_str(), assertion.expected.as_str()) {
+                if let (Some(val_str), Some(exp_str)) = (val.as_str(), assertion.expected.as_str())
+                {
                     val_str.contains(exp_str)
                 } else if let (Some(val_arr), exp) = (val.as_array(), &assertion.expected) {
                     val_arr.contains(exp)
@@ -48,7 +49,9 @@ pub fn evaluate_assertion(assertion: &mut StateAssertion, actual_state: &Value) 
                 }
             }
             ValidationOperator::MatchesRegex => {
-                if let (Some(val_str), Some(exp_regex)) = (val.as_str(), assertion.expected.as_str()) {
+                if let (Some(val_str), Some(exp_regex)) =
+                    (val.as_str(), assertion.expected.as_str())
+                {
                     if let Ok(re) = Regex::new(exp_regex) {
                         re.is_match(val_str)
                     } else {

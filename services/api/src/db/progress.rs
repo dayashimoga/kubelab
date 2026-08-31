@@ -1,7 +1,7 @@
+use chrono::{DateTime, NaiveDate, Utc};
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use uuid::Uuid;
-use chrono::{DateTime, Utc, NaiveDate};
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct UserProgressRow {
@@ -27,7 +27,10 @@ impl<'a> ProgressRepository<'a> {
         Self { pool }
     }
 
-    pub async fn get_progress(&self, user_id: Uuid) -> Result<Option<UserProgressRow>, sqlx::Error> {
+    pub async fn get_progress(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Option<UserProgressRow>, sqlx::Error> {
         sqlx::query_as::<_, UserProgressRow>(
             r#"
             SELECT user_id, total_xp, level, current_streak_days, longest_streak_days,
@@ -35,14 +38,18 @@ impl<'a> ProgressRepository<'a> {
                    skills, updated_at
             FROM user_progress
             WHERE user_id = $1
-            "#
+            "#,
         )
         .bind(user_id)
         .fetch_optional(self.pool)
         .await
     }
 
-    pub async fn add_xp(&self, user_id: Uuid, xp_to_add: i32) -> Result<UserProgressRow, sqlx::Error> {
+    pub async fn add_xp(
+        &self,
+        user_id: Uuid,
+        xp_to_add: i32,
+    ) -> Result<UserProgressRow, sqlx::Error> {
         let current = self.get_progress(user_id).await?;
         let current_xp = current.as_ref().map(|p| p.total_xp).unwrap_or(0);
         let new_xp = current_xp + xp_to_add;
@@ -59,7 +66,7 @@ impl<'a> ProgressRepository<'a> {
             RETURNING user_id, total_xp, level, current_streak_days, longest_streak_days,
                       last_active_date, completed_lessons, completed_labs, unlocked_badges,
                       skills, updated_at
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(new_xp)
@@ -70,7 +77,12 @@ impl<'a> ProgressRepository<'a> {
         Ok(updated)
     }
 
-    pub async fn record_lab_completion(&self, user_id: Uuid, lab_id: &str, xp_reward: i32) -> Result<UserProgressRow, sqlx::Error> {
+    pub async fn record_lab_completion(
+        &self,
+        user_id: Uuid,
+        lab_id: &str,
+        xp_reward: i32,
+    ) -> Result<UserProgressRow, sqlx::Error> {
         let current = self.get_progress(user_id).await?;
         let mut completed: Vec<String> = current
             .as_ref()
@@ -97,7 +109,7 @@ impl<'a> ProgressRepository<'a> {
             RETURNING user_id, total_xp, level, current_streak_days, longest_streak_days,
                       last_active_date, completed_lessons, completed_labs, unlocked_badges,
                       skills, updated_at
-            "#
+            "#,
         )
         .bind(user_id)
         .bind(completed_json)

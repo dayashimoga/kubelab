@@ -62,9 +62,15 @@ impl LabProvisioner {
 
         // If real Kubernetes client is available, provision physical namespace with Quota & NetPol
         if let Some(ref client) = self.k8s_client {
-            info!("Provisioning live Kubernetes sandbox namespace '{}' for user '{}'...", namespace_name, user_id);
+            info!(
+                "Provisioning live Kubernetes sandbox namespace '{}' for user '{}'...",
+                namespace_name, user_id
+            );
             let provisioner = NamespaceProvisioner::new(client);
-            if let Err(e) = provisioner.provision_sandbox_namespace(&namespace_name, user_id).await {
+            if let Err(e) = provisioner
+                .provision_sandbox_namespace(&namespace_name, user_id)
+                .await
+            {
                 warn!("Live namespace provisioning failed or already exists: {:?}. Proceeding with tracked sandbox state.", e);
             }
         }
@@ -88,10 +94,16 @@ impl LabProvisioner {
 
     pub async fn destroy_sandbox(&self, namespace: &str) -> Result<(), OrchestratorError> {
         if let Some(ref client) = self.k8s_client {
-            info!("Tearing down live Kubernetes sandbox namespace '{}'...", namespace);
+            info!(
+                "Tearing down live Kubernetes sandbox namespace '{}'...",
+                namespace
+            );
             let provisioner = NamespaceProvisioner::new(client);
             if let Err(e) = provisioner.destroy_sandbox_namespace(namespace).await {
-                warn!("Live namespace teardown returned: {:?}. Removing from tracked sandboxes.", e);
+                warn!(
+                    "Live namespace teardown returned: {:?}. Removing from tracked sandboxes.",
+                    e
+                );
             }
         }
 

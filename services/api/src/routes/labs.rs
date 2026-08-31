@@ -78,7 +78,10 @@ async fn start_lab(
             }
             // Persist session to PostgreSQL if active
             if let (Some(ref db), Ok(uid)) = (&state.db, Uuid::parse_str(&user_id)) {
-                let _ = db.labs().create_session(uid, &lab_id, &session.namespace, session.expires_at).await;
+                let _ = db
+                    .labs()
+                    .create_session(uid, &lab_id, &session.namespace, session.expires_at)
+                    .await;
             }
 
             Ok((StatusCode::CREATED, Json(session)))
@@ -179,14 +182,20 @@ async fn validate_task(
             // Update session score in PostgreSQL if active
             if let Ok(session) = state.labs.get_session(&session_id).await {
                 if let Some(ref db) = state.db {
-                    let status_str = if session.completed_at.is_some() { "completed" } else { "in_progress" };
+                    let status_str = if session.completed_at.is_some() {
+                        "completed"
+                    } else {
+                        "in_progress"
+                    };
                     let _ = db
                         .labs()
                         .update_score(session_id, session.score as i32, status_str)
                         .await;
                 }
                 if session.completed_at.is_some() {
-                    if let (Some(ref bus), Ok(uid)) = (&state.events, Uuid::parse_str(&session.user_id)) {
+                    if let (Some(ref bus), Ok(uid)) =
+                        (&state.events, Uuid::parse_str(&session.user_id))
+                    {
                         let _ = bus
                             .publisher()
                             .emit_lab_completed(&publisher::LabCompletedEvent {

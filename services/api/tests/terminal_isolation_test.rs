@@ -61,7 +61,10 @@ async fn test_terminal_websocket_auth_and_session_isolation() {
     // 3. Connect to terminal WITHOUT token -> MUST FAIL
     let ws_url_no_token = format!("ws://{}/v1/ws/terminal/{}", local_addr, session_a_id);
     let connect_res = connect_async(&ws_url_no_token).await;
-    assert!(connect_res.is_err(), "Expected connection without token to fail");
+    assert!(
+        connect_res.is_err(),
+        "Expected connection without token to fail"
+    );
 
     // 4. Connect to terminal with INVALID JWT -> MUST FAIL
     let ws_url_invalid_token = format!(
@@ -69,7 +72,10 @@ async fn test_terminal_websocket_auth_and_session_isolation() {
         local_addr, session_a_id
     );
     let connect_res = connect_async(&ws_url_invalid_token).await;
-    assert!(connect_res.is_err(), "Expected connection with invalid token to fail");
+    assert!(
+        connect_res.is_err(),
+        "Expected connection with invalid token to fail"
+    );
 
     // 5. User B tries to connect to User A's terminal session -> MUST FAIL (403 Forbidden)
     let ws_url_user_b = format!(

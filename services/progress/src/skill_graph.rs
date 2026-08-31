@@ -7,7 +7,9 @@ pub fn generate_cloud_native_skill_graph() -> SkillGraph {
             name: "Linux Systems & CLI".to_string(),
             slug: "linux-cli".to_string(),
             category: "Foundations".to_string(),
-            description: "Linux system administration, file permissions, signals, and bash scripting.".to_string(),
+            description:
+                "Linux system administration, file permissions, signals, and bash scripting."
+                    .to_string(),
             level: 3,
             xp: 350,
             icon: "Terminal".to_string(),
@@ -18,7 +20,8 @@ pub fn generate_cloud_native_skill_graph() -> SkillGraph {
             name: "OCI Containers & Podman".to_string(),
             slug: "containers".to_string(),
             category: "Foundations".to_string(),
-            description: "Linux namespaces, cgroups, rootless containers, and image builds.".to_string(),
+            description: "Linux namespaces, cgroups, rootless containers, and image builds."
+                .to_string(),
             level: 2,
             xp: 250,
             icon: "Container".to_string(),
@@ -40,7 +43,8 @@ pub fn generate_cloud_native_skill_graph() -> SkillGraph {
             name: "Kubernetes Networking".to_string(),
             slug: "k8s-networking".to_string(),
             category: "Networking".to_string(),
-            description: "Services, Endpoints, CNI plugins, CoreDNS, and Ingress routing.".to_string(),
+            description: "Services, Endpoints, CNI plugins, CoreDNS, and Ingress routing."
+                .to_string(),
             level: 3,
             xp: 450,
             icon: "Network".to_string(),
@@ -51,7 +55,8 @@ pub fn generate_cloud_native_skill_graph() -> SkillGraph {
             name: "GitOps & Argo CD".to_string(),
             slug: "gitops-argocd".to_string(),
             category: "GitOps".to_string(),
-            description: "Continuous delivery with Argo CD, drift detection, and auto-sync.".to_string(),
+            description: "Continuous delivery with Argo CD, drift detection, and auto-sync."
+                .to_string(),
             level: 3,
             xp: 400,
             icon: "GitBranch".to_string(),
@@ -62,7 +67,8 @@ pub fn generate_cloud_native_skill_graph() -> SkillGraph {
             name: "Istio Service Mesh".to_string(),
             slug: "service-mesh".to_string(),
             category: "Service Mesh".to_string(),
-            description: "Envoy sidecars, traffic shifting, mTLS, and circuit breakers.".to_string(),
+            description: "Envoy sidecars, traffic shifting, mTLS, and circuit breakers."
+                .to_string(),
             level: 2,
             xp: 300,
             icon: "Layers".to_string(),
@@ -73,7 +79,8 @@ pub fn generate_cloud_native_skill_graph() -> SkillGraph {
             name: "OpenTelemetry & Prometheus".to_string(),
             slug: "observability".to_string(),
             category: "Observability".to_string(),
-            description: "Distributed tracing, PromQL metrics queries, and Grafana dashboards.".to_string(),
+            description: "Distributed tracing, PromQL metrics queries, and Grafana dashboards."
+                .to_string(),
             level: 3,
             xp: 500,
             icon: "Activity".to_string(),
@@ -88,19 +95,46 @@ pub fn generate_cloud_native_skill_graph() -> SkillGraph {
             level: 2,
             xp: 350,
             icon: "AlertTriangle".to_string(),
-            prerequisites: vec!["skill-observability".to_string(), "skill-networking".to_string()],
+            prerequisites: vec![
+                "skill-observability".to_string(),
+                "skill-networking".to_string(),
+            ],
         },
     ];
 
     let edges = vec![
-        SkillEdge { source: "skill-linux".to_string(), target: "skill-containers".to_string() },
-        SkillEdge { source: "skill-containers".to_string(), target: "skill-k8s-workloads".to_string() },
-        SkillEdge { source: "skill-k8s-workloads".to_string(), target: "skill-networking".to_string() },
-        SkillEdge { source: "skill-k8s-workloads".to_string(), target: "skill-gitops".to_string() },
-        SkillEdge { source: "skill-networking".to_string(), target: "skill-service-mesh".to_string() },
-        SkillEdge { source: "skill-k8s-workloads".to_string(), target: "skill-observability".to_string() },
-        SkillEdge { source: "skill-observability".to_string(), target: "skill-incidents".to_string() },
-        SkillEdge { source: "skill-networking".to_string(), target: "skill-incidents".to_string() },
+        SkillEdge {
+            source: "skill-linux".to_string(),
+            target: "skill-containers".to_string(),
+        },
+        SkillEdge {
+            source: "skill-containers".to_string(),
+            target: "skill-k8s-workloads".to_string(),
+        },
+        SkillEdge {
+            source: "skill-k8s-workloads".to_string(),
+            target: "skill-networking".to_string(),
+        },
+        SkillEdge {
+            source: "skill-k8s-workloads".to_string(),
+            target: "skill-gitops".to_string(),
+        },
+        SkillEdge {
+            source: "skill-networking".to_string(),
+            target: "skill-service-mesh".to_string(),
+        },
+        SkillEdge {
+            source: "skill-k8s-workloads".to_string(),
+            target: "skill-observability".to_string(),
+        },
+        SkillEdge {
+            source: "skill-observability".to_string(),
+            target: "skill-incidents".to_string(),
+        },
+        SkillEdge {
+            source: "skill-networking".to_string(),
+            target: "skill-incidents".to_string(),
+        },
     ];
 
     SkillGraph { nodes, edges }

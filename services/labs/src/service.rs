@@ -93,7 +93,11 @@ impl LabService {
         labs.get(lab_id).cloned().ok_or(LabError::LabNotFound)
     }
 
-    pub async fn start_session(&self, user_id: &str, req: StartLabRequest) -> Result<LabSession, LabError> {
+    pub async fn start_session(
+        &self,
+        user_id: &str,
+        req: StartLabRequest,
+    ) -> Result<LabSession, LabError> {
         let lab = self.get_lab(&req.lab_id).await?;
         let now = Utc::now();
         let expires_at = now + Duration::minutes(lab.duration_minutes as i64);
@@ -133,7 +137,10 @@ impl LabService {
 
     pub async fn get_session(&self, session_id: &Uuid) -> Result<LabSession, LabError> {
         let sessions = self.sessions.read().await;
-        sessions.get(session_id).cloned().ok_or(LabError::SessionNotFound)
+        sessions
+            .get(session_id)
+            .cloned()
+            .ok_or(LabError::SessionNotFound)
     }
 
     pub async fn apply_manifest(
@@ -149,10 +156,19 @@ impl LabService {
 
         // If live Kubernetes client is configured, execute server-side apply
         if let Some(ref client) = self.k8s_client {
-            info!("Applying live Kubernetes YAML manifest to namespace '{}'...", session.namespace);
+            info!(
+                "Applying live Kubernetes YAML manifest to namespace '{}'...",
+                session.namespace
+            );
             let applier = ManifestApplier::new(client);
-            if let Err(e) = applier.apply_yaml_manifest(&session.namespace, &req.yaml_content).await {
-                warn!("Live Kubernetes server-side apply error: {:?}. Recording parsed documents.", e);
+            if let Err(e) = applier
+                .apply_yaml_manifest(&session.namespace, &req.yaml_content)
+                .await
+            {
+                warn!(
+                    "Live Kubernetes server-side apply error: {:?}. Recording parsed documents.",
+                    e
+                );
             }
         }
 
@@ -238,7 +254,9 @@ impl LabService {
         req: ValidateLabRequest,
     ) -> Result<ValidationResult, LabError> {
         let mut sessions = self.sessions.write().await;
-        let session = sessions.get_mut(session_id).ok_or(LabError::SessionNotFound)?;
+        let session = sessions
+            .get_mut(session_id)
+            .ok_or(LabError::SessionNotFound)?;
 
         let lab = self.get_lab(&session.lab_id).await?;
         let task = lab
@@ -271,7 +289,9 @@ impl LabService {
 
         let result = LabEvaluator::evaluate_task(task, &actual_state);
 
-        session.task_results.insert(req.task_id.clone(), result.passed);
+        session
+            .task_results
+            .insert(req.task_id.clone(), result.passed);
         if result.passed {
             session.score = session
                 .task_results

@@ -19,7 +19,10 @@ async fn test_concurrent_sandbox_provisioning_and_isolation() {
     let sb_a = sandbox_a.expect("Sandbox A should provision successfully");
     let sb_b = sandbox_b.expect("Sandbox B should provision successfully");
 
-    assert_ne!(sb_a.namespace, sb_b.namespace, "Namespaces must be completely unique");
+    assert_ne!(
+        sb_a.namespace, sb_b.namespace,
+        "Namespaces must be completely unique"
+    );
     assert_eq!(sb_a.user_id, user_a);
     assert_eq!(sb_b.user_id, user_b);
     assert!(sb_a.network_policy_applied);
@@ -39,7 +42,10 @@ async fn test_concurrent_sandbox_provisioning_and_isolation() {
 
     // 4. Destroying non-existent / already destroyed sandbox should return error
     let double_destroy = provisioner.destroy_sandbox(&sb_a.namespace).await;
-    assert!(double_destroy.is_err(), "Idempotent teardown check: non-existent sandbox must error");
+    assert!(
+        double_destroy.is_err(),
+        "Idempotent teardown check: non-existent sandbox must error"
+    );
 
     // 5. Cleanup sandbox B
     let destroy_b = provisioner.destroy_sandbox(&sb_b.namespace).await;

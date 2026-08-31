@@ -46,5 +46,12 @@ All notable changes to KubeLab are documented in this file.
 - **Hardened Containerfile.api**: Updated to `rust:1.80-slim` builder and `debian:bookworm-slim` runner with `libssl3` and resilient `Cargo.lock*` copying.
 - **Upgraded Build Workflow & Added SBOM Scanning**: Upgraded `docker/build-push-action@v6` in `build.yml` and added automated SPDX JSON Software Bill of Materials (SBOM) generation via `anchore/sbom-action@v0`.
 
+### CI Runner & Node 22 Modernization
+- **Resolved Clippy Strictness**: Resolved all compiler warnings across `kubelab-auth` (`derive(Default)` on `UserRole`), `validation-engine`, and `kubelab-api` tests under `-D warnings`.
+- **Enforced Strict Rustfmt**: Normalized codebase formatting so `cargo fmt --all -- --check` passes with zero diff.
+- **Modernized Node 22 Toolchain in CI**: Upgraded GitHub Actions runners to `node-version: 22` and removed lockfile cache constraints preventing `pnpm install` in monorepo workflows.
+- **Synchronized Bash Certification Harness**: Updated `scripts/validate-production.sh` with full security tests and lifecycle script validations.
+
+
 
 

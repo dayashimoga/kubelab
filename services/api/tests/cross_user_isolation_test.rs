@@ -8,12 +8,22 @@ async fn test_cross_user_session_and_namespace_isolation() {
 
     // 1. Register User A and User B
     let user_a = auth
-        .register("learner.alice@kubelab.io", "Alice Dev", "StrongPassAlice123!", None)
+        .register(
+            "learner.alice@kubelab.io",
+            "Alice Dev",
+            "StrongPassAlice123!",
+            None,
+        )
         .await
         .expect("Alice registration should succeed");
 
     let user_b = auth
-        .register("learner.bob@kubelab.io", "Bob Ops", "StrongPassBob456!", None)
+        .register(
+            "learner.bob@kubelab.io",
+            "Bob Ops",
+            "StrongPassBob456!",
+            None,
+        )
         .await
         .expect("Bob registration should succeed");
 
@@ -70,14 +80,17 @@ spec:
 
     assert!(alice_apply.success);
     assert_eq!(alice_apply.applied_resources.len(), 1);
-    assert_eq!(alice_apply.applied_resources[0].namespace, alice_session.namespace);
+    assert_eq!(
+        alice_apply.applied_resources[0].namespace,
+        alice_session.namespace
+    );
 
     // 5. Verify Bob cannot see Alice's deployed resources
     let bob_resources = labs
         .get_namespace_resources(&bob_session.id)
         .await
         .expect("Bob resources query should succeed");
-    
+
     assert!(
         bob_resources.iter().all(|r| r.name != "nginx-alice"),
         "Bob must not have visibility into Alice's sandbox resources"
@@ -90,7 +103,10 @@ spec:
 
     // 7. Verify Alice's session is destroyed but Bob's session remains active
     let alice_session_after = labs.get_session(&alice_session.id).await.unwrap();
-    assert_eq!(alice_session_after.status, kubelab_labs::SessionStatus::Destroyed);
+    assert_eq!(
+        alice_session_after.status,
+        kubelab_labs::SessionStatus::Destroyed
+    );
 
     let bob_session_after = labs.get_session(&bob_session.id).await.unwrap();
     assert_eq!(bob_session_after.status, kubelab_labs::SessionStatus::Ready);

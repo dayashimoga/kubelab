@@ -5,7 +5,11 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 #[derive(Parser, Debug)]
-#[command(author, version, about = "Validate KubeLab Declarative Lab YAML Schema")]
+#[command(
+    author,
+    version,
+    about = "Validate KubeLab Declarative Lab YAML Schema"
+)]
 struct Args {
     #[arg(short, long)]
     path: PathBuf,

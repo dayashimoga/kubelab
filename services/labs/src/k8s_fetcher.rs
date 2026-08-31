@@ -12,7 +12,10 @@ pub async fn fetch_live_k8s_resource(
     name: &str,
     namespace: &str,
 ) -> Result<Value, Box<dyn std::error::Error + Send + Sync>> {
-    info!("Querying live Kubernetes cluster for resource '{}' named '{}' in namespace '{}'...", resource_type, name, namespace);
+    info!(
+        "Querying live Kubernetes cluster for resource '{}' named '{}' in namespace '{}'...",
+        resource_type, name, namespace
+    );
 
     let discovery = Discovery::new(client.clone()).run().await?;
 
@@ -22,7 +25,9 @@ pub async fn fetch_live_k8s_resource(
 
     for group in discovery.groups() {
         for (ar, caps) in group.recommended_resources() {
-            if ar.plural.eq_ignore_ascii_case(resource_type) || ar.kind.eq_ignore_ascii_case(resource_type) {
+            if ar.plural.eq_ignore_ascii_case(resource_type)
+                || ar.kind.eq_ignore_ascii_case(resource_type)
+            {
                 resolved_ar = Some(ar);
                 is_cluster_scoped = caps.scope == Scope::Cluster;
                 break;
@@ -36,7 +41,10 @@ pub async fn fetch_live_k8s_resource(
     let ar = match resolved_ar {
         Some(ar) => ar,
         None => {
-            warn!("Could not discover GVR for resource type '{}'", resource_type);
+            warn!(
+                "Could not discover GVR for resource type '{}'",
+                resource_type
+            );
             return Ok(Value::Null);
         }
     };
@@ -53,7 +61,10 @@ pub async fn fetch_live_k8s_resource(
             Ok(json_val)
         }
         Err(e) => {
-            warn!("Live Kubernetes get for {}/{} in namespace '{}' failed: {:?}", resource_type, name, namespace, e);
+            warn!(
+                "Live Kubernetes get for {}/{} in namespace '{}' failed: {:?}",
+                resource_type, name, namespace, e
+            );
             Ok(Value::Null)
         }
     }

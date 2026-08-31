@@ -1,7 +1,7 @@
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct LabSessionRow {
@@ -63,7 +63,12 @@ impl<'a> LabRepository<'a> {
         .await
     }
 
-    pub async fn update_score(&self, id: Uuid, score: i32, status: &str) -> Result<LabSessionRow, sqlx::Error> {
+    pub async fn update_score(
+        &self,
+        id: Uuid,
+        score: i32,
+        status: &str,
+    ) -> Result<LabSessionRow, sqlx::Error> {
         let session = sqlx::query_as::<_, LabSessionRow>(
             r#"
             UPDATE lab_sessions

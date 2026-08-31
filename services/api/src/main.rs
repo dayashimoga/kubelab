@@ -1,8 +1,8 @@
+use kubelab_api::cache::Cache;
+use kubelab_api::db::Database;
+use kubelab_api::events::EventBus;
 use kubelab_api::routes::create_routes;
 use kubelab_api::state::AppState;
-use kubelab_api::db::Database;
-use kubelab_api::cache::Cache;
-use kubelab_api::events::EventBus;
 use kubelab_api::telemetry::{init_tracer, shutdown_tracer};
 use std::net::SocketAddr;
 use tower_http::cors::{Any, CorsLayer};

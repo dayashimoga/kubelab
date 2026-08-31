@@ -41,7 +41,11 @@ fn test_evaluator_negative_cases_and_type_mismatches() {
     let empty_state = json!({});
     let empty_res = LabEvaluator::evaluate_task(&task, &empty_state);
     assert!(!empty_res.passed);
-    let failed_count = empty_res.assertion_results.iter().filter(|a| !a.passed.unwrap_or(false)).count();
+    let failed_count = empty_res
+        .assertion_results
+        .iter()
+        .filter(|a| !a.passed.unwrap_or(false))
+        .count();
     assert_eq!(failed_count, 2);
 
     // 2. Type mismatch: status.replicas is a string "3" instead of number 3 -> FAIL
@@ -51,7 +55,11 @@ fn test_evaluator_negative_cases_and_type_mismatches() {
     });
     let mismatch_res = LabEvaluator::evaluate_task(&task, &type_mismatch_state);
     assert!(!mismatch_res.passed);
-    let failed_mismatch = mismatch_res.assertion_results.iter().filter(|a| !a.passed.unwrap_or(false)).count();
+    let failed_mismatch = mismatch_res
+        .assertion_results
+        .iter()
+        .filter(|a| !a.passed.unwrap_or(false))
+        .count();
     assert_eq!(failed_mismatch, 1);
 
     // 3. Image tag mismatch: nginx:1.24 instead of nginx:1.25 -> FAIL
@@ -61,7 +69,11 @@ fn test_evaluator_negative_cases_and_type_mismatches() {
     });
     let wrong_img_res = LabEvaluator::evaluate_task(&task, &wrong_image_state);
     assert!(!wrong_img_res.passed);
-    let failed_wrong_img = wrong_img_res.assertion_results.iter().filter(|a| !a.passed.unwrap_or(false)).count();
+    let failed_wrong_img = wrong_img_res
+        .assertion_results
+        .iter()
+        .filter(|a| !a.passed.unwrap_or(false))
+        .count();
     assert_eq!(failed_wrong_img, 1);
 
     // 4. Correct full state -> PASS
@@ -71,6 +83,10 @@ fn test_evaluator_negative_cases_and_type_mismatches() {
     });
     let correct_res = LabEvaluator::evaluate_task(&task, &correct_state);
     assert!(correct_res.passed);
-    let passed_count = correct_res.assertion_results.iter().filter(|a| a.passed.unwrap_or(false)).count();
+    let passed_count = correct_res
+        .assertion_results
+        .iter()
+        .filter(|a| a.passed.unwrap_or(false))
+        .count();
     assert_eq!(passed_count, 2);
 }

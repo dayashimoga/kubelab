@@ -69,6 +69,8 @@ async fn test_prometheus_metrics_exposition_and_registry_counters() {
 
     let body = response.into_body().collect().await.unwrap().to_bytes();
     let body_str = String::from_utf8(body.to_vec()).unwrap();
-    assert!(body_str.contains(r#"kubelab_http_requests_total{service="kubelab-api",status="201"} 1"#));
+    assert!(
+        body_str.contains(r#"kubelab_http_requests_total{service="kubelab-api",status="201"} 1"#)
+    );
     assert!(body_str.contains("kubelab_active_sessions 5"));
 }

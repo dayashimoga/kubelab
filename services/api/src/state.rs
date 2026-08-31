@@ -1,3 +1,7 @@
+use crate::cache::Cache;
+use crate::db::Database;
+use crate::events::EventBus;
+use kube::Client;
 use kubelab_ai_tutor::AiTutorService;
 use kubelab_assessment::AssessmentService;
 use kubelab_auth::AuthService;
@@ -6,10 +10,6 @@ use kubelab_labs::LabService;
 use kubelab_learning::LearningService;
 use kubelab_notification::NotificationService;
 use kubelab_progress::ProgressService;
-use crate::db::Database;
-use crate::cache::Cache;
-use crate::events::EventBus;
-use kube::Client;
 use std::sync::Arc;
 
 #[derive(Clone)]

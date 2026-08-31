@@ -1,14 +1,15 @@
+use kubelab_api::cache::session_store::{CachedSession, SessionStore};
 use kubelab_api::cache::Cache;
-use kubelab_api::cache::session_store::{SessionStore, CachedSession};
 use uuid::Uuid;
 
 #[tokio::test]
 #[ignore = "Requires live Redis — run with: cargo test -- --ignored"]
 async fn test_redis_session_cache_and_revocation() {
-    let redis_url = std::env::var("REDIS_URL")
-        .unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
+    let redis_url =
+        std::env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
 
-    let cache = Cache::connect(&redis_url).await
+    let cache = Cache::connect(&redis_url)
+        .await
         .expect("Redis must be reachable for this integration test");
 
     let mut store = SessionStore::new(cache.manager());
@@ -38,7 +39,10 @@ async fn test_redis_session_cache_and_revocation() {
     assert_eq!(retrieved.email, "alice@kubelab.io");
 
     // 3. Verify not yet revoked
-    assert!(!store.is_revoked(&token_id).await.expect("Check revoked must succeed"));
+    assert!(!store
+        .is_revoked(&token_id)
+        .await
+        .expect("Check revoked must succeed"));
 
     // 4. Revoke token
     store
@@ -47,5 +51,8 @@ async fn test_redis_session_cache_and_revocation() {
         .expect("Revoke token must succeed");
 
     // 5. Verify now revoked
-    assert!(store.is_revoked(&token_id).await.expect("Check revoked must succeed"));
+    assert!(store
+        .is_revoked(&token_id)
+        .await
+        .expect("Check revoked must succeed"));
 }

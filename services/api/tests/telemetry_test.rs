@@ -3,9 +3,7 @@ use std::time::Duration;
 
 #[tokio::test]
 async fn test_opentelemetry_tracer_initialization() {
-    let init_future = async {
-        init_tracer("kubelab-api-test", "http://127.0.0.1:4317")
-    };
+    let init_future = async { init_tracer("kubelab-api-test", "http://127.0.0.1:4317") };
 
     // Verify initialization completes within reasonable timeout
     let result = tokio::time::timeout(Duration::from_secs(3), init_future).await;

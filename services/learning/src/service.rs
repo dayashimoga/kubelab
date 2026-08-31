@@ -55,7 +55,10 @@ impl LearningService {
 
     pub async fn get_lesson_by_id(&self, id: &str) -> Result<LessonDetail, LearningError> {
         let lessons = self.lessons.read().await;
-        lessons.get(id).cloned().ok_or(LearningError::LessonNotFound)
+        lessons
+            .get(id)
+            .cloned()
+            .ok_or(LearningError::LessonNotFound)
     }
 
     pub async fn list_lessons_by_track(&self, track_slug: &str) -> Vec<LessonDetail> {

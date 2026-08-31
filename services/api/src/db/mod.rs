@@ -2,9 +2,9 @@ use sqlx::postgres::{PgPool, PgPoolOptions};
 use std::time::Duration;
 use tracing::{info, warn};
 
-pub mod users;
-pub mod progress;
 pub mod labs;
+pub mod progress;
+pub mod users;
 
 #[derive(Clone)]
 pub struct Database {
@@ -53,9 +53,7 @@ impl Database {
     }
 
     pub async fn ping(&self) -> Result<(), sqlx::Error> {
-        sqlx::query("SELECT 1")
-            .execute(&self.pool)
-            .await?;
+        sqlx::query("SELECT 1").execute(&self.pool).await?;
         Ok(())
     }
 }

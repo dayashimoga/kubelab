@@ -44,15 +44,26 @@ async fn ws_handler(
     let token = match query.get("token") {
         Some(t) if !t.trim().is_empty() => t.trim(),
         _ => {
-            tracing::warn!("Terminal connection rejected: missing authentication token for session {}", session_id);
+            tracing::warn!(
+                "Terminal connection rejected: missing authentication token for session {}",
+                session_id
+            );
             return StatusCode::UNAUTHORIZED.into_response();
         }
     };
 
     // 2. Check if token is revoked in Redis
     if let Some(ref cache) = state.cache {
-        if cache.session_store().is_revoked(token).await.unwrap_or(false) {
-            tracing::warn!("Terminal connection rejected: revoked token for session {}", session_id);
+        if cache
+            .session_store()
+            .is_revoked(token)
+            .await
+            .unwrap_or(false)
+        {
+            tracing::warn!(
+                "Terminal connection rejected: revoked token for session {}",
+                session_id
+            );
             return StatusCode::UNAUTHORIZED.into_response();
         }
     }
@@ -61,7 +72,11 @@ async fn ws_handler(
     let claims = match state.auth.jwt().verify_token(token) {
         Ok(c) => c,
         Err(e) => {
-            tracing::warn!("Terminal connection rejected: invalid JWT ({:?}) for session {}", e, session_id);
+            tracing::warn!(
+                "Terminal connection rejected: invalid JWT ({:?}) for session {}",
+                e,
+                session_id
+            );
             return StatusCode::UNAUTHORIZED.into_response();
         }
     };
@@ -96,7 +111,11 @@ async fn handle_terminal_socket(
     user_id: String,
     _state: AppState,
 ) {
-    tracing::info!("Terminal WebSocket connected for user {} (session: {})", user_id, session_id);
+    tracing::info!(
+        "Terminal WebSocket connected for user {} (session: {})",
+        user_id,
+        session_id
+    );
     let namespace = format!("lab-{}", session_id.simple());
 
     let (mut ws_sender, mut ws_receiver) = socket.split();
@@ -240,7 +259,11 @@ async fn handle_terminal_socket(
 /// Helper function to build a sanitized, namespace-scoped sandbox shell command
 fn build_sandbox_command(namespace: &str, session_id: &Uuid) -> Command {
     // Sanitized environment: drop all sensitive host variables
-    let shell_exec = if cfg!(windows) { "powershell.exe" } else { "/bin/sh" };
+    let shell_exec = if cfg!(windows) {
+        "powershell.exe"
+    } else {
+        "/bin/sh"
+    };
     let mut cmd = Command::new(shell_exec);
 
     if cfg!(windows) {

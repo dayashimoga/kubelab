@@ -14,7 +14,12 @@ async fn test_full_lab_lifecycle_start_apply_validate_destroy() {
     // 1. List labs
     let response = app
         .clone()
-        .oneshot(Request::builder().uri("/v1/labs").body(Body::empty()).unwrap())
+        .oneshot(
+            Request::builder()
+                .uri("/v1/labs")
+                .body(Body::empty())
+                .unwrap(),
+        )
         .await
         .unwrap();
     assert_eq!(response.status(), StatusCode::OK);

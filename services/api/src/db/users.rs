@@ -1,7 +1,7 @@
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 pub struct UserRow {
@@ -36,7 +36,7 @@ impl<'a> UserRepository<'a> {
             INSERT INTO users (email, name, password_hash, role)
             VALUES ($1, $2, $3, $4)
             RETURNING id, email, name, password_hash, role, avatar_url, created_at, updated_at
-            "#
+            "#,
         )
         .bind(email)
         .bind(name)
@@ -66,7 +66,7 @@ impl<'a> UserRepository<'a> {
             SELECT id, email, name, password_hash, role, avatar_url, created_at, updated_at
             FROM users
             WHERE email = $1
-            "#
+            "#,
         )
         .bind(email)
         .fetch_optional(self.pool)
@@ -79,7 +79,7 @@ impl<'a> UserRepository<'a> {
             SELECT id, email, name, password_hash, role, avatar_url, created_at, updated_at
             FROM users
             WHERE id = $1
-            "#
+            "#,
         )
         .bind(id)
         .fetch_optional(self.pool)

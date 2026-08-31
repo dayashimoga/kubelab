@@ -24,9 +24,15 @@ impl EventBus {
         publisher::DomainEventPublisher::new(self)
     }
 
-    pub async fn publish_event<T: serde::Serialize>(&self, subject: &str, event: &T) -> Result<(), async_nats::Error> {
+    pub async fn publish_event<T: serde::Serialize>(
+        &self,
+        subject: &str,
+        event: &T,
+    ) -> Result<(), async_nats::Error> {
         let payload = serde_json::to_vec(event)?;
-        self.client.publish(subject.to_string(), payload.into()).await?;
+        self.client
+            .publish(subject.to_string(), payload.into())
+            .await?;
         Ok(())
     }
 }

@@ -118,7 +118,10 @@ impl AssessmentService {
             .collect()
     }
 
-    pub async fn evaluate_submission(&self, submission: &QuizSubmission) -> Result<QuizResult, AssessmentError> {
+    pub async fn evaluate_submission(
+        &self,
+        submission: &QuizSubmission,
+    ) -> Result<QuizResult, AssessmentError> {
         let questions = self.questions.read().await;
         let mut total_score = 0;
         let mut max_score = 0;

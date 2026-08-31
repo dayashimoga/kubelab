@@ -1,18 +1,20 @@
-use kubelab_api::db::Database;
-use kubelab_api::db::users::UserRepository;
-use kubelab_api::db::progress::ProgressRepository;
-use kubelab_api::db::labs::LabRepository;
-use uuid::Uuid;
 use chrono::Utc;
+use kubelab_api::db::labs::LabRepository;
+use kubelab_api::db::progress::ProgressRepository;
+use kubelab_api::db::users::UserRepository;
+use kubelab_api::db::Database;
+use uuid::Uuid;
 
 #[tokio::test]
 #[ignore = "Requires live PostgreSQL — run with: cargo test -- --ignored"]
 async fn test_postgres_persistence_and_migrations() {
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://kubelab:kubelab_secret_password@127.0.0.1:5432/kubelab".to_string());
+    let database_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| {
+        "postgres://kubelab:kubelab_secret_password@127.0.0.1:5432/kubelab".to_string()
+    });
 
     // Connect to PostgreSQL — this test is #[ignore]'d so it won't silently skip in CI
-    let db = Database::connect(&database_url).await
+    let db = Database::connect(&database_url)
+        .await
         .expect("PostgreSQL must be reachable for this integration test");
 
     assert!(db.ping().await.is_ok(), "PostgreSQL ping must succeed");
@@ -64,7 +66,12 @@ async fn test_postgres_persistence_and_migrations() {
     let lab_repo = LabRepository::new(pool);
     let expires = Utc::now() + chrono::Duration::hours(1);
     let session = lab_repo
-        .create_session(user.id, "k8s-pod-basics", &format!("sb-{}", Uuid::new_v4()), expires)
+        .create_session(
+            user.id,
+            "k8s-pod-basics",
+            &format!("sb-{}", Uuid::new_v4()),
+            expires,
+        )
         .await
         .expect("Create lab session must succeed");
 

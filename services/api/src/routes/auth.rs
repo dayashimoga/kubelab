@@ -81,7 +81,12 @@ where
 
         // Check if token was blacklisted/revoked in Redis
         if let Some(ref cache) = app_state.cache {
-            if cache.session_store().is_revoked(token).await.unwrap_or(false) {
+            if cache
+                .session_store()
+                .is_revoked(token)
+                .await
+                .unwrap_or(false)
+            {
                 return Err((
                     StatusCode::UNAUTHORIZED,
                     Json(ErrorResponse {
@@ -91,18 +96,14 @@ where
             }
         }
 
-        let claims = app_state
-            .auth
-            .jwt()
-            .verify_token(token)
-            .map_err(|e| {
-                (
-                    StatusCode::UNAUTHORIZED,
-                    Json(ErrorResponse {
-                        error: format!("Invalid or expired token: {}", e),
-                    }),
-                )
-            })?;
+        let claims = app_state.auth.jwt().verify_token(token).map_err(|e| {
+            (
+                StatusCode::UNAUTHORIZED,
+                Json(ErrorResponse {
+                    error: format!("Invalid or expired token: {}", e),
+                }),
+            )
+        })?;
 
         let user_id = Uuid::parse_str(&claims.sub).map_err(|_| {
             (
@@ -185,7 +186,10 @@ async fn register(
         Ok(res) => {
             // If PostgreSQL is configured, persist user
             if let Some(ref db) = state.db {
-                let _ = db.users().create_user(email, name, &payload.password, role_str).await;
+                let _ = db
+                    .users()
+                    .create_user(email, name, &payload.password, role_str)
+                    .await;
             }
             Ok((StatusCode::CREATED, Json(res)))
         }
@@ -254,12 +258,12 @@ async fn logout(
 ) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
     // Add access token to revocation blacklist
     if let Some(ref cache) = state.cache {
-        let _ = cache
-            .session_store()
-            .revoke_token(&user.token, 86400)
-            .await;
+        let _ = cache.session_store().revoke_token(&user.token, 86400).await;
     }
-    Ok((StatusCode::OK, Json(serde_json::json!({ "message": "Successfully logged out" }))))
+    Ok((
+        StatusCode::OK,
+        Json(serde_json::json!({ "message": "Successfully logged out" })),
+    ))
 }
 
 async fn get_me(

@@ -60,7 +60,7 @@ jobs:
       - name: Rust Clippy Linting
         run: cargo clippy --workspace --all-targets -- -D warnings
 
-      - name: Run Core Test Suite (20 Unit & Contract Tests)
+      - name: Run Core Test Suite
         run: cargo test --workspace --all-targets -- --nocapture
 
       - name: Run Live Backing Services Integration Tests (PostgreSQL, Redis, NATS)
@@ -87,11 +87,10 @@ jobs:
         with:
           version: 9.12.0
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'pnpm'
+          node-version: 22
 
       - name: Install Monorepo Dependencies
         run: pnpm install --frozen-lockfile=false

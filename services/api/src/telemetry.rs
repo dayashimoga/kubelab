@@ -1,12 +1,18 @@
 use opentelemetry::global;
-use opentelemetry_sdk::trace::{Config, Sampler};
-use opentelemetry_sdk::Resource;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
+use opentelemetry_sdk::trace::{Config, Sampler};
+use opentelemetry_sdk::Resource;
 use tracing::info;
 
-pub fn init_tracer(service_name: &str, otlp_endpoint: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    info!("Initializing OpenTelemetry tracer for service '{}' -> {}", service_name, otlp_endpoint);
+pub fn init_tracer(
+    service_name: &str,
+    otlp_endpoint: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    info!(
+        "Initializing OpenTelemetry tracer for service '{}' -> {}",
+        service_name, otlp_endpoint
+    );
 
     let exporter = opentelemetry_otlp::new_exporter()
         .tonic()

@@ -62,9 +62,17 @@ impl ProgressService {
         progress
     }
 
-    pub async fn complete_lesson(&self, user_id: &str, lesson_id: &str, xp: u32) -> UserProgressState {
+    pub async fn complete_lesson(
+        &self,
+        user_id: &str,
+        lesson_id: &str,
+        xp: u32,
+    ) -> UserProgressState {
         let mut progress = self.get_user_progress(user_id).await;
-        if !progress.completed_lesson_ids.contains(&lesson_id.to_string()) {
+        if !progress
+            .completed_lesson_ids
+            .contains(&lesson_id.to_string())
+        {
             progress.completed_lesson_ids.push(lesson_id.to_string());
             progress.total_xp += xp;
             progress.level = (progress.total_xp / 500) + 1;
@@ -116,7 +124,12 @@ impl ProgressService {
         progress
     }
 
-    pub async fn update_skill(&self, user_id: &str, skill_id: &str, level: u32) -> UserProgressState {
+    pub async fn update_skill(
+        &self,
+        user_id: &str,
+        skill_id: &str,
+        level: u32,
+    ) -> UserProgressState {
         let mut progress = self.get_user_progress(user_id).await;
         let current = progress.skills.get(skill_id).copied().unwrap_or(0);
         if level > current {

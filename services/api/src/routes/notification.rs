@@ -24,7 +24,10 @@ pub struct ErrorResponse {
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/notifications/:user_id", get(get_notifications))
-        .route("/notifications/:user_id/dispatch", post(dispatch_notification))
+        .route(
+            "/notifications/:user_id/dispatch",
+            post(dispatch_notification),
+        )
 }
 
 async fn get_notifications(

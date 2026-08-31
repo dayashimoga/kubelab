@@ -1,11 +1,11 @@
+use axum::body::Body;
+use axum::http::Request;
 use axum::http::StatusCode;
+use http_body_util::BodyExt;
 use kubelab_api::routes::create_routes;
 use kubelab_api::state::AppState;
 use serde_json::json;
-use tower::ServiceExt; // for `oneshot`
-use axum::http::Request;
-use axum::body::Body;
-use http_body_util::BodyExt; // for `collect`
+use tower::ServiceExt; // for `oneshot` // for `collect`
 
 #[tokio::test]
 async fn test_full_api_contract_and_end_to_end_flow() {

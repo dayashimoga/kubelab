@@ -3,7 +3,6 @@ use axum::http::{Request, StatusCode};
 use http_body_util::BodyExt;
 use kubelab_api::routes::create_routes;
 use kubelab_api::state::AppState;
-use serde_json::json;
 use tower::ServiceExt;
 
 #[tokio::test]
@@ -23,13 +22,22 @@ async fn test_progress_service_lifecycle_and_milestones() {
     assert!(initial_progress.unlocked_badges.is_empty());
 
     // 2. Complete lesson -> earns XP and increments level when threshold crossed
-    let after_lesson = state.progress.complete_lesson(user_id, "k8s-pod-architecture", 200).await;
+    let after_lesson = state
+        .progress
+        .complete_lesson(user_id, "k8s-pod-architecture", 200)
+        .await;
     assert_eq!(after_lesson.total_xp, 200);
     assert_eq!(after_lesson.level, 1);
-    assert_eq!(after_lesson.completed_lesson_ids, vec!["k8s-pod-architecture"]);
+    assert_eq!(
+        after_lesson.completed_lesson_ids,
+        vec!["k8s-pod-architecture"]
+    );
 
     // 3. Complete first lab -> earns lab XP + first-pod badge bonus (+100 XP)
-    let after_lab = state.progress.complete_lab(user_id, "k8s-pod-basics", 300).await;
+    let after_lab = state
+        .progress
+        .complete_lab(user_id, "k8s-pod-basics", 300)
+        .await;
     // 200 (lesson) + 300 (lab) + 100 (badge reward) = 600 XP -> Level 2
     assert_eq!(after_lab.total_xp, 600);
     assert_eq!(after_lab.level, 2);
@@ -38,7 +46,10 @@ async fn test_progress_service_lifecycle_and_milestones() {
     assert_eq!(after_lab.unlocked_badges[0].slug, "first-pod");
 
     // 4. Update skill mastery level
-    let after_skill = state.progress.update_skill(user_id, "skill-k8s-workloads", 3).await;
+    let after_skill = state
+        .progress
+        .update_skill(user_id, "skill-k8s-workloads", 3)
+        .await;
     assert_eq!(after_skill.skills.get("skill-k8s-workloads"), Some(&3));
 
     // 5. Query progress via HTTP API

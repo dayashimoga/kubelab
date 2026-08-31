@@ -16,7 +16,11 @@ impl<'a> ManifestApplier<'a> {
     }
 
     /// Server-side apply any valid Kubernetes YAML manifest into target namespace
-    pub async fn apply_yaml_manifest(&self, namespace: &str, yaml_str: &str) -> Result<Vec<DynamicObject>, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn apply_yaml_manifest(
+        &self,
+        namespace: &str,
+        yaml_str: &str,
+    ) -> Result<Vec<DynamicObject>, Box<dyn std::error::Error + Send + Sync>> {
         let mut applied = Vec::new();
         let discovery = Discovery::new(self.client.clone()).run().await?;
 
@@ -49,8 +53,15 @@ impl<'a> ManifestApplier<'a> {
                 Api::namespaced_with(self.client.clone(), namespace, &ar)
             };
 
-            let name = obj.metadata.name.clone().unwrap_or_else(|| "unnamed".to_string());
-            info!("Applying Kubernetes resource {}/{} in namespace '{}'...", gvk.kind, name, namespace);
+            let name = obj
+                .metadata
+                .name
+                .clone()
+                .unwrap_or_else(|| "unnamed".to_string());
+            info!(
+                "Applying Kubernetes resource {}/{} in namespace '{}'...",
+                gvk.kind, name, namespace
+            );
 
             let patch_params = PatchParams::apply("kubelab-orchestrator").force();
             let patched = api.patch(&name, &patch_params, &Patch::Apply(&obj)).await?;

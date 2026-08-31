@@ -84,6 +84,9 @@ async fn test_lab_service_error_paths_and_boundary_conditions() {
         .await
         .expect("First destroy must succeed");
 
-    let resources_after_destroy = service.get_namespace_resources(&valid_session.id).await.unwrap();
+    let resources_after_destroy = service
+        .get_namespace_resources(&valid_session.id)
+        .await
+        .unwrap();
     assert!(resources_after_destroy.is_empty());
 }

@@ -16,11 +16,8 @@ async fn test_sandbox_provisioning_and_chaos_injection() {
     assert!(sandbox.network_policy_applied);
 
     // 2. Inject Chaos Fault
-    let chaos = ChaosEngine::inject_fault(
-        ChaosFaultType::DnsFailure,
-        &sandbox.namespace,
-        "coredns",
-    );
+    let chaos =
+        ChaosEngine::inject_fault(ChaosFaultType::DnsFailure, &sandbox.namespace, "coredns");
 
     assert_eq!(chaos.fault_type, ChaosFaultType::DnsFailure);
     assert!(chaos.active);

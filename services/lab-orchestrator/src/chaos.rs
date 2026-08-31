@@ -35,12 +35,30 @@ impl ChaosEngine {
         target_workload: &str,
     ) -> ChaosInjection {
         let desc = match fault_type {
-            ChaosFaultType::PodKill => format!("Terminating random pods in {}/{}", target_namespace, target_workload),
-            ChaosFaultType::NetworkLatency => format!("Adding 200ms latency to {}/{}", target_namespace, target_workload),
-            ChaosFaultType::DnsFailure => format!("Injecting NXDOMAIN responses in namespace {}", target_namespace),
-            ChaosFaultType::BadDeploymentImage => format!("Patching {}/{} to non-existent image", target_namespace, target_workload),
-            ChaosFaultType::OomSaturation => format!("Triggering memory leak simulation in {}/{}", target_namespace, target_workload),
-            ChaosFaultType::GitOpsDrift => format!("Overriding cluster state directly to cause Argo CD OutOfSync in {}", target_namespace),
+            ChaosFaultType::PodKill => format!(
+                "Terminating random pods in {}/{}",
+                target_namespace, target_workload
+            ),
+            ChaosFaultType::NetworkLatency => format!(
+                "Adding 200ms latency to {}/{}",
+                target_namespace, target_workload
+            ),
+            ChaosFaultType::DnsFailure => format!(
+                "Injecting NXDOMAIN responses in namespace {}",
+                target_namespace
+            ),
+            ChaosFaultType::BadDeploymentImage => format!(
+                "Patching {}/{} to non-existent image",
+                target_namespace, target_workload
+            ),
+            ChaosFaultType::OomSaturation => format!(
+                "Triggering memory leak simulation in {}/{}",
+                target_namespace, target_workload
+            ),
+            ChaosFaultType::GitOpsDrift => format!(
+                "Overriding cluster state directly to cause Argo CD OutOfSync in {}",
+                target_namespace
+            ),
         };
 
         ChaosInjection {
@@ -68,8 +86,14 @@ impl ChaosEngine {
                 let pods = pods_api.list(&list_params).await?;
                 for pod in pods.items {
                     let name = pod.metadata.name.unwrap_or_default();
-                    if name.contains(target_workload) || target_workload.is_empty() || target_workload == "*" {
-                        info!("Chaos: Terminating pod '{}' in namespace '{}'...", name, target_namespace);
+                    if name.contains(target_workload)
+                        || target_workload.is_empty()
+                        || target_workload == "*"
+                    {
+                        info!(
+                            "Chaos: Terminating pod '{}' in namespace '{}'...",
+                            name, target_namespace
+                        );
                         let _ = pods_api.delete(&name, &DeleteParams::default()).await?;
                         break;
                     }
@@ -89,12 +113,20 @@ impl ChaosEngine {
                         }
                     }
                 });
-                info!("Chaos: Patching deployment '{}' in namespace '{}' to broken image...", target_workload, target_namespace);
+                info!(
+                    "Chaos: Patching deployment '{}' in namespace '{}' to broken image...",
+                    target_workload, target_namespace
+                );
                 let patch_params = PatchParams::default();
-                let _ = deploy_api.patch(target_workload, &patch_params, &Patch::Strategic(patch)).await?;
+                let _ = deploy_api
+                    .patch(target_workload, &patch_params, &Patch::Strategic(patch))
+                    .await?;
             }
             _ => {
-                info!("Chaos: Emulated fault injection recorded for {}/{}", target_namespace, target_workload);
+                info!(
+                    "Chaos: Emulated fault injection recorded for {}/{}",
+                    target_namespace, target_workload
+                );
             }
         }
 

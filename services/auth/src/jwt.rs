@@ -75,7 +75,11 @@ impl JwtService {
         )
         .map_err(|_| JwtError::CreationError)?;
 
-        Ok((access_token, refresh_token, (self.duration_hours * 3600) as usize))
+        Ok((
+            access_token,
+            refresh_token,
+            (self.duration_hours * 3600) as usize,
+        ))
     }
 
     pub fn verify_token(&self, token: &str) -> Result<Claims, JwtError> {

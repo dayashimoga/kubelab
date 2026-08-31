@@ -62,7 +62,10 @@ impl<'a> NamespaceProvisioner<'a> {
             ..Default::default()
         };
 
-        info!("Creating hardened Kubernetes namespace '{}'...", namespace_name);
+        info!(
+            "Creating hardened Kubernetes namespace '{}'...",
+            namespace_name
+        );
         let created_ns = namespaces.create(&Default::default(), &ns).await?;
 
         // 1. Apply ResourceQuota
@@ -77,7 +80,10 @@ impl<'a> NamespaceProvisioner<'a> {
         Ok(created_ns)
     }
 
-    async fn apply_resource_quota(&self, namespace_name: &str) -> Result<ResourceQuota, kube::Error> {
+    async fn apply_resource_quota(
+        &self,
+        namespace_name: &str,
+    ) -> Result<ResourceQuota, kube::Error> {
         let quotas: Api<ResourceQuota> = Api::namespaced(self.client.clone(), namespace_name);
 
         let mut hard = BTreeMap::new();
@@ -154,15 +160,16 @@ impl<'a> NamespaceProvisioner<'a> {
                 namespace: Some(namespace_name.to_string()),
                 ..Default::default()
             },
-            spec: Some(LimitRangeSpec {
-                limits: vec![item],
-            }),
+            spec: Some(LimitRangeSpec { limits: vec![item] }),
         };
 
         limits_api.create(&Default::default(), &limit_range).await
     }
 
-    async fn apply_isolation_network_policy(&self, namespace_name: &str) -> Result<NetworkPolicy, kube::Error> {
+    async fn apply_isolation_network_policy(
+        &self,
+        namespace_name: &str,
+    ) -> Result<NetworkPolicy, kube::Error> {
         let policies: Api<NetworkPolicy> = Api::namespaced(self.client.clone(), namespace_name);
 
         // Allow DNS resolution (port 53) while isolating pod-to-pod and blocking metadata APIs
@@ -209,7 +216,9 @@ impl<'a> NamespaceProvisioner<'a> {
     pub async fn destroy_sandbox_namespace(&self, namespace_name: &str) -> Result<(), kube::Error> {
         let namespaces: Api<Namespace> = Api::all(self.client.clone());
         info!("Tearing down Kubernetes namespace '{}'...", namespace_name);
-        namespaces.delete(namespace_name, &Default::default()).await?;
+        namespaces
+            .delete(namespace_name, &Default::default())
+            .await?;
         Ok(())
     }
 }

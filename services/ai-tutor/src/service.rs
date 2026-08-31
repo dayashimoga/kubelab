@@ -41,11 +41,17 @@ impl AiTutorService {
         self.pedagogical_contextual_response(req)
     }
 
-    async fn query_ollama(&self, host: &str, req: &TutorRequest) -> Result<TutorResponse, Box<dyn std::error::Error>> {
+    async fn query_ollama(
+        &self,
+        host: &str,
+        req: &TutorRequest,
+    ) -> Result<TutorResponse, Box<dyn std::error::Error>> {
         let endpoint = format!("{}/api/generate", host.trim_end_matches('/'));
         let system_prompt = self.build_system_prompt(&req.mode);
-        let prompt = format!("System: {}\nUser Prompt: {}\nContext: YAML: {:?}\nError: {:?}", 
-            system_prompt, req.user_prompt, req.current_yaml, req.current_error_log);
+        let prompt = format!(
+            "System: {}\nUser Prompt: {}\nContext: YAML: {:?}\nError: {:?}",
+            system_prompt, req.user_prompt, req.current_yaml, req.current_error_log
+        );
 
         let body = json!({
             "model": std::env::var("AI_MODEL_NAME").unwrap_or_else(|_| "llama3:8b".to_string()),
@@ -55,7 +61,10 @@ impl AiTutorService {
 
         let res = self.http_client.post(&endpoint).json(&body).send().await?;
         let json_res: serde_json::Value = res.json().await?;
-        let reply = json_res["response"].as_str().unwrap_or("No response generated").to_string();
+        let reply = json_res["response"]
+            .as_str()
+            .unwrap_or("No response generated")
+            .to_string();
 
         Ok(TutorResponse {
             reply_markdown: reply,
@@ -64,15 +73,20 @@ impl AiTutorService {
         })
     }
 
-    async fn query_openai_compatible(&self, api_key: &str, req: &TutorRequest) -> Result<TutorResponse, Box<dyn std::error::Error>> {
-        let endpoint = std::env::var("OPENAI_BASE_URL").unwrap_or_else(|_| "https://api.openai.com/v1/chat/completions".to_string());
+    async fn query_openai_compatible(
+        &self,
+        api_key: &str,
+        req: &TutorRequest,
+    ) -> Result<TutorResponse, Box<dyn std::error::Error>> {
+        let endpoint = std::env::var("OPENAI_BASE_URL")
+            .unwrap_or_else(|_| "https://api.openai.com/v1/chat/completions".to_string());
         let system_prompt = self.build_system_prompt(&req.mode);
 
         let messages = vec![
             json!({ "role": "system", "content": system_prompt }),
-            json!({ 
-                "role": "user", 
-                "content": format!("Prompt: {}\nYAML: {:?}\nError: {:?}", req.user_prompt, req.current_yaml, req.current_error_log) 
+            json!({
+                "role": "user",
+                "content": format!("Prompt: {}\nYAML: {:?}\nError: {:?}", req.user_prompt, req.current_yaml, req.current_error_log)
             }),
         ];
 
@@ -82,14 +96,19 @@ impl AiTutorService {
             "temperature": 0.3
         });
 
-        let res = self.http_client.post(&endpoint)
+        let res = self
+            .http_client
+            .post(&endpoint)
             .header("Authorization", format!("Bearer {}", api_key))
             .json(&body)
             .send()
             .await?;
 
         let json_res: serde_json::Value = res.json().await?;
-        let reply = json_res["choices"][0]["message"]["content"].as_str().unwrap_or("No response generated").to_string();
+        let reply = json_res["choices"][0]["message"]["content"]
+            .as_str()
+            .unwrap_or("No response generated")
+            .to_string();
 
         Ok(TutorResponse {
             reply_markdown: reply,
@@ -157,16 +176,14 @@ impl AiTutorService {
                 "I see CrashLoopBackOff with Exit Code 137".to_string(),
                 "The readiness probe failed on port 8080".to_string(),
             ],
-            TutorMode::Hint => vec![
-                "How do I check endpoints with kubectl?".to_string(),
-            ],
+            TutorMode::Hint => vec!["How do I check endpoints with kubectl?".to_string()],
             TutorMode::Diagnose => vec![
                 "How do I profile memory consumption inside the container?".to_string(),
                 "How do I increase limits without restarting the deployment?".to_string(),
             ],
-            TutorMode::Review => vec![
-                "How do I validate this manifest with kubeval or kubeconform?".to_string(),
-            ],
+            TutorMode::Review => {
+                vec!["How do I validate this manifest with kubeval or kubeconform?".to_string()]
+            }
         }
     }
 

@@ -40,7 +40,9 @@ pub fn get_metrics() -> &'static AppMetrics {
         .expect("Failed to register terminal_ws_connections metric");
 
         // Initial default metric observations
-        http_requests_total.with_label_values(&["kubelab-api", "200"]).inc_by(1.0);
+        http_requests_total
+            .with_label_values(&["kubelab-api", "200"])
+            .inc_by(1.0);
         active_lab_sessions.set(1.0);
         terminal_ws_connections.set(0.0);
 

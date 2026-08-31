@@ -20,7 +20,9 @@ pub enum AdmissionError {
     #[error("Targeting system namespaces (kube-system, default, cert-manager) is prohibited")]
     SystemNamespaceForbidden,
 
-    #[error("Cluster-scoped privilege escalation (cluster-admin ClusterRoleBinding) is prohibited")]
+    #[error(
+        "Cluster-scoped privilege escalation (cluster-admin ClusterRoleBinding) is prohibited"
+    )]
     ClusterAdminPrivilegeEscalation,
 
     #[error("Empty manifest provided")]
@@ -34,27 +36,42 @@ pub fn validate_manifest_admission(yaml_content: &str) -> Result<(), AdmissionEr
     }
 
     // 1. Check for privileged container execution
-    if regex::Regex::new(r"(?i)privileged:\s*true").unwrap().is_match(trimmed) {
+    if regex::Regex::new(r"(?i)privileged:\s*true")
+        .unwrap()
+        .is_match(trimmed)
+    {
         return Err(AdmissionError::PrivilegedContainerForbidden);
     }
 
     // 2. Check for host namespace sharing
-    if regex::Regex::new(r"(?i)(hostNetwork|hostPID|hostIPC):\s*true").unwrap().is_match(trimmed) {
+    if regex::Regex::new(r"(?i)(hostNetwork|hostPID|hostIPC):\s*true")
+        .unwrap()
+        .is_match(trimmed)
+    {
         return Err(AdmissionError::HostNamespaceForbidden);
     }
 
     // 3. Check for hostPath volume mounts
-    if regex::Regex::new(r"(?i)hostPath:").unwrap().is_match(trimmed) {
+    if regex::Regex::new(r"(?i)hostPath:")
+        .unwrap()
+        .is_match(trimmed)
+    {
         return Err(AdmissionError::HostPathMountForbidden);
     }
 
     // 4. Check for runtime socket mounts
-    if regex::Regex::new(r"(?i)(/var/run/docker\.sock|/run/containerd/|/var/run/crio|/run/podman/)").unwrap().is_match(trimmed) {
+    if regex::Regex::new(r"(?i)(/var/run/docker\.sock|/run/containerd/|/var/run/crio|/run/podman/)")
+        .unwrap()
+        .is_match(trimmed)
+    {
         return Err(AdmissionError::RuntimeSocketMountForbidden);
     }
 
     // 5. Check for elevated Linux capabilities
-    if regex::Regex::new(r"(?i)(SYS_ADMIN|NET_ADMIN|SYS_PTRACE|SYS_RAWIO|DAC_OVERRIDE)").unwrap().is_match(trimmed) {
+    if regex::Regex::new(r"(?i)(SYS_ADMIN|NET_ADMIN|SYS_PTRACE|SYS_RAWIO|DAC_OVERRIDE)")
+        .unwrap()
+        .is_match(trimmed)
+    {
         return Err(AdmissionError::ElevatedCapabilitiesForbidden);
     }
 
@@ -64,8 +81,12 @@ pub fn validate_manifest_admission(yaml_content: &str) -> Result<(), AdmissionEr
     }
 
     // 7. Check for cluster-admin privilege escalation
-    if regex::Regex::new(r"(?i)kind:\s*ClusterRoleBinding").unwrap().is_match(trimmed)
-        && regex::Regex::new(r"(?i)name:\s*cluster-admin").unwrap().is_match(trimmed)
+    if regex::Regex::new(r"(?i)kind:\s*ClusterRoleBinding")
+        .unwrap()
+        .is_match(trimmed)
+        && regex::Regex::new(r"(?i)name:\s*cluster-admin")
+            .unwrap()
+            .is_match(trimmed)
     {
         return Err(AdmissionError::ClusterAdminPrivilegeEscalation);
     }
