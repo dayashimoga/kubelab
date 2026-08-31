@@ -112,6 +112,22 @@ async fn apply_manifest(
     Path(session_id): Path<Uuid>,
     Json(payload): Json<ApplyManifestRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
+    // 1. Server-side zero-trust manifest admission validation
+    if let Err(violation) = crate::admission::validate_manifest_admission(&payload.yaml_content) {
+        tracing::warn!(
+            "Server-side admission rejection for session {}: {}",
+            session_id,
+            violation
+        );
+        return Err((
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(ErrorResponse {
+                error: format!("Security Admission Rejected: {}", violation),
+            }),
+        ));
+    }
+
+    // 2. Server-side Kubernetes apply
     match state.labs.apply_manifest(&session_id, payload).await {
         Ok(res) => Ok(Json(res)),
         Err(e) => Err((

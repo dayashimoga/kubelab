@@ -9,8 +9,34 @@ datasources:
     jsonData:
       timeInterval: 5s
 
-  - name: OpenTelemetry
+  - name: Tempo
     type: tempo
     access: proxy
-    url: http://otel-collector:4318
+    url: http://tempo:3200
     isDefault: false
+    jsonData:
+      tracesToLogsV2:
+        datasourceUid: 'loki'
+        spanStartTimeShift: '1h'
+        spanEndTimeShift: '1h'
+        tags: ['job', 'instance', 'pod', 'namespace']
+        filterByTraceDocId: true
+      tracesToMetrics:
+        datasourceUid: 'prometheus'
+        tags: [{ key: 'service.name', value: 'service' }, { key: 'job' }]
+        queries:
+          - name: 'Request rate'
+            query: 'sum(rate(http_requests_total{$$__tags}[5m]))'
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: false
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - datasourceUid: 'tempo'
+          matcherRegex: '"trace_id":"(\w+)"'
+          name: TraceID
+          url: '$${__value.raw}'

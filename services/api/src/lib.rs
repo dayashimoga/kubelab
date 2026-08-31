@@ -1,3 +1,4 @@
+pub mod admission;
 pub mod cache;
 pub mod db;
 pub mod events;

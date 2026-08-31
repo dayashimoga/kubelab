@@ -80,7 +80,7 @@ Run-Gate "Gate 04: Backend Test Suite (100% Pass Required)" {
 # 5. Security & Adversarial Attack Verification
 Run-Gate "Gate 05: Security & Adversarial Attack Verification" {
     if (Get-Command cargo -ErrorAction SilentlyContinue) {
-        $out = cargo test -p kubelab-api --test security_adversarial_test 2>&1
+        $out = cargo test -p kubelab-api --test security_adversarial_test --test manifest_admission_test 2>&1
         if ($LASTEXITCODE -ne 0) { throw "Security adversarial tests failed: $out" }
     }
 }
@@ -161,7 +161,9 @@ Run-Gate "Gate 10: Playwright E2E Test Specifications" {
         'apps/web/playwright.config.ts',
         'apps/web/e2e/auth.spec.ts',
         'apps/web/e2e/labs.spec.ts',
-        'apps/web/e2e/terminal.spec.ts'
+        'apps/web/e2e/terminal.spec.ts',
+        'apps/web/e2e/full-journey.spec.ts',
+        'apps/web/e2e/responsive-and-accessibility.spec.ts'
     )
     foreach ($e in $e2eFiles) {
         if (-not (Test-Path "$PSScriptRoot/../$e")) { throw "Missing E2E spec: $e" }
@@ -199,14 +201,18 @@ Run-Gate "Gate 13: Infrastructure Lifecycles & Container Configurations" {
         'infrastructure/containers/podman-compose.test.yml',
         'infrastructure/containers/Containerfile.api',
         'infrastructure/containers/Containerfile.web',
+        'infrastructure/containers/Containerfile.toolchain',
         'infrastructure/containers/otel-collector-config.yaml',
         'infrastructure/containers/prometheus.yml',
+        'infrastructure/containers/grafana/provisioning/datasources/datasources.yaml',
         'infrastructure/kind/cluster-config.yaml',
         'scripts/up.ps1',
         'scripts/down.ps1',
         'scripts/clean.ps1',
-        'scripts/lab-up.ps1',
-        'scripts/lab-down.ps1'
+        'scripts/test-containerized.ps1',
+        'scripts/backup-restore-test.ps1',
+        'scripts/certify-labs.ps1',
+        'scripts/verify-observability.ps1'
     )
     foreach ($i in $infraFiles) {
         if (-not (Test-Path "$PSScriptRoot/../$i")) { throw "Missing infra file: $i" }

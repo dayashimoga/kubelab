@@ -41,6 +41,7 @@ opentelemetry-otlp = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 async-trait = { workspace = true }
 kube = { workspace = true }
+regex = { workspace = true }
 
 [dev-dependencies]
 http-body-util = "0.1"

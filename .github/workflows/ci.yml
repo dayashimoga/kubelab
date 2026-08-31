@@ -104,6 +104,14 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm --filter @kubelab/web exec playwright install --with-deps chromium
 
+      - name: Build Web Application
+        run: pnpm --filter @kubelab/web build
+
+      - name: Execute Playwright E2E Suite
+        run: pnpm --filter @kubelab/web exec playwright test
+        env:
+          CI: true
+
       - name: Validate Containerfiles & OCI Definitions
         run: |
           test -f infrastructure/containers/Containerfile.api

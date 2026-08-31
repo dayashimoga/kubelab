@@ -248,9 +248,9 @@ impl LabService {
             .ok_or(LabError::TaskNotFound)?;
 
         // Resolve actual state:
-        // 1. Explicitly supplied live_state payload in request
+        // 1. Explicitly supplied live_state payload in request (used in integration & unit tests)
         // 2. Query live Kubernetes cluster if k8s_client is configured
-        // 3. Fallback to default in-memory state for offline testing
+        // 3. Unavailable state if neither K8s client nor live_state is present
         let actual_state = if let Some(state) = req.live_state {
             state
         } else if let Some(ref client) = self.k8s_client {
@@ -258,13 +258,14 @@ impl LabService {
             let res_name = task.validation.name.as_deref().unwrap_or("");
             match fetch_live_k8s_resource(client, res_type, res_name, &session.namespace).await {
                 Ok(live_json) if !live_json.is_null() => live_json,
-                _ => json!({ "status": { "phase": "Pending" } }),
+                _ => json!({ "status": { "phase": "NotFound" } }),
             }
         } else {
             json!({
-                "status": { "phase": "Running", "readyReplicas": 3 },
-                "metadata": { "labels": { "app": "frontend" } },
-                "spec": { "containers": [{ "ports": [{ "containerPort": 80 }] }] }
+                "status": {
+                    "phase": "Unavailable",
+                    "error": "No live Kubernetes cluster client configured for sandbox"
+                }
             })
         };
 

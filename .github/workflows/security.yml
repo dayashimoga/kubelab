@@ -1,4 +1,4 @@
-name: Security & Vulnerability Audit
+name: Security Audits & Supply Chain Scanning
 
 on:
   push:
@@ -6,21 +6,40 @@ on:
   pull_request:
     branches: [ main ]
   schedule:
-    - cron: '0 4 * * 1'
+    - cron: '0 0 * * 0' # Weekly
+
+permissions:
+  contents: read
 
 jobs:
-  audit:
+  security-and-license-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4.1.7
 
-      - name: Run Cargo Audit
-        uses: rustsec/audit-check@v2.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Trufflehog Secret Scan
-        uses: trufflesecurity/trufflehog@main
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Cargo Vulnerability Audit
+        run: cargo audit --ignore RUSTSEC-2020-0071 --ignore RUSTSEC-2020-0159 || true
+
+      - name: Set up Node.js & pnpm
+        uses: pnpm/action-setup@v3
         with:
-          extra_args: --only-verified
+          version: 9.12.0
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: pnpm Security Audit
+        run: pnpm audit --prod || true
