@@ -36,7 +36,8 @@ Run-Gate "Repository Integrity & Required Artifacts" {
         'IMPLEMENTATION.md', 'TODO.md', 'CHANGELOG.md',
         'PRODUCTION_READINESS_AUDIT.md', 'REQUIREMENTS_TRACEABILITY.md',
         'GAP_ANALYSIS.md', 'TEST_EVIDENCE.md', 'SECURITY_AUDIT.md',
-        'PERFORMANCE_AUDIT.md', 'LAB_CERTIFICATION.md'
+        'PERFORMANCE_AUDIT.md', 'LAB_CERTIFICATION.md',
+        'CURRICULUM_MATRIX.md', 'CONTENT_COVERAGE.md'
     )
     foreach ($f in $requiredFiles) {
         if (-not (Test-Path "$PSScriptRoot/../$f")) { throw "Missing critical file: $f" }
@@ -83,7 +84,7 @@ Run-Gate "Security & Adversarial Attack Verification" {
 # 6. Declarative Lab Catalog & State-Based Assertion Rules
 Run-Gate "Declarative Lab Catalog Schema & Grading Rules" {
     $labs = Get-ChildItem -Path "$PSScriptRoot/../labs" -Filter "lab.yaml" -Recurse
-    if ($labs.Count -lt 5) { throw "Fewer than 5 declarative labs found ($($labs.Count))" }
+    if ($labs.Count -lt 120) { throw "Fewer than 120 declarative labs found ($($labs.Count))" }
     Write-Host "      Verified $($labs.Count) declarative lab definitions across all categories." -ForegroundColor Gray
 }
 
