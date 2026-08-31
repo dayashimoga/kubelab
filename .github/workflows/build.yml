@@ -3,28 +3,55 @@ name: Container Build & SBOM
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build-images:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Source Code
+        uses: actions/checkout@v4.1.7
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build Web Container
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: infrastructure/containers/Containerfile.web
           push: false
+          load: true
           tags: kubelab/web:latest
 
       - name: Build API Container
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: infrastructure/containers/Containerfile.api
           push: false
+          load: true
           tags: kubelab/api:latest
+
+      - name: Generate SBOM (Software Bill of Materials) for Web
+        uses: anchore/sbom-action@v0
+        with:
+          image: kubelab/web:latest
+          format: spdx-json
+          output-file: kubelab-web-sbom.spdx.json
+
+      - name: Generate SBOM for API
+        uses: anchore/sbom-action@v0
+        with:
+          image: kubelab/api:latest
+          format: spdx-json
+          output-file: kubelab-api-sbom.spdx.json
+
+      - name: Upload SBOM Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-sboms
+          path: |
+            kubelab-web-sbom.spdx.json
+            kubelab-api-sbom.spdx.json

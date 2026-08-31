@@ -13,7 +13,6 @@ dist/
 # Rust / Cargo
 target/
 **/*.rs.bk
-Cargo.lock
 
 # Flutter / Dart
 .dart_tool/

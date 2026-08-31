@@ -1,12 +1,12 @@
 # ==========================================
 # Stage 1: Build Rust Binaries
 # ==========================================
-FROM docker.io/library/rust:latest AS builder
+FROM docker.io/library/rust:1.80-slim AS builder
 
 WORKDIR /usr/src/kubelab
 
 # Copy workspace definition
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml Cargo.lock* ./
 COPY services ./services
 COPY packages ./packages
 
@@ -14,16 +14,16 @@ COPY packages ./packages
 RUN cargo build --release -p kubelab-api
 
 # ==========================================
-# Stage 2: Minimal Distroless / Debian Runtime
+# Stage 2: Minimal Debian Runtime
 # ==========================================
-FROM docker.io/library/debian:bullseye-slim AS runner
+FROM docker.io/library/debian:bookworm-slim AS runner
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
-    libssl1.1 \
+    libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
 # Non-root user

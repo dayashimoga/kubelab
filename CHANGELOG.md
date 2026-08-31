@@ -41,4 +41,10 @@ All notable changes to KubeLab are documented in this file.
 - **Flutter Widget & Navigation Tests**: Expanded `widget_test.dart` to cover multi-tab state transitions and lesson screen rendering.
 - **Added Flutter CI Workflow Job**: Integrated `mobile-flutter-ci` job in GitHub Actions with `flutter analyze --fatal-infos` and `flutter test`.
 
+### OCI Containers & SBOM Workflow
+- **Committed Cargo.lock for Reproducible Builds**: Removed `Cargo.lock` from `.gitignore` and committed root workspace lockfile so container builds have deterministic dependencies.
+- **Hardened Containerfile.api**: Updated to `rust:1.80-slim` builder and `debian:bookworm-slim` runner with `libssl3` and resilient `Cargo.lock*` copying.
+- **Upgraded Build Workflow & Added SBOM Scanning**: Upgraded `docker/build-push-action@v6` in `build.yml` and added automated SPDX JSON Software Bill of Materials (SBOM) generation via `anchore/sbom-action@v0`.
+
+
 
