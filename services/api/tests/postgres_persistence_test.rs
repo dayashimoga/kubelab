@@ -6,18 +6,14 @@ use uuid::Uuid;
 use chrono::Utc;
 
 #[tokio::test]
+#[ignore = "Requires live PostgreSQL — run with: cargo test -- --ignored"]
 async fn test_postgres_persistence_and_migrations() {
     let database_url = std::env::var("DATABASE_URL")
         .unwrap_or_else(|_| "postgres://kubelab:kubelab_secret_password@127.0.0.1:5432/kubelab".to_string());
 
-    // Connect to PostgreSQL and automatically run migrations
-    let db = match Database::connect(&database_url).await {
-        Ok(db) => db,
-        Err(e) => {
-            eprintln!("Skipping live postgres test (database unreachable: {:?})", e);
-            return;
-        }
-    };
+    // Connect to PostgreSQL — this test is #[ignore]'d so it won't silently skip in CI
+    let db = Database::connect(&database_url).await
+        .expect("PostgreSQL must be reachable for this integration test");
 
     assert!(db.ping().await.is_ok(), "PostgreSQL ping must succeed");
 

@@ -40,6 +40,7 @@ opentelemetry_sdk = { workspace = true }
 opentelemetry-otlp = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 async-trait = { workspace = true }
+kube = { workspace = true }
 
 [dev-dependencies]
 http-body-util = "0.1"

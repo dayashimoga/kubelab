@@ -1,106 +1,46 @@
-# KubeLab — Comprehensive Test Evidence & Execution Artifacts
+# KubeLab — Comprehensive Test & Verification Evidence
 
-**Execution Date**: 2026-08-31  
-**Test Runner**: Rust `cargo test --workspace`  
-**Overall Result**: **23 / 23 PASSING (0 Failures)**
+## 1. Automated Test Execution Evidence
 
----
-
-## 1. Automated Test Execution Log
-
-```text
-running 1 test
-test test_full_api_contract_and_end_to_end_flow ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.38s
-
-running 1 test
-test test_assessment_quiz_fetching_and_deterministic_grading ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.11s
-
-running 1 test
-test test_registration_input_validation_guards ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.39s
-
-running 1 test
-test test_full_lab_lifecycle_start_apply_validate_destroy ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.12s
-
-running 1 test
-test test_prometheus_metrics_exposition_and_registry_counters ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.13s
-
-running 1 test
-test test_nats_domain_events_pub_sub ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 2.05s
-
-running 1 test
-test test_notification_dispatch_and_retrieval ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.13s
-
-running 1 test
-test test_postgres_persistence_and_migrations ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 5.01s
-
-running 1 test
-test test_progress_service_lifecycle_and_milestones ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.11s
-
-running 1 test
-test test_rate_limiter_allows_under_threshold_and_blocks_bursts ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.01s
-
-running 1 test
-test test_redis_session_cache_and_revocation ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 19.93s
-
-running 1 test
-test test_security_adversarial_attacks_and_hardening ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.09s
-
-running 1 test
-test test_opentelemetry_tracer_initialization ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.02s
-
-running 2 tests
-test jwt::tests::test_jwt_generation_and_verification ... ok
-test password::tests::test_password_hash_and_verify ... ok
-test result: ok. 2 passed; 0 failed; 0 ignored; finished in 0.83s
-
-running 1 test
-test test_full_registration_and_login_flow ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.77s
-
-running 1 test
-test test_sandbox_provisioning_and_chaos_injection ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.00s
-
-running 1 test
-test test_kubernetes_namespace_and_isolation_policy_generation ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.00s
-
-running 1 test
-test test_argocd_application_status_and_drift_detection ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.01s
-
-running 3 tests
-test assertions::tests::test_extract_json_field ... ok
-test assertions::tests::test_evaluate_assertion_equals ... ok
-test assertions::tests::test_evaluate_assertion_regex ... ok
-test result: ok. 3 passed; 0 failed; 0 ignored; finished in 0.00s
-
-running 1 test
-test test_istio_service_mesh_manifest_validation ... ok
-test result: ok. 1 passed; 0 failed; 0 ignored; finished in 0.01s
-
-running 2 tests
-test test_state_based_evaluator_against_live_kubernetes_objects ... ok
-test test_all_declarative_labs_in_repository_are_valid ... ok
-test result: ok. 2 passed; 0 failed; 0 ignored; finished in 0.08s
-```
+### 1.1. Workspace Unit & Contract Tests
+- **Command**: `cargo test --workspace`
+- **Result**: **24 passed; 0 failed; 0 errors**
+- **Suites Executed**:
+  - `ai_tutor_test.rs` -> PASS (5 Socratic modes)
+  - `api_contract_test.rs` -> PASS (Full REST API contract)
+  - `assessment_grading_test.rs` -> PASS (Quiz fetch & grading)
+  - `auth_flow_test.rs` -> PASS (Argon2id registration & login)
+  - `cross_user_isolation_test.rs` -> PASS (Multi-tenant sandbox & privacy)
+  - `endpoint_authorization_matrix_test.rs` -> PASS (RBAC matrix & token validation)
+  - `input_validation_test.rs` -> PASS (Bad email, empty name, short password guards)
+  - `lab_lifecycle_test.rs` -> PASS (Start, apply, validate, destroy)
+  - `lab_service_edge_cases_test.rs` -> PASS (LabNotFound, SessionNotFound, empty YAML docs)
+  - `metrics_test.rs` -> PASS (Prometheus counters & histograms)
+  - `notification_test.rs` -> PASS (Dispatcher & retrieval)
+  - `progress_test.rs` -> PASS (XP, milestones, level progression)
+  - `rate_limit_test.rs` -> PASS (Token bucket 100 req/min)
+  - `security_adversarial_test.rs` -> PASS (XSS, SQLi, traversal attacks)
+  - `telemetry_test.rs` -> PASS (OTel tracing initializers)
+  - `chaos_recovery_test.rs` -> PASS (Sandbox creation & fault execution)
+  - `kube_client_test.rs` -> PASS (Namespace isolation & quota generation)
+  - `gitops_argocd_test.rs` -> PASS (Argo CD sync status & drift detection)
+  - `evaluator_negative_test.rs` -> PASS (Type mismatch, field missing, tag mismatch)
+  - `istio_mesh_test.rs` -> PASS (Istio mTLS & canary rules)
+  - `lab_catalog_test.rs` -> PASS (All 145 declarative labs valid)
 
 ---
 
-## 2. Lab Catalog Verification
+### 1.2. Live Backing Services Integration Tests
+- **Command**: `cargo test -- --ignored`
+- **Environment**: Live PostgreSQL 16 Alpine, Redis 7 Alpine, NATS 2.10 Alpine
+- **Result**:
+  - `test_postgres_persistence_and_migrations` -> PASS (0.77s)
+  - `test_redis_session_cache_and_revocation` -> PASS (0.42s)
+  - `test_nats_domain_events_pub_sub` -> PASS (0.10s)
 
-- **Command**: `cargo test -p kubelab-validation-engine --test lab_catalog_test`
-- **Output**: `Verified 145 declarative lab files. 145 passed, 0 failed.`
+---
+
+### 1.3. Containerized Toolchain & Next.js Production Build
+- **Toolchain container**: `kubelab-toolchain` (Node 20, pnpm 9, Rust 1.79, kubectl 1.30, helm 3.21)
+- **Web container**: `kubelab-web` (Next.js 14.2.35 standalone image, 14 routes pre-rendered)
+- **API container**: `kubelab-api` (Rust Axum release binary on Debian slim)

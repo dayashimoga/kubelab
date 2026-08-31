@@ -3,17 +3,13 @@ use kubelab_api::cache::session_store::{SessionStore, CachedSession};
 use uuid::Uuid;
 
 #[tokio::test]
+#[ignore = "Requires live Redis — run with: cargo test -- --ignored"]
 async fn test_redis_session_cache_and_revocation() {
     let redis_url = std::env::var("REDIS_URL")
         .unwrap_or_else(|_| "redis://127.0.0.1:6379".to_string());
 
-    let cache = match Cache::connect(&redis_url).await {
-        Ok(c) => c,
-        Err(e) => {
-            eprintln!("Skipping live redis test (redis unreachable: {:?})", e);
-            return;
-        }
-    };
+    let cache = Cache::connect(&redis_url).await
+        .expect("Redis must be reachable for this integration test");
 
     let mut store = SessionStore::new(cache.manager());
     let token_id = format!("jwt_{}", Uuid::new_v4());

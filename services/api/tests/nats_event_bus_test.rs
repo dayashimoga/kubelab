@@ -5,17 +5,13 @@ use chrono::Utc;
 use futures::StreamExt;
 
 #[tokio::test]
+#[ignore = "Requires live NATS — run with: cargo test -- --ignored"]
 async fn test_nats_domain_events_pub_sub() {
     let nats_url = std::env::var("NATS_URL")
         .unwrap_or_else(|_| "nats://127.0.0.1:4222".to_string());
 
-    let bus = match EventBus::connect(&nats_url).await {
-        Ok(b) => b,
-        Err(e) => {
-            eprintln!("Skipping live NATS test (nats unreachable: {:?})", e);
-            return;
-        }
-    };
+    let bus = EventBus::connect(&nats_url).await
+        .expect("NATS must be reachable for this integration test");
 
     // Subscribe to events.lab.started
     let mut subscriber = bus.client().subscribe("events.lab.started".to_string()).await.expect("Subscribe must succeed");

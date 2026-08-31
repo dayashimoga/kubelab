@@ -1,12 +1,12 @@
 # ==========================================
 # Stage 1: Build Rust Binaries
 # ==========================================
-FROM docker.io/library/rust:1.79-bullseye AS builder
+FROM docker.io/library/rust:latest AS builder
 
 WORKDIR /usr/src/kubelab
 
 # Copy workspace definition
-COPY Cargo.toml ./
+COPY Cargo.toml Cargo.lock ./
 COPY services ./services
 COPY packages ./packages
 

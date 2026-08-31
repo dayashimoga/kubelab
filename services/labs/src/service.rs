@@ -1,9 +1,13 @@
 use crate::catalog::load_labs_from_disk;
+use crate::k8s_fetcher::fetch_live_k8s_resource;
 use crate::models::{
     AppliedResource, ApplyManifestRequest, ApplyManifestResponse, K8sResourceSummary, LabSession,
     LabSummary, SessionStatus, StartLabRequest, ValidateLabRequest,
 };
 use chrono::{Duration, Utc};
+use kube::Client;
+use kubelab_lab_orchestrator::k8s::manifest_applier::ManifestApplier;
+use kubelab_lab_orchestrator::LabProvisioner;
 use kubelab_validation_engine::evaluator::LabEvaluator;
 use kubelab_validation_engine::models::{DeclarativeLabDef, ValidationResult};
 use serde_json::json;
@@ -11,6 +15,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
+use tracing::{info, warn};
 use uuid::Uuid;
 
 #[derive(Error, Debug)]
@@ -29,6 +34,8 @@ pub struct LabService {
     labs: Arc<RwLock<HashMap<String, DeclarativeLabDef>>>,
     sessions: Arc<RwLock<HashMap<Uuid, LabSession>>>,
     session_resources: Arc<RwLock<HashMap<Uuid, Vec<K8sResourceSummary>>>>,
+    orchestrator: Arc<LabProvisioner>,
+    k8s_client: Option<Client>,
 }
 
 impl Default for LabService {
@@ -49,7 +56,21 @@ impl LabService {
             labs: Arc::new(RwLock::new(map)),
             sessions: Arc::new(RwLock::new(HashMap::new())),
             session_resources: Arc::new(RwLock::new(HashMap::new())),
+            orchestrator: Arc::new(LabProvisioner::new()),
+            k8s_client: None,
         }
+    }
+
+    pub fn with_orchestrator(mut self, orchestrator: Arc<LabProvisioner>) -> Self {
+        self.k8s_client = orchestrator.client().cloned();
+        self.orchestrator = orchestrator;
+        self
+    }
+
+    pub fn with_k8s_client(mut self, client: Client) -> Self {
+        self.orchestrator = Arc::new(LabProvisioner::with_k8s_client(client.clone()));
+        self.k8s_client = Some(client);
+        self
     }
 
     pub async fn list_labs(&self) -> Vec<LabSummary> {
@@ -78,12 +99,19 @@ impl LabService {
         let expires_at = now + Duration::minutes(lab.duration_minutes as i64);
         let session_id = Uuid::new_v4();
 
+        // Provision namespace via Orchestrator (live Kubernetes when available)
+        let sandbox = self
+            .orchestrator
+            .provision_sandbox(session_id, user_id, lab.duration_minutes)
+            .await
+            .map_err(|e| LabError::ManifestError(e.to_string()))?;
+
         let session = LabSession {
             id: session_id,
             lab_id: lab.id.clone(),
             user_id: user_id.to_string(),
             status: SessionStatus::Ready,
-            namespace: format!("lab-{}", session_id.simple()),
+            namespace: sandbox.namespace,
             cluster_endpoint: "https://k8s-local.kubelab.internal:6443".to_string(),
             started_at: now,
             expires_at,
@@ -119,7 +147,16 @@ impl LabService {
         let mut applied = Vec::new();
         let mut new_resources = Vec::new();
 
-        // Parse YAML documents in manifest
+        // If live Kubernetes client is configured, execute server-side apply
+        if let Some(ref client) = self.k8s_client {
+            info!("Applying live Kubernetes YAML manifest to namespace '{}'...", session.namespace);
+            let applier = ManifestApplier::new(client);
+            if let Err(e) = applier.apply_yaml_manifest(&session.namespace, &req.yaml_content).await {
+                warn!("Live Kubernetes server-side apply error: {:?}. Recording parsed documents.", e);
+            }
+        }
+
+        // Parse YAML documents in manifest for tracked resource state
         for doc in req.yaml_content.split("---") {
             let doc_trimmed = doc.trim();
             if doc_trimmed.is_empty() {
@@ -127,6 +164,9 @@ impl LabService {
             }
 
             if let Ok(parsed) = serde_yaml::from_str::<serde_json::Value>(doc_trimmed) {
+                if !parsed.is_object() || parsed.get("kind").is_none() {
+                    continue;
+                }
                 let kind = parsed["kind"].as_str().unwrap_or("Resource").to_string();
                 let name = parsed["metadata"]["name"]
                     .as_str()
@@ -173,12 +213,18 @@ impl LabService {
     }
 
     pub async fn destroy_session(&self, session_id: &Uuid) -> Result<(), LabError> {
-        let mut sessions = self.sessions.write().await;
-        if let Some(session) = sessions.get_mut(session_id) {
-            session.status = SessionStatus::Destroyed;
-        } else {
-            return Err(LabError::SessionNotFound);
-        }
+        let namespace = {
+            let mut sessions = self.sessions.write().await;
+            if let Some(session) = sessions.get_mut(session_id) {
+                session.status = SessionStatus::Destroyed;
+                session.namespace.clone()
+            } else {
+                return Err(LabError::SessionNotFound);
+            }
+        };
+
+        // Teardown sandbox from orchestrator (and live cluster if active)
+        let _ = self.orchestrator.destroy_sandbox(&namespace).await;
 
         let mut res_map = self.session_resources.write().await;
         res_map.remove(session_id);
@@ -201,13 +247,26 @@ impl LabService {
             .find(|t| t.id == req.task_id)
             .ok_or(LabError::TaskNotFound)?;
 
-        let actual_state = req.live_state.unwrap_or_else(|| {
+        // Resolve actual state:
+        // 1. Explicitly supplied live_state payload in request
+        // 2. Query live Kubernetes cluster if k8s_client is configured
+        // 3. Fallback to default in-memory state for offline testing
+        let actual_state = if let Some(state) = req.live_state {
+            state
+        } else if let Some(ref client) = self.k8s_client {
+            let res_type = task.validation.resource.as_deref().unwrap_or("pods");
+            let res_name = task.validation.name.as_deref().unwrap_or("");
+            match fetch_live_k8s_resource(client, res_type, res_name, &session.namespace).await {
+                Ok(live_json) if !live_json.is_null() => live_json,
+                _ => json!({ "status": { "phase": "Pending" } }),
+            }
+        } else {
             json!({
                 "status": { "phase": "Running", "readyReplicas": 3 },
                 "metadata": { "labels": { "app": "frontend" } },
                 "spec": { "containers": [{ "ports": [{ "containerPort": 80 }] }] }
             })
-        });
+        };
 
         let result = LabEvaluator::evaluate_task(task, &actual_state);
 

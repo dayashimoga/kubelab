@@ -9,6 +9,7 @@ use kubelab_progress::ProgressService;
 use crate::db::Database;
 use crate::cache::Cache;
 use crate::events::EventBus;
+use kube::Client;
 use std::sync::Arc;
 
 #[derive(Clone)]
@@ -29,12 +30,15 @@ pub struct AppState {
 
 impl AppState {
     pub fn new(jwt_secret: String) -> Self {
+        let orchestrator = Arc::new(LabProvisioner::new());
+        let labs = Arc::new(LabService::new().with_orchestrator(orchestrator.clone()));
+
         Self {
             auth: Arc::new(AuthService::new(jwt_secret)),
             learning: Arc::new(LearningService::new()),
             assessment: Arc::new(AssessmentService::new()),
-            labs: Arc::new(LabService::new()),
-            orchestrator: Arc::new(LabProvisioner::new()),
+            labs,
+            orchestrator,
             progress: Arc::new(ProgressService::new()),
             notification: Arc::new(NotificationService::new()),
             ai_tutor: Arc::new(AiTutorService::new()),
@@ -42,6 +46,14 @@ impl AppState {
             cache: None,
             events: None,
         }
+    }
+
+    pub fn with_k8s_client(mut self, client: Client) -> Self {
+        let orchestrator = Arc::new(LabProvisioner::with_k8s_client(client.clone()));
+        let labs = Arc::new(LabService::new().with_k8s_client(client));
+        self.orchestrator = orchestrator;
+        self.labs = labs;
+        self
     }
 
     pub fn with_backing_services(

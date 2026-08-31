@@ -1,19 +1,30 @@
-# KubeLab — Comprehensive Security Audit & Threat Modeling
+# KubeLab — Comprehensive Security & Threat Model Audit
 
-## 1. Threat Modeling & Mitigation Summary
-
-| Threat Vector | Potential Impact | Implemented Mitigation | Verification Test |
-|---|---|---|---|
-| **SQL Injection (SQLi)** | Data exfiltration, credential theft | Parameterized SQL via `sqlx` prepared queries. Zero raw string interpolation. | `tests/security_adversarial_test.rs` |
-| **Sandbox Escape / Privilege Escalation** | Host takeover from learner pod | Pod Security Standard Restricted profile, `allowPrivilegeEscalation: false`, `runAsNonRoot: true`, `seccompProfile: RuntimeDefault`. | `tests/kube_client_test.rs`, `security_adversarial_test.rs` |
-| **Cross-Tenant Network Probing** | Lateral movement between lab sandboxes | Default-deny Ingress NetworkPolicy automatically created for every sandbox namespace (`lab-isolate`). | `scripts/lab-up.ps1`, `tests/kube_client_test.rs` |
-| **Brute Force & DoS Attacks** | API exhaustion, server crash | Token Bucket rate limiter enforcing 100 requests per minute with burst rejection. | `tests/rate_limit_test.rs` |
-| **Credential Hijacking & Replay** | Session impersonation | Argon2id password hashing with random salt; short-lived JWT access tokens + Redis blacklist revocation on logout. | `tests/auth_flow_test.rs`, `tests/redis_session_test.rs` |
-| **Unauthenticated WebSocket Execution** | Unauthorized shell access | JWT token verification guard on `/ws/terminal/:session_id` WebSocket handshake. | `services/api/src/routes/terminal_ws.rs` |
+## 1. Zero-Trust Architecture Principles
+1. **Never trust the client**: All evaluations, state retrievals, and manifest transformations happen strictly server-side.
+2. **Never expose administrative kubeconfigs**: Learners interact via namespace-scoped server-side apply. No cluster-admin tokens or kubeconfig files are exposed to browsers or mobile clients.
+3. **Strict Sandboxing**:
+   - `runAsNonRoot: true`
+   - `allowPrivilegeEscalation: false`
+   - `capabilities: drop: ["ALL"]`
+   - `seccompProfile: { type: "RuntimeDefault" }`
+   - `ResourceQuota` on every sandbox namespace
+   - Default-deny `NetworkPolicy` preventing cross-sandbox traversal.
 
 ---
 
-## 2. Cryptographic Standards
-- **Password Hashing**: Argon2id with memory cost 19,456 KiB, iterations 2, parallelism 1.
-- **Tokens**: HMAC-SHA256 JWT with expiration and audience claims.
-- **Container Isolation**: Linux namespaces, cgroups v2, and seccomp syscall filtering.
+## 2. Adversarial Penetration Test Results
+
+| Attack Vector | Test File | Target Subsystem | Result | Defense Mechanism |
+|---|---|---|---|---|
+| **SQL Injection (SQLi)** | `security_adversarial_test.rs` | Auth & DB | **BLOCKED** | Parameterized queries with SQLx |
+| **Cross-Site Scripting (XSS)** | `security_adversarial_test.rs` | API & Web | **BLOCKED** | Strict input sanitation & React escaping |
+| **Path Traversal (`../..`)** | `security_adversarial_test.rs` | Lab Engine | **BLOCKED** | Canonical path validation & whitelist |
+| **Rate Limit Flooding** | `rate_limit_test.rs` | Gateway | **BLOCKED** | Token bucket rate limiter (100 req/min) |
+| **Forged / Tampered JWT** | `endpoint_authorization_matrix_test.rs` | Auth Gateway | **BLOCKED** | HMAC-SHA256 signature verification |
+| **Cross-Tenant Hijack** | `cross_user_isolation_test.rs` | Sandboxes | **BLOCKED** | Session-bound namespace isolation |
+
+---
+
+## 3. Vulnerability Disclosure & Policy
+Report vulnerabilities confidentially to `security@kubelab.io`. All critical security updates are patched with zero-downtime rolling deployments.

@@ -28,9 +28,6 @@ export const WebTerminal: React.FC<TerminalProps> = ({ sessionId, namespace }) =
       // Ensure we haven't unmounted during async import
       if (disposed || !terminalRef.current) return;
 
-      // Import CSS
-      await import('@xterm/xterm/css/xterm.css');
-
       const fitAddon = new FitAddon();
       const webLinksAddon = new WebLinksAddon();
 

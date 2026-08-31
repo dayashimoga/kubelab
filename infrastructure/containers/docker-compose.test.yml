@@ -1,0 +1,53 @@
+version: '3.8'
+
+networks:
+  kubelab-test-net:
+    driver: bridge
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: kubelab-test-postgres
+    environment:
+      POSTGRES_DB: kubelab
+      POSTGRES_USER: kubelab
+      POSTGRES_PASSWORD: kubelab_secret_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../../services/api/migrations:/docker-entrypoint-initdb.d:ro
+    networks:
+      - kubelab-test-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kubelab -d kubelab"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    container_name: kubelab-test-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - kubelab-test-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+
+  nats:
+    image: docker.io/library/nats:2.10-alpine
+    container_name: kubelab-test-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["-js", "-m", "8222"]
+    networks:
+      - kubelab-test-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/varz"]
+      interval: 2s
+      timeout: 3s
+      retries: 10

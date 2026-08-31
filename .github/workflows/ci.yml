@@ -1,4 +1,4 @@
-name: CI & Production Quality Gate
+name: CI & Zero-Trust Production Certification
 
 on:
   push:
@@ -10,8 +10,41 @@ permissions:
   contents: read
 
 jobs:
-  backend-and-security:
+  backend-and-integration-tests:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: kubelab
+          POSTGRES_USER: kubelab
+          POSTGRES_PASSWORD: kubelab_secret_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      nats:
+        image: nats:2.10-alpine
+        ports:
+          - 4222:4222
+          - 8222:8222
+        options: >-
+          --health-cmd "wget -qO- http://localhost:8222/varz"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4.1.7
@@ -27,29 +60,45 @@ jobs:
       - name: Rust Clippy Linting
         run: cargo clippy --workspace --all-targets -- -D warnings
 
-      - name: Run Full Test Suite (Unit, Integration, Security, Metrics, Labs)
+      - name: Run Core Test Suite (20 Unit & Contract Tests)
         run: cargo test --workspace --all-targets -- --nocapture
 
-      - name: Declarative Lab Schema & State Assertion Tests
-        run: cargo test -p kubelab-validation-engine
+      - name: Run Live Backing Services Integration Tests (PostgreSQL, Redis, NATS)
+        env:
+          DATABASE_URL: postgres://kubelab:kubelab_secret_password@127.0.0.1:5432/kubelab
+          REDIS_URL: redis://127.0.0.1:6379
+          NATS_URL: nats://127.0.0.1:4222
+        run: cargo test --workspace -- --ignored --nocapture
 
-      - name: Security & Adversarial Attack Verification
-        run: cargo test -p kubelab-api --test security_adversarial_test --test input_validation_test --test rate_limit_test
+      - name: Execute 13-Gate Production Certification Script
+        run: chmod +x ./scripts/validate-production.sh && ./scripts/validate-production.sh
 
-  container-and-manifest-validation:
+  web-and-container-builds:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v4.1.7
 
-      - name: Verify PostgreSQL Migrations DDL
-        run: |
-          test -f services/api/migrations/0001_init.sql
-          grep "CREATE TABLE IF NOT EXISTS users" services/api/migrations/0001_init.sql
-          grep "CREATE TABLE IF NOT EXISTS lab_sessions" services/api/migrations/0001_init.sql
+      - name: Set up Node.js & pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.12.0
 
-      - name: Verify OpenTelemetry & Prometheus Configs
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install Monorepo Dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Web Application Typecheck & Build
+        run: pnpm --filter @kubelab/web typecheck
+
+      - name: Validate Containerfiles & OCI Definitions
         run: |
-          test -f infrastructure/containers/otel-collector-config.yaml
-          test -f infrastructure/containers/prometheus.yml
+          test -f infrastructure/containers/Containerfile.api
+          test -f infrastructure/containers/Containerfile.web
           test -f infrastructure/containers/podman-compose.yml
+          test -f infrastructure/containers/podman-compose.test.yml

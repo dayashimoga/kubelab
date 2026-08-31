@@ -6,11 +6,18 @@ use std::path::Path;
 
 #[test]
 fn test_all_declarative_labs_in_repository_are_valid() {
-    let base_dir = Path::new("../../labs");
-    if !base_dir.exists() {
-        println!("Skipping lab catalog walk if running outside root");
-        return;
-    }
+    let candidates = [
+        Path::new("labs"),
+        Path::new("../../labs"),
+        Path::new("../labs"),
+        Path::new("../../../labs"),
+    ];
+    let base_dir = match candidates.into_iter().find(|p| p.exists() && p.is_dir()) {
+        Some(d) => d,
+        None => {
+            panic!("Could not find labs directory from any candidate path");
+        }
+    };
 
     let mut count = 0;
     fn visit_dirs(dir: &Path, count: &mut usize) {
@@ -20,11 +27,12 @@ fn test_all_declarative_labs_in_repository_are_valid() {
                 if path.is_dir() {
                     visit_dirs(&path, count);
                 } else if path.file_name().and_then(|n| n.to_str()) == Some("lab.yaml") {
-                    let content = fs::read_to_string(&path).expect("Failed to read lab.yaml");
-                    let lab: DeclarativeLabDef =
-                        serde_yaml::from_str(&content).expect("Failed to parse lab.yaml");
-                    assert!(!lab.id.is_empty());
-                    assert!(!lab.tasks.is_empty());
+                    let content = fs::read_to_string(&path)
+                        .unwrap_or_else(|e| panic!("Failed to read lab file {:?}: {}", path, e));
+                    let lab: DeclarativeLabDef = serde_yaml::from_str(&content)
+                        .unwrap_or_else(|e| panic!("Failed to parse YAML in {:?}: {}", path, e));
+                    assert!(!lab.id.is_empty(), "Lab in {:?} has empty id", path);
+                    assert!(!lab.tasks.is_empty(), "Lab in {:?} has no tasks", path);
                     *count += 1;
                 }
             }
@@ -33,6 +41,11 @@ fn test_all_declarative_labs_in_repository_are_valid() {
 
     visit_dirs(base_dir, &mut count);
     println!("Validated {} declarative lab files in repository.", count);
+    assert!(
+        count >= 120,
+        "Expected at least 120 validated labs, found {}",
+        count
+    );
 }
 
 #[test]

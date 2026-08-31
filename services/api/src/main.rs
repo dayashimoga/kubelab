@@ -65,7 +65,21 @@ async fn main() -> anyhow::Result<()> {
         Err(_) => None,
     };
 
-    let state = AppState::new(jwt_secret).with_backing_services(db, cache, events);
+    let k8s_client = match kube::Client::try_default().await {
+        Ok(client) => {
+            tracing::info!("Connected to live Kubernetes cluster successfully");
+            Some(client)
+        }
+        Err(e) => {
+            tracing::info!("No live Kubernetes cluster detected ({:?}). Running with in-memory sandbox provisioner.", e);
+            None
+        }
+    };
+
+    let mut state = AppState::new(jwt_secret).with_backing_services(db, cache, events);
+    if let Some(client) = k8s_client {
+        state = state.with_k8s_client(client);
+    }
 
     // Configurable CORS: defaults to localhost dev origins; set CORS_ORIGINS in production
     let cors = match std::env::var("CORS_ORIGINS") {

@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-COMPOSE_FILE="$(dirname "$0")/../infrastructure/containers/podman-compose.yml"
-echo "Stopping KubeLab services..."
+echo "Stopping KubeLab services and tearing down containers..."
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-if command -v podman >/dev/null 2>&1; then
-    podman compose -f "$COMPOSE_FILE" down
-elif command -v docker-compose >/dev/null 2>&1; then
-    docker-compose -f "$COMPOSE_FILE" down
+if command -v podman &>/dev/null; then
+    podman compose -f "$ROOT/infrastructure/containers/podman-compose.yml" down --remove-orphans 2>/dev/null || true
+    podman compose -f "$ROOT/infrastructure/containers/podman-compose.test.yml" down --remove-orphans 2>/dev/null || true
+elif command -v docker-compose &>/dev/null; then
+    docker-compose -f "$ROOT/infrastructure/containers/podman-compose.yml" down --remove-orphans 2>/dev/null || true
+    docker-compose -f "$ROOT/infrastructure/containers/podman-compose.test.yml" down --remove-orphans 2>/dev/null || true
 fi
+
 echo "KubeLab services stopped."

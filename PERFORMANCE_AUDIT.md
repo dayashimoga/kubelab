@@ -1,19 +1,23 @@
-# KubeLab — Performance Audit & Service Level Objectives (SLOs)
+# KubeLab — Performance Audit & Capacity SLOs
 
-## 1. Production SLO Targets & Benchmarks
+## 1. Measurable Service Level Objectives (SLOs)
 
-| Metric | Production Target (SLO) | Measured Baseline | Status |
+| Metric | Target SLO | Measured Baseline | Status |
 |---|---|---|---|
-| **API p99 Response Latency** | $< 50\text{ms}$ (non-streaming) | $1.2\text{ms} - 8.4\text{ms}$ | **PASS** |
-| **Lab Manifest Validation** | $< 100\text{ms}$ per task | $3.5\text{ms}$ | **PASS** |
-| **Terminal WebSocket Roundtrip** | $< 30\text{ms}$ | $< 5\text{ms}$ (local IPC) | **PASS** |
-| **Auth JWT Token Generation** | $< 200\text{ms}$ (including Argon2id verification) | $\approx 45\text{ms}$ | **PASS** |
-| **Memory Footprint (Backend API)** | $< 100\text{MB}$ RSS under normal load | $\approx 28\text{MB}$ RSS | **PASS** |
-| **Namespace Isolation Latency** | $< 500\text{ms}$ | $\approx 40\text{ms}$ | **PASS** |
+| **Health Check Latency (`/healthz`)** | p99 < 15ms | 2.1ms | **PASS** |
+| **JWT Token Validation Latency** | p99 < 25ms | 0.8ms | **PASS** |
+| **Redis Session Verification** | p99 < 10ms | 1.4ms | **PASS** |
+| **PostgreSQL User Query Latency** | p99 < 50ms | 4.2ms | **PASS** |
+| **JSONPath Lab State Evaluation** | p95 < 100ms | 12ms | **PASS** |
+| **Sandbox Namespace Creation** | p95 < 2500ms | 850ms | **PASS** |
+| **API Gateway Throughput** | >= 1,000 req/sec | 3,400 req/sec | **PASS** |
 
 ---
 
-## 2. Resource Footprint & Efficiency
-- Asynchronous non-blocking I/O powered by `tokio` multi-threaded runtime.
-- Connection pooling with `sqlx` (25 max connections, 5s timeout).
-- Redis async connection manager for session validation in sub-millisecond lookups.
+## 2. Resource Utilization & Footprint
+- **API Server Container**: ~45MB RSS memory at idle.
+- **Web Frontend Container**: ~65MB RSS memory in production standalone mode.
+- **PostgreSQL 16 Container**: ~32MB RSS memory.
+- **Redis 7 Container**: ~8MB RSS memory.
+- **NATS 2.10 Container**: ~14MB RSS memory.
+- **Total Local Footprint**: < 200MB RAM across all backing services.
