@@ -14,6 +14,7 @@ class KubeLabApp extends StatelessWidget {
       title: 'KubeLab Mobile',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        useMaterial3: true,
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF0A0E17),
         primaryColor: const Color(0xFF06B6D4),
@@ -21,7 +22,6 @@ class KubeLabApp extends StatelessWidget {
           primary: Color(0xFF06B6D4),
           secondary: Color(0xFF6366F1),
           surface: Color(0xFF0F172A),
-          background: Color(0xFF0A0E17),
         ),
         fontFamily: 'Roboto',
       ),

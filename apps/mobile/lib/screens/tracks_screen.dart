@@ -65,6 +65,7 @@ class TracksScreen extends StatelessWidget {
         itemCount: tracks.length,
         itemBuilder: (context, index) {
           final t = tracks[index];
+          final trackColor = t['color'] as Color;
           return Card(
             color: const Color(0xFF0F172A),
             margin: const EdgeInsets.only(bottom: 16),
@@ -88,10 +89,10 @@ class TracksScreen extends StatelessWidget {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: (t['color'] as Color).withOpacity(0.15),
+                        color: trackColor.withAlpha(38), // 15% opacity (0.15 * 255 ≈ 38)
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(t['icon'] as IconData, color: t['color'] as Color),
+                      child: Icon(t['icon'] as IconData, color: trackColor),
                     ),
                     const SizedBox(width: 16),
                     Expanded(

@@ -120,3 +120,27 @@ jobs:
           test -f infrastructure/containers/podman-compose.yml
           test -f infrastructure/containers/podman-compose.test.yml
           test -f infrastructure/containers/otel-collector-config.yaml
+
+  mobile-flutter-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4.1.7
+
+      - name: Set up Flutter Toolchain
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Mobile Dependencies
+        working-directory: apps/mobile
+        run: flutter pub get
+
+      - name: Flutter Static Analysis (Zero Warnings/Errors)
+        working-directory: apps/mobile
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Run Flutter Widget & Navigation Tests
+        working-directory: apps/mobile
+        run: flutter test

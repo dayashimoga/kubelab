@@ -18,7 +18,7 @@ class LessonScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF6366F1).withOpacity(0.2),
+                color: const Color(0x336366F1), // 20% opacity indigo
                 borderRadius: BorderRadius.circular(6),
               ),
               child: const Text(
@@ -53,9 +53,9 @@ class LessonScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF06B6D4).withOpacity(0.1),
+                color: const Color(0x1A06B6D4), // 10% opacity cyan
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF06B6D4).withOpacity(0.3)),
+                border: Border.all(color: const Color(0x4D06B6D4)), // 30% opacity cyan
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

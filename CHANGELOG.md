@@ -36,3 +36,9 @@ All notable changes to KubeLab are documented in this file.
 - **Coverage Tooling**: Added `scripts/coverage.ps1` and `scripts/coverage.sh` with `cargo-tarpaulin` and containerized execution.
 - **Supply Chain Security**: Added `.github/workflows/security.yml` with automated `cargo audit` and `pnpm audit`.
 
+### Mobile & Flutter CI
+- **Fixed Flutter Static Analysis Errors**: Resolved `MainAxisAlignment.between` enum typo in `skill_tree_screen.dart`, removed deprecated `ColorScheme.background` in `main.dart`, and replaced `withOpacity` calls with const ARGB hexadecimal color constants in `lesson_screen.dart` and `tracks_screen.dart`.
+- **Flutter Widget & Navigation Tests**: Expanded `widget_test.dart` to cover multi-tab state transitions and lesson screen rendering.
+- **Added Flutter CI Workflow Job**: Integrated `mobile-flutter-ci` job in GitHub Actions with `flutter analyze --fatal-infos` and `flutter test`.
+
+
