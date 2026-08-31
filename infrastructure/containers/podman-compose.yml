@@ -8,6 +8,8 @@ volumes:
   postgres_data:
   redis_data:
   nats_data:
+  prometheus_data:
+  grafana_data:
 
 services:
   postgres:
@@ -62,6 +64,43 @@ services:
       timeout: 5s
       retries: 5
 
+  otel-collector:
+    image: docker.io/otel/opentelemetry-collector-contrib:0.108.0
+    container_name: kubelab-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "8889:8889" # Prometheus metrics
+    networks:
+      - kubelab-net
+
+  prometheus:
+    image: docker.io/prom/prometheus:v2.54.1
+    container_name: kubelab-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - kubelab-net
+
+  grafana:
+    image: docker.io/grafana/grafana:11.2.0
+    container_name: kubelab-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - kubelab-net
+
   api:
     build:
       context: ../..
@@ -78,6 +117,7 @@ services:
       DATABASE_URL: postgres://kubelab:kubelab_secret_password@postgres:5432/kubelab
       REDIS_URL: redis://redis:6379
       NATS_URL: nats://nats:4222
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       JWT_SECRET: super_secure_kubelab_jwt_secret_key_32_chars!
       PORT: 8080
       RUST_LOG: info,kubelab=debug

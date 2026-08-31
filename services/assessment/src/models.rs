@@ -49,6 +49,7 @@ pub struct QuestionPublic {
 pub struct QuizSubmission {
     pub quiz_id: String,
     pub answers: std::collections::HashMap<String, serde_json::Value>,
+    #[serde(default)]
     pub time_spent_seconds: u32,
 }
 

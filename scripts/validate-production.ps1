@@ -90,6 +90,8 @@ Run-Gate "Declarative Lab Catalog Schema & Grading Rules" {
 Run-Gate "Web Application Component & Page Integrity" {
     $webPages = @(
         'apps/web/src/app/page.tsx',
+        'apps/web/src/app/login/page.tsx',
+        'apps/web/src/app/register/page.tsx',
         'apps/web/src/app/learn/page.tsx',
         'apps/web/src/app/labs/page.tsx',
         'apps/web/src/app/practice/page.tsx',
@@ -100,7 +102,9 @@ Run-Gate "Web Application Component & Page Integrity" {
         'apps/web/src/app/docs/page.tsx',
         'apps/web/src/components/Terminal.tsx',
         'apps/web/src/components/MonacoYamlEditor.tsx',
-        'apps/web/src/components/K8sVisualizer.tsx'
+        'apps/web/src/components/K8sVisualizer.tsx',
+        'apps/web/src/lib/api.ts',
+        'apps/web/src/lib/auth-context.tsx'
     )
     foreach ($p in $webPages) {
         if (-not (Test-Path "$PSScriptRoot/../$p")) { throw "Missing web component: $p" }

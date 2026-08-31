@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Terminal,
@@ -21,278 +21,276 @@ import {
   Clock,
   Zap,
 } from 'lucide-react';
+import { api, TrackSummary } from '@/lib/api';
 
-const TRACKS_DATA = [
+const ICON_MAP: Record<string, any> = {
+  Terminal,
+  Boxes,
+  Server,
+  Network,
+  ShieldCheck,
+  Package,
+  GitBranch,
+  Activity,
+  Layers,
+  Gauge,
+  Cpu,
+  AlertTriangle,
+};
+
+const DEFAULT_TRACKS = [
   {
-    id: 'foundations',
+    id: 'track-foundations',
+    slug: 'foundations',
     title: 'Cloud-Native & Linux Foundations',
     description: 'Linux systems engineering, shell scripting, namespaces, cgroups, and OCI container fundamentals with Docker and Podman.',
-    icon: Terminal,
+    icon: 'Terminal',
     difficulty: 'Beginner',
-    duration: '6 hours',
-    lessonsCount: 15,
-    xp: 1500,
-    color: 'from-cyan-500/20 to-blue-500/20',
-    tags: ['Linux', 'Bash', 'Docker', 'Podman', 'cgroups'],
+    order: 1,
+    total_lessons: 15,
+    total_xp: 1500,
   },
   {
-    id: 'kubernetes',
+    id: 'track-kubernetes',
+    slug: 'kubernetes',
     title: 'Kubernetes Core Architecture & Workloads',
     description: 'Master Pods, Deployments, Services, ConfigMaps, Secrets, Storage, and Declarative manifests in real Kubernetes clusters.',
-    icon: Boxes,
+    icon: 'Boxes',
     difficulty: 'Beginner',
-    duration: '8 hours',
-    lessonsCount: 20,
-    xp: 2500,
-    color: 'from-indigo-500/20 to-cyan-500/20',
-    tags: ['Pods', 'Deployments', 'Services', 'ConfigMaps', 'Storage'],
+    order: 2,
+    total_lessons: 20,
+    total_xp: 2500,
   },
   {
-    id: 'k8s-admin',
+    id: 'track-k8s-admin',
+    slug: 'k8s-admin',
     title: 'Cluster Administration & etcd Operations',
     description: 'Bootstrap clusters with kubeadm, handle control-plane high availability, etcd snapshots, disaster recovery, and node upgrades.',
-    icon: Server,
+    icon: 'Server',
     difficulty: 'Intermediate',
-    duration: '5 hours',
-    lessonsCount: 12,
-    xp: 1800,
-    color: 'from-blue-500/20 to-indigo-500/20',
-    tags: ['kubeadm', 'etcd', 'HA Control Plane', 'Backup & Restore'],
+    order: 3,
+    total_lessons: 12,
+    total_xp: 1800,
   },
   {
-    id: 'networking',
+    id: 'track-networking',
+    slug: 'networking',
     title: 'Cloud-Native Networking, CNI & Gateway API',
-    description: 'Deep dive into CNI plugins (Calico/Cilium), CoreDNS resolution, Ingress Controllers, eBPF data planes, and Gateway API.',
-    icon: Network,
+    description: 'Deep dive into CNI plugins (Calico/Cilium), CoreDNS resolution, Ingress Controllers, eBPF data planes, and Kubernetes Gateway API.',
+    icon: 'Network',
     difficulty: 'Intermediate',
-    duration: '7 hours',
-    lessonsCount: 14,
-    xp: 2100,
-    color: 'from-emerald-500/20 to-cyan-500/20',
-    tags: ['CNI', 'CoreDNS', 'Gateway API', 'eBPF', 'Calico', 'Cilium'],
+    order: 4,
+    total_lessons: 14,
+    total_xp: 2100,
   },
   {
-    id: 'security',
+    id: 'track-security',
+    slug: 'security',
     title: 'Kubernetes Security, RBAC & Policy Hardening',
     description: 'Implement RBAC, Pod Security Standards, NetworkPolicies, Seccomp profiles, image vulnerability scanning, and CIS benchmarks.',
-    icon: ShieldCheck,
+    icon: 'ShieldCheck',
     difficulty: 'Intermediate',
-    duration: '7 hours',
-    lessonsCount: 15,
-    xp: 2250,
-    color: 'from-rose-500/20 to-amber-500/20',
-    tags: ['RBAC', 'PSS/PSA', 'NetworkPolicy', 'Seccomp', 'Trivy'],
+    order: 5,
+    total_lessons: 15,
+    total_xp: 2250,
   },
   {
-    id: 'helm',
+    id: 'track-helm',
+    slug: 'helm',
     title: 'Packaging with Helm & Kustomize',
     description: 'Author production Helm charts, manage chart repositories, leverage Go templates, and apply dry Kustomize overlays.',
-    icon: Package,
+    icon: 'Package',
     difficulty: 'Intermediate',
-    duration: '4 hours',
-    lessonsCount: 10,
-    xp: 1500,
-    color: 'from-amber-500/20 to-orange-500/20',
-    tags: ['Helm', 'Charts', 'Go Templates', 'Kustomize', 'Overlays'],
+    order: 6,
+    total_lessons: 10,
+    total_xp: 1500,
   },
   {
-    id: 'gitops',
+    id: 'track-gitops',
+    slug: 'gitops',
     title: 'GitOps & Continuous Delivery with Argo CD',
     description: 'Implement declarative GitOps workflows, App-of-Apps pattern, automated sync policies, drift detection, and automated rollbacks.',
-    icon: GitBranch,
+    icon: 'GitBranch',
     difficulty: 'Intermediate',
-    duration: '5 hours',
-    lessonsCount: 12,
-    xp: 2000,
-    color: 'from-purple-500/20 to-indigo-500/20',
-    tags: ['Argo CD', 'GitOps', 'Drift Detection', 'Self-Healing', 'App-of-Apps'],
+    order: 7,
+    total_lessons: 12,
+    total_xp: 2000,
   },
   {
-    id: 'observability',
+    id: 'track-observability',
+    slug: 'observability',
     title: 'OpenTelemetry, Prometheus & Grafana',
     description: 'End-to-end distributed tracing with OpenTelemetry, metric collection with Prometheus, PromQL alerting, and Grafana dashboarding.',
-    icon: Activity,
+    icon: 'Activity',
     difficulty: 'Advanced',
-    duration: '7 hours',
-    lessonsCount: 15,
-    xp: 2400,
-    color: 'from-cyan-500/20 to-emerald-500/20',
-    tags: ['OTel', 'Prometheus', 'Grafana', 'PromQL', 'Tracing', 'Logs'],
+    order: 8,
+    total_lessons: 15,
+    total_xp: 2400,
   },
   {
-    id: 'service-mesh',
+    id: 'track-service-mesh',
+    slug: 'service-mesh',
     title: 'Service Mesh with Istio & Envoy Proxy',
     description: 'Traffic shifting, canary releases, mutual TLS (mTLS), fault injection, rate limiting, and Envoy sidecar telemetry.',
-    icon: Layers,
+    icon: 'Layers',
     difficulty: 'Advanced',
-    duration: '6 hours',
-    lessonsCount: 14,
-    xp: 2300,
-    color: 'from-indigo-500/20 to-purple-500/20',
-    tags: ['Istio', 'Envoy', 'mTLS', 'VirtualService', 'Canary'],
+    order: 9,
+    total_lessons: 14,
+    total_xp: 2300,
   },
   {
-    id: 'sre',
+    id: 'track-sre',
+    slug: 'sre',
     title: 'Site Reliability Engineering & SLOs',
     description: 'Define meaningful SLIs/SLOs, error budget burn rates, alerting thresholds, HPA/VPA autoscaling, and capacity planning.',
-    icon: Gauge,
+    icon: 'Gauge',
     difficulty: 'Advanced',
-    duration: '5 hours',
-    lessonsCount: 12,
-    xp: 2000,
-    color: 'from-blue-500/20 to-cyan-500/20',
-    tags: ['SLI', 'SLO', 'Error Budgets', 'HPA', 'VPA', 'Alerting'],
+    order: 10,
+    total_lessons: 12,
+    total_xp: 2000,
   },
   {
-    id: 'platform-eng',
+    id: 'track-platform-eng',
+    slug: 'platform-eng',
     title: 'Platform Engineering & Multi-Cluster',
     description: 'Build Internal Developer Platforms (IDPs), write Kubernetes Operators and CRDs in Go/Rust, and manage multi-cluster fleets.',
-    icon: Cpu,
+    icon: 'Cpu',
     difficulty: 'Expert',
-    duration: '8 hours',
-    lessonsCount: 10,
-    xp: 2500,
-    color: 'from-violet-500/20 to-fuchsia-500/20',
-    tags: ['IDP', 'Operators', 'CRDs', 'Crossplane', 'Multi-Cluster'],
+    order: 11,
+    total_lessons: 10,
+    total_xp: 2500,
   },
   {
-    id: 'incidents',
+    id: 'track-incidents',
+    slug: 'incidents',
     title: 'Production Incident Response & Chaos',
     description: 'Real-world break-fix simulations: debug crashloops, network partitions, DNS degradation, expired certs, and GitOps sync deadlocks.',
-    icon: AlertTriangle,
+    icon: 'AlertTriangle',
     difficulty: 'Expert',
-    duration: '6 hours',
-    lessonsCount: 10,
-    xp: 3000,
-    color: 'from-rose-500/20 to-red-500/20',
-    tags: ['Incident Triage', 'Chaos', 'Post-Mortem', 'MTTD', 'MTTR'],
+    order: 12,
+    total_lessons: 10,
+    total_xp: 3000,
   },
 ];
 
-export default function LearnCatalogPage() {
-  const [search, setSearch] = useState('');
-  const [difficultyFilter, setDifficultyFilter] = useState('all');
+export default function LearnIndexPage() {
+  const [tracks, setTracks] = useState<TrackSummary[]>(DEFAULT_TRACKS);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
 
-  const filteredTracks = TRACKS_DATA.filter((track) => {
+  useEffect(() => {
+    api
+      .getTracks()
+      .then((data) => {
+        if (data && data.length > 0) setTracks(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const filteredTracks = tracks.filter((track) => {
     const matchesSearch =
-      track.title.toLowerCase().includes(search.toLowerCase()) ||
-      track.description.toLowerCase().includes(search.toLowerCase()) ||
-      track.tags.some((t) => t.toLowerCase().includes(search.toLowerCase()));
-
-    const matchesDiff =
-      difficultyFilter === 'all' ||
-      track.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
-
-    return matchesSearch && matchesDiff;
+      track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      track.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDifficulty =
+      selectedDifficulty === 'all' ||
+      track.difficulty.toLowerCase() === selectedDifficulty.toLowerCase();
+    return matchesSearch && matchesDifficulty;
   });
 
   return (
-    <div className="container-max py-10 space-y-10">
-      {/* Header */}
-      <div className="space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold uppercase tracking-wider">
-          <BookOpen className="w-3.5 h-3.5" />
-          <span>Curriculum Catalog</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
-          Cloud-Native Engineering <span className="gradient-text-cyan">Mastery Tracks</span>
-        </h1>
-        <p className="text-slate-300 text-base max-w-3xl">
-          Comprehensive curriculum from Linux foundations through Kubernetes architecture, networking, security, GitOps, observability, service mesh, and live production incidents.
-        </p>
-      </div>
-
-      {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full sm:w-96">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Search tracks, concepts, tools (e.g. Istio, RBAC, eBPF)..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
-          />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      {/* Header Banner */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-800">
+        <div className="space-y-2 max-w-2xl">
+          <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono font-bold uppercase tracking-wider">
+            <BookOpen className="w-4 h-4" />
+            <span>Curriculum Tracks</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Cloud-Native Engineering Tracks
+          </h1>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            12 progressive tracks from Linux kernel primitives to distributed Istio meshes, multi-cluster architectures, and production incident response.
+          </p>
         </div>
 
-        {/* Difficulty Pill Filters */}
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-          {['all', 'beginner', 'intermediate', 'advanced', 'expert'].map((d) => (
-            <button
-              key={d}
-              onClick={() => setDifficultyFilter(d)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-medium capitalize whitespace-nowrap transition-colors ${
-                difficultyFilter === d
-                  ? 'bg-cyan-500 text-slate-950 font-bold'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
-              }`}
-            >
-              {d}
-            </button>
-          ))}
+        {/* Search and Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search tracks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
+            />
+          </div>
+
+          <select
+            value={selectedDifficulty}
+            onChange={(e) => setSelectedDifficulty(e.target.value)}
+            className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-cyan-500"
+          >
+            <option value="all">All Difficulties</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+            <option value="expert">Expert</option>
+          </select>
         </div>
       </div>
 
       {/* Tracks Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredTracks.map((track) => {
-          const Icon = track.icon;
+          const Icon = ICON_MAP[track.icon] || Boxes;
           return (
-            <Link key={track.id} href={`/learn/kubernetes/understanding-pods`}>
-              <div className="glass-panel-interactive p-6 space-y-5 h-full flex flex-col justify-between group">
-                <div className="space-y-4">
-                  {/* Top row */}
-                  <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-cyan-400 group-hover:scale-105 group-hover:border-cyan-500/50 transition-all">
-                      <Icon className="w-6 h-6" />
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-mono font-semibold uppercase">
-                      {track.difficulty}
-                    </span>
+            <div
+              key={track.id}
+              className="flex flex-col justify-between p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all group"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 group-hover:scale-105 transition-transform">
+                    <Icon className="w-6 h-6" />
                   </div>
-
-                  {/* Title & Description */}
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-bold text-white group-hover:text-cyan-400 transition-colors">
-                      {track.title}
-                    </h3>
-                    <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">
-                      {track.description}
-                    </p>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {track.tags.slice(0, 4).map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-0.5 rounded-md bg-slate-800/60 border border-slate-700/50 text-slate-400 text-[10px] font-mono"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Footer Metadata */}
-                <div className="pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 font-mono">
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{track.duration}</span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Zap className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{track.xp} XP</span>
-                    </span>
-                  </div>
-                  <span className="text-cyan-400 font-semibold group-hover:translate-x-1 transition-transform flex items-center gap-1">
-                    <span>Enter Track</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
+                    {track.difficulty}
                   </span>
                 </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    {track.title}
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">
+                    {track.description}
+                  </p>
+                </div>
               </div>
-            </Link>
+
+              <div className="pt-6 border-t border-slate-800/80 mt-6 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3 text-slate-400 font-mono text-[11px]">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-slate-500" />
+                    <span>{track.total_lessons} Lessons</span>
+                  </span>
+                  <span className="flex items-center gap-1 text-amber-400">
+                    <Zap className="w-3.5 h-3.5" />
+                    <span>{track.total_xp} XP</span>
+                  </span>
+                </div>
+
+                <Link
+                  href={`/labs/k8s-pod-basics`}
+                  className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-semibold"
+                >
+                  <span>Start</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
           );
         })}
       </div>

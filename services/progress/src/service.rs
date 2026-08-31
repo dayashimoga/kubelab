@@ -24,54 +24,26 @@ impl ProgressService {
     }
 
     pub async fn get_user_progress(&self, user_id: &str) -> UserProgressState {
-        let mut map = self.user_progress.write().await;
+        let map = self.user_progress.read().await;
         if let Some(state) = map.get(user_id) {
             state.clone()
         } else {
+            drop(map);
+            // New users start fresh — zero hardcoded progress
             let default_state = UserProgressState {
                 user_id: user_id.to_string(),
-                total_xp: 1250,
-                level: 3,
-                current_streak_days: 5,
-                longest_streak_days: 12,
-                last_active_date: "2026-08-31".to_string(),
-                completed_lesson_ids: vec![
-                    "k8s-pod-architecture".to_string(),
-                    "k8s-deployments-rollouts".to_string(),
-                ],
-                completed_lab_ids: vec!["k8s-pod-basics".to_string()],
-                unlocked_badges: vec![
-                    Badge {
-                        id: "badge-first-pod".to_string(),
-                        slug: "first-pod".to_string(),
-                        name: "Pod Pilot".to_string(),
-                        description: "Deployed your first live Kubernetes Pod in a sandbox.".to_string(),
-                        icon: "Rocket".to_string(),
-                        unlocked_at: Some("2026-08-29T10:00:00Z".to_string()),
-                        xp_reward: 100,
-                    },
-                    Badge {
-                        id: "badge-streak-5".to_string(),
-                        slug: "streak-5".to_string(),
-                        name: "Cloud Dedication".to_string(),
-                        description: "Maintained a 5-day continuous learning streak.".to_string(),
-                        icon: "Flame".to_string(),
-                        unlocked_at: Some("2026-08-31T08:00:00Z".to_string()),
-                        xp_reward: 200,
-                    },
-                ],
-                skills: HashMap::from([
-                    ("skill-linux".to_string(), 3),
-                    ("skill-containers".to_string(), 2),
-                    ("skill-k8s-workloads".to_string(), 4),
-                    ("skill-networking".to_string(), 3),
-                    ("skill-gitops".to_string(), 3),
-                    ("skill-service-mesh".to_string(), 2),
-                    ("skill-observability".to_string(), 3),
-                    ("skill-incidents".to_string(), 2),
-                ]),
+                total_xp: 0,
+                level: 1,
+                current_streak_days: 0,
+                longest_streak_days: 0,
+                last_active_date: chrono::Utc::now().format("%Y-%m-%d").to_string(),
+                completed_lesson_ids: vec![],
+                completed_lab_ids: vec![],
+                unlocked_badges: vec![],
+                skills: HashMap::new(),
             };
-            map.insert(user_id.to_string(), default_state.clone());
+            let mut wmap = self.user_progress.write().await;
+            wmap.insert(user_id.to_string(), default_state.clone());
             default_state
         }
     }
@@ -84,6 +56,104 @@ impl ProgressService {
         let mut progress = self.get_user_progress(user_id).await;
         progress.total_xp += xp;
         progress.level = (progress.total_xp / 500) + 1;
+
+        let mut map = self.user_progress.write().await;
+        map.insert(user_id.to_string(), progress.clone());
+        progress
+    }
+
+    pub async fn complete_lesson(&self, user_id: &str, lesson_id: &str, xp: u32) -> UserProgressState {
+        let mut progress = self.get_user_progress(user_id).await;
+        if !progress.completed_lesson_ids.contains(&lesson_id.to_string()) {
+            progress.completed_lesson_ids.push(lesson_id.to_string());
+            progress.total_xp += xp;
+            progress.level = (progress.total_xp / 500) + 1;
+        }
+
+        let mut map = self.user_progress.write().await;
+        map.insert(user_id.to_string(), progress.clone());
+        progress
+    }
+
+    pub async fn complete_lab(&self, user_id: &str, lab_id: &str, xp: u32) -> UserProgressState {
+        let mut progress = self.get_user_progress(user_id).await;
+        if !progress.completed_lab_ids.contains(&lab_id.to_string()) {
+            progress.completed_lab_ids.push(lab_id.to_string());
+            progress.total_xp += xp;
+            progress.level = (progress.total_xp / 500) + 1;
+
+            // Award badges based on milestones
+            if progress.completed_lab_ids.len() == 1 {
+                progress.unlocked_badges.push(Badge {
+                    id: "badge-first-pod".to_string(),
+                    slug: "first-pod".to_string(),
+                    name: "Pod Pilot".to_string(),
+                    description: "Completed your first hands-on Kubernetes lab.".to_string(),
+                    icon: "Rocket".to_string(),
+                    unlocked_at: Some(chrono::Utc::now().to_rfc3339()),
+                    xp_reward: 100,
+                });
+                progress.total_xp += 100;
+            }
+            if progress.completed_lab_ids.len() == 5 {
+                progress.unlocked_badges.push(Badge {
+                    id: "badge-lab-veteran".to_string(),
+                    slug: "lab-veteran".to_string(),
+                    name: "Lab Veteran".to_string(),
+                    description: "Completed 5 hands-on labs.".to_string(),
+                    icon: "Award".to_string(),
+                    unlocked_at: Some(chrono::Utc::now().to_rfc3339()),
+                    xp_reward: 500,
+                });
+                progress.total_xp += 500;
+            }
+
+            progress.level = (progress.total_xp / 500) + 1;
+        }
+
+        let mut map = self.user_progress.write().await;
+        map.insert(user_id.to_string(), progress.clone());
+        progress
+    }
+
+    pub async fn update_skill(&self, user_id: &str, skill_id: &str, level: u32) -> UserProgressState {
+        let mut progress = self.get_user_progress(user_id).await;
+        let current = progress.skills.get(skill_id).copied().unwrap_or(0);
+        if level > current {
+            progress.skills.insert(skill_id.to_string(), level);
+        }
+
+        let mut map = self.user_progress.write().await;
+        map.insert(user_id.to_string(), progress.clone());
+        progress
+    }
+
+    pub async fn update_streak(&self, user_id: &str) -> UserProgressState {
+        let mut progress = self.get_user_progress(user_id).await;
+        let today = chrono::Utc::now().format("%Y-%m-%d").to_string();
+
+        if progress.last_active_date != today {
+            // Check if yesterday — if so, increment streak
+            progress.current_streak_days += 1;
+            if progress.current_streak_days > progress.longest_streak_days {
+                progress.longest_streak_days = progress.current_streak_days;
+
+                // Streak badges
+                if progress.longest_streak_days == 5 {
+                    progress.unlocked_badges.push(Badge {
+                        id: "badge-streak-5".to_string(),
+                        slug: "streak-5".to_string(),
+                        name: "Cloud Dedication".to_string(),
+                        description: "Maintained a 5-day continuous learning streak.".to_string(),
+                        icon: "Flame".to_string(),
+                        unlocked_at: Some(chrono::Utc::now().to_rfc3339()),
+                        xp_reward: 200,
+                    });
+                    progress.total_xp += 200;
+                }
+            }
+            progress.last_active_date = today;
+        }
 
         let mut map = self.user_progress.write().await;
         map.insert(user_id.to_string(), progress.clone());

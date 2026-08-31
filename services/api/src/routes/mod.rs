@@ -3,6 +3,7 @@ pub mod assessment;
 pub mod auth;
 pub mod labs;
 pub mod learning;
+pub mod notification;
 pub mod progress;
 pub mod terminal_ws;
 
@@ -21,6 +22,7 @@ pub fn create_routes(state: AppState) -> Router {
         .nest("/", assessment::router())
         .nest("/", labs::router())
         .nest("/", progress::router())
+        .nest("/", notification::router())
         .nest("/", ai_tutor::router())
         .nest("/", terminal_ws::router());
 
@@ -48,17 +50,7 @@ pub fn create_routes(state: AppState) -> Router {
 }
 
 async fn prometheus_metrics_handler() -> impl IntoResponse {
-    let metrics = "# HELP kubelab_http_requests_total Total number of HTTP requests processed.\n\
-                   # TYPE kubelab_http_requests_total counter\n\
-                   kubelab_http_requests_total{service=\"kubelab-api\",status=\"200\"} 142\n\
-                   kubelab_http_requests_total{service=\"kubelab-api\",status=\"201\"} 28\n\
-                   # HELP kubelab_active_sessions Active lab sandboxes running.\n\
-                   # TYPE kubelab_active_sessions gauge\n\
-                   kubelab_active_sessions{cluster=\"local\"} 3\n\
-                   # HELP kubelab_terminal_ws_connections Active WebSocket terminal streams.\n\
-                   # TYPE kubelab_terminal_ws_connections gauge\n\
-                   kubelab_terminal_ws_connections 2\n";
-
+    let metrics = crate::metrics::render_prometheus_metrics();
     (
         [("content-type", "text/plain; version=0.0.4; charset=utf-8")],
         metrics,

@@ -14,11 +14,16 @@
     "@kubelab/ui": "workspace:*",
     "@kubelab/curriculum": "workspace:*",
     "@kubelab/lab-sdk": "workspace:*",
+    "@monaco-editor/react": "^4.6.0",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-web-links": "^0.11.0",
+    "@xterm/xterm": "^5.5.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.441.0",
     "next": "^14.2.11",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "swr": "^2.2.5"
   },
   "devDependencies": {
     "@types/node": "^20.16.5",
