@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Terminal,
@@ -17,25 +19,75 @@ import {
   Sparkles,
   Server,
 } from 'lucide-react';
+import { api, TrackSummary, UserProgressState } from '@/lib/api';
+
+/** Icon mapping for track slugs */
+const TRACK_ICON_MAP: Record<string, any> = {
+  foundations: Terminal,
+  kubernetes: Boxes,
+  'k8s-admin': Server,
+  networking: Network,
+  security: ShieldCheck,
+  gitops: GitBranch,
+  observability: Activity,
+  'service-mesh': Layers,
+  incidents: AlertTriangle,
+};
+
+/** Default fallback tracks for initial render */
+const DEFAULT_TRACKS = [
+  { slug: 'foundations', title: 'Linux & OCI Foundations', total_lessons: 15, total_xp: 1500 },
+  { slug: 'kubernetes', title: 'Kubernetes Core Workloads', total_lessons: 20, total_xp: 2500 },
+  { slug: 'k8s-admin', title: 'Cluster Admin & etcd Ops', total_lessons: 12, total_xp: 1800 },
+  { slug: 'networking', title: 'CNI & Gateway API', total_lessons: 14, total_xp: 2100 },
+  { slug: 'security', title: 'Security & Policy Hardening', total_lessons: 15, total_xp: 2250 },
+  { slug: 'gitops', title: 'GitOps & Argo CD', total_lessons: 12, total_xp: 2000 },
+  { slug: 'observability', title: 'OpenTelemetry & Prometheus', total_lessons: 15, total_xp: 2400 },
+  { slug: 'service-mesh', title: 'Istio Service Mesh', total_lessons: 14, total_xp: 2300 },
+  { slug: 'incidents', title: 'Incident Response & Chaos', total_lessons: 10, total_xp: 3000 },
+];
 
 export default function HomePage() {
-  const quickStats = [
-    { label: 'Total XP', value: '1,250', change: '+250 this week', icon: Zap, color: 'text-amber-400' },
-    { label: 'Mastery Level', value: 'Level 3', change: '500 XP to L4', icon: Boxes, color: 'text-cyan-400' },
-    { label: 'Active Streak', value: '5 Days', change: 'Personal best: 12d', icon: Flame, color: 'text-rose-400' },
-    { label: 'Live Sandboxes', value: '1 Active', change: 'k8s-pod-basics', icon: Terminal, color: 'text-emerald-400' },
-  ];
+  const [tracks, setTracks] = useState<TrackSummary[]>([]);
+  const [progress, setProgress] = useState<UserProgressState | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const tracks = [
-    { slug: 'foundations', title: 'Linux & OCI Foundations', lessons: '15 Lessons', xp: '1,500 XP', icon: Terminal, progress: 80 },
-    { slug: 'kubernetes', title: 'Kubernetes Core Workloads', lessons: '20 Lessons', xp: '2,500 XP', icon: Boxes, progress: 45 },
-    { slug: 'k8s-admin', title: 'Cluster Admin & etcd Ops', lessons: '12 Lessons', xp: '1,800 XP', icon: Server, progress: 0 },
-    { slug: 'networking', title: 'CNI & Gateway API', lessons: '14 Lessons', xp: '2,100 XP', icon: Network, progress: 20 },
-    { slug: 'security', title: 'Security & Policy Hardening', lessons: '15 Lessons', xp: '2,250 XP', icon: ShieldCheck, progress: 10 },
-    { slug: 'gitops', title: 'GitOps & Argo CD', lessons: '12 Lessons', xp: '2,000 XP', icon: GitBranch, progress: 30 },
-    { slug: 'observability', title: 'OpenTelemetry & Prometheus', lessons: '15 Lessons', xp: '2,400 XP', icon: Activity, progress: 15 },
-    { slug: 'service-mesh', title: 'Istio Service Mesh', lessons: '14 Lessons', xp: '2,300 XP', icon: Layers, progress: 0 },
-    { slug: 'incidents', title: 'Incident Response & Chaos', lessons: '10 Scenarios', xp: '3,000 XP', icon: AlertTriangle, progress: 5, alert: true },
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [trackData, progressData] = await Promise.allSettled([
+          api.getTracks(),
+          api.getProgress(),
+        ]);
+        if (trackData.status === 'fulfilled') setTracks(trackData.value);
+        if (progressData.status === 'fulfilled') setProgress(progressData.value);
+      } catch {
+        // Use defaults
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  // Merge API tracks with defaults for display
+  const displayTracks = tracks.length > 0 ? tracks : DEFAULT_TRACKS.map(t => ({
+    id: t.slug,
+    slug: t.slug,
+    title: t.title,
+    description: '',
+    icon: '',
+    difficulty: 'beginner',
+    order: 0,
+    total_lessons: t.total_lessons,
+    total_xp: t.total_xp,
+  }));
+
+  const quickStats = [
+    { label: 'Total XP', value: progress ? progress.total_xp.toLocaleString() : '—', change: loading ? 'Loading…' : 'From API', icon: Zap, color: 'text-amber-400' },
+    { label: 'Mastery Level', value: progress ? `Level ${progress.level}` : '—', change: loading ? 'Loading…' : 'From API', icon: Boxes, color: 'text-cyan-400' },
+    { label: 'Active Streak', value: progress ? `${progress.current_streak_days} Days` : '—', change: loading ? 'Loading…' : 'From API', icon: Flame, color: 'text-rose-400' },
+    { label: 'Live Sandboxes', value: '1 Active', change: 'k8s-pod-basics', icon: Terminal, color: 'text-emerald-400' },
   ];
 
   return (
@@ -171,8 +223,8 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tracks.map((t) => {
-            const Icon = t.icon;
+          {displayTracks.map((t) => {
+            const Icon = TRACK_ICON_MAP[t.slug] || Boxes;
             return (
               <Link key={t.slug} href={`/learn`}>
                 <div className="glass-panel-interactive p-6 space-y-4 h-full flex flex-col justify-between">
@@ -181,7 +233,7 @@ export default function HomePage() {
                       <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-cyan-400">
                         <Icon className="w-5 h-5" />
                       </div>
-                      <span className="text-xs font-mono text-slate-400">{t.xp}</span>
+                      <span className="text-xs font-mono text-slate-400">{t.total_xp.toLocaleString()} XP</span>
                     </div>
                     <h3 className="text-base font-bold text-white group-hover:text-cyan-400 transition-colors">
                       {t.title}
@@ -190,11 +242,10 @@ export default function HomePage() {
 
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs text-slate-400 font-mono">
-                      <span>{t.lessons}</span>
-                      <span>{t.progress}% Mastered</span>
+                      <span>{t.total_lessons} Lessons</span>
                     </div>
                     <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                      <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${t.progress}%` }} />
+                      <div className="h-full bg-cyan-500 rounded-full" style={{ width: '0%' }} />
                     </div>
                   </div>
                 </div>

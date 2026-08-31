@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   GitFork,
@@ -12,34 +12,33 @@ import {
   Layers,
   Activity,
   AlertTriangle,
-  Zap,
   ArrowRight,
   Sparkles,
 } from 'lucide-react';
+import { api, SkillNode } from '@/lib/api';
 
-interface SkillNodeData {
-  id: string;
-  name: string;
-  category: string;
-  level: number; // 0 to 5
-  xp: number;
-  icon: any;
-  description: string;
-  prerequisites: string[];
-  recommendedLab: string;
-}
+const ICON_MAP: Record<string, any> = {
+  terminal: Terminal,
+  boxes: Boxes,
+  network: Network,
+  shieldcheck: ShieldCheck,
+  gitbranch: GitBranch,
+  layers: Layers,
+  activity: Activity,
+  alerttriangle: AlertTriangle,
+};
 
-const SKILL_NODES: SkillNodeData[] = [
+/** Default fallback skill nodes for when API is unreachable */
+const DEFAULT_SKILL_NODES: (SkillNode & { icon?: any })[] = [
   {
     id: 'skill-linux',
     name: 'Linux Systems & CLI',
     category: 'Foundations',
     level: 3,
     xp: 350,
-    icon: Terminal,
     description: 'Linux systems engineering, bash scripting, process management, and permissions.',
     prerequisites: [],
-    recommendedLab: 'k8s-pod-basics',
+    recommended_lab: 'k8s-pod-basics',
   },
   {
     id: 'skill-containers',
@@ -47,10 +46,9 @@ const SKILL_NODES: SkillNodeData[] = [
     category: 'Foundations',
     level: 2,
     xp: 250,
-    icon: Boxes,
     description: 'Linux namespaces, cgroups v2, multi-stage builds, and rootless Podman.',
     prerequisites: ['Linux Systems & CLI'],
-    recommendedLab: 'k8s-pod-basics',
+    recommended_lab: 'k8s-pod-basics',
   },
   {
     id: 'skill-k8s-workloads',
@@ -58,10 +56,9 @@ const SKILL_NODES: SkillNodeData[] = [
     category: 'Kubernetes Core',
     level: 4,
     xp: 600,
-    icon: Boxes,
     description: 'Pods, Deployments, ReplicaSets, StatefulSets, DaemonSets, and Jobs.',
     prerequisites: ['OCI Containers & Podman'],
-    recommendedLab: 'k8s-deployments-scaling',
+    recommended_lab: 'k8s-deployments-scaling',
   },
   {
     id: 'skill-networking',
@@ -69,10 +66,9 @@ const SKILL_NODES: SkillNodeData[] = [
     category: 'Networking',
     level: 3,
     xp: 450,
-    icon: Network,
     description: 'Services, Endpoints, CNI plugins (Calico/Cilium), CoreDNS, and Ingress.',
     prerequisites: ['Kubernetes Workloads'],
-    recommendedLab: 'k8s-services-clusterip',
+    recommended_lab: 'k8s-services-clusterip',
   },
   {
     id: 'skill-gitops',
@@ -80,10 +76,9 @@ const SKILL_NODES: SkillNodeData[] = [
     category: 'GitOps',
     level: 3,
     xp: 400,
-    icon: GitBranch,
     description: 'Continuous Delivery with Argo CD, automated sync policies, and drift detection.',
     prerequisites: ['Kubernetes Workloads'],
-    recommendedLab: 'gitops-argocd-drift',
+    recommended_lab: 'gitops-argocd-drift',
   },
   {
     id: 'skill-service-mesh',
@@ -91,10 +86,9 @@ const SKILL_NODES: SkillNodeData[] = [
     category: 'Service Mesh',
     level: 2,
     xp: 300,
-    icon: Layers,
     description: 'Envoy sidecar injection, VirtualServices, DestinationRules, and mTLS.',
     prerequisites: ['Cloud-Native Networking'],
-    recommendedLab: 'mesh-istio-canary',
+    recommended_lab: 'mesh-istio-canary',
   },
   {
     id: 'skill-observability',
@@ -102,10 +96,9 @@ const SKILL_NODES: SkillNodeData[] = [
     category: 'Observability',
     level: 3,
     xp: 500,
-    icon: Activity,
     description: 'Distributed tracing, metric scraping, PromQL alert rules, and Grafana.',
     prerequisites: ['Kubernetes Workloads'],
-    recommendedLab: 'otel-tracing-prometheus',
+    recommended_lab: 'otel-tracing-prometheus',
   },
   {
     id: 'skill-incidents',
@@ -113,15 +106,45 @@ const SKILL_NODES: SkillNodeData[] = [
     category: 'SRE & Chaos',
     level: 2,
     xp: 350,
-    icon: AlertTriangle,
     description: 'Triage live outages under pressure, diagnose crashloops, and resolve SEV-1 alerts.',
     prerequisites: ['OpenTelemetry & Prometheus', 'Cloud-Native Networking'],
-    recommendedLab: 'incident-coredns-failure',
+    recommended_lab: 'incident-coredns-failure',
   },
 ];
 
+/** Resolve an icon component from name or category */
+function resolveIcon(node: SkillNode): any {
+  // Try category-based mapping
+  const cat = node.category.toLowerCase();
+  if (cat.includes('foundation')) return Terminal;
+  if (cat.includes('kubernetes')) return Boxes;
+  if (cat.includes('networking')) return Network;
+  if (cat.includes('gitops')) return GitBranch;
+  if (cat.includes('service mesh')) return Layers;
+  if (cat.includes('observability')) return Activity;
+  if (cat.includes('sre') || cat.includes('chaos') || cat.includes('incident')) return AlertTriangle;
+  if (cat.includes('security')) return ShieldCheck;
+  return Boxes;
+}
+
 export default function SkillTreePage() {
-  const [selectedSkill, setSelectedSkill] = useState<SkillNodeData>(SKILL_NODES[2]);
+  const [skillNodes, setSkillNodes] = useState<SkillNode[]>(DEFAULT_SKILL_NODES);
+  const [selectedSkill, setSelectedSkill] = useState<SkillNode>(DEFAULT_SKILL_NODES[2]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await api.getSkillNodes();
+        if (data.length > 0) {
+          setSkillNodes(data);
+          setSelectedSkill(data[0]);
+        }
+      } catch {
+        // Use defaults
+      }
+    };
+    load();
+  }, []);
 
   return (
     <div className="container-max py-10 space-y-8">
@@ -148,14 +171,14 @@ export default function SkillTreePage() {
             </span>
             <div className="flex items-center gap-3 text-xs font-mono text-cyan-400">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>8 Competencies Tracked</span>
+              <span>{skillNodes.length} Competencies Tracked</span>
             </div>
           </div>
 
           {/* Node Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {SKILL_NODES.map((node) => {
-              const Icon = node.icon;
+            {skillNodes.map((node) => {
+              const Icon = resolveIcon(node);
               const isSelected = selectedSkill.id === node.id;
               return (
                 <div
@@ -238,7 +261,7 @@ export default function SkillTreePage() {
           {/* Action CTA */}
           <div className="pt-4 border-t border-slate-800 space-y-3">
             <Link
-              href={`/labs/${selectedSkill.recommendedLab}`}
+              href={`/labs/${selectedSkill.recommended_lab}`}
               className="inline-flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 transition-all"
             >
               <span>Level Up in Sandbox Lab</span>

@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { FileText, BookOpen, Terminal, ShieldCheck, HelpCircle, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, ChevronRight } from 'lucide-react';
+import { api, DocSection } from '@/lib/api';
 
-const DOC_SECTIONS = [
+/** Default fallback docs for when API is unreachable */
+const DEFAULT_DOC_SECTIONS: DocSection[] = [
   {
     id: 'arch',
     title: 'Architecture & Design',
@@ -27,7 +29,23 @@ const DOC_SECTIONS = [
 ];
 
 export default function DocsPage() {
-  const [activeSection, setActiveSection] = useState(DOC_SECTIONS[0]);
+  const [sections, setSections] = useState<DocSection[]>(DEFAULT_DOC_SECTIONS);
+  const [activeSection, setActiveSection] = useState(DEFAULT_DOC_SECTIONS[0]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await api.getDocSections();
+        if (data.length > 0) {
+          setSections(data);
+          setActiveSection(data[0]);
+        }
+      } catch {
+        // Use defaults
+      }
+    };
+    load();
+  }, []);
 
   return (
     <div className="container-max py-10 space-y-8">
@@ -48,7 +66,7 @@ export default function DocsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Navigation */}
         <div className="lg:col-span-4 space-y-2">
-          {DOC_SECTIONS.map((sec) => (
+          {sections.map((sec) => (
             <button
               key={sec.id}
               onClick={() => setActiveSection(sec)}

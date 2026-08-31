@@ -76,6 +76,51 @@ export interface LabSummary {
   total_points: number;
 }
 
+export interface IncidentScenario {
+  id: string;
+  title: string;
+  severity: string;
+  services: Array<{ name: string; tier: string; status: string; errors: string }>;
+  max_bounty_xp: number;
+  time_limit_seconds: number;
+}
+
+export interface QuizQuestion {
+  id: string;
+  topic: string;
+  difficulty: string;
+  points: number;
+  prompt: string;
+  options: Array<{ id: string; text: string }>;
+}
+
+export interface Certification {
+  id: string;
+  title: string;
+  difficulty: string;
+  duration: string;
+  questions: string;
+  status: string;
+  desc: string;
+}
+
+export interface DocSection {
+  id: string;
+  title: string;
+  content: string;
+}
+
+export interface SkillNode {
+  id: string;
+  name: string;
+  category: string;
+  level: number;
+  xp: number;
+  description: string;
+  prerequisites: string[];
+  recommended_lab: string;
+}
+
 class ApiClient {
   private getToken(): string | null {
     if (typeof window !== 'undefined') {
@@ -200,6 +245,39 @@ class ApiClient {
         current_error_log: errorLog,
       }),
     });
+  }
+
+  // Incidents API
+  async getIncidents(): Promise<IncidentScenario[]> {
+    return this.request<IncidentScenario[]>('/v1/incidents');
+  }
+
+  // Quiz/Practice API
+  async getQuizQuestions(topic?: string): Promise<QuizQuestion[]> {
+    const qs = topic ? `?topic=${encodeURIComponent(topic)}` : '';
+    return this.request<QuizQuestion[]>(`/v1/assessments/questions${qs}`);
+  }
+
+  async submitQuiz(answers: Record<string, string>): Promise<{ score: number; total: number; xp_earned: number }> {
+    return this.request('/v1/assessments/submit', {
+      method: 'POST',
+      body: JSON.stringify({ answers }),
+    });
+  }
+
+  // Certifications API
+  async getCertifications(): Promise<Certification[]> {
+    return this.request<Certification[]>('/v1/certifications');
+  }
+
+  // Docs API
+  async getDocSections(): Promise<DocSection[]> {
+    return this.request<DocSection[]>('/v1/docs/sections');
+  }
+
+  // Skills API (already have getSkillGraph, add detailed nodes)
+  async getSkillNodes(): Promise<SkillNode[]> {
+    return this.request<SkillNode[]>('/v1/skills/nodes');
   }
 }
 

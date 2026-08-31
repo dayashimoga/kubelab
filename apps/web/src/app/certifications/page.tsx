@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
-import { Award, ShieldCheck, CheckCircle2, Clock, Play, Zap, FileCheck } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Award, ShieldCheck, Clock, Play } from 'lucide-react';
+import { api, Certification } from '@/lib/api';
 
-const CERTS = [
+/** Default fallback certifications for when API is unreachable */
+const DEFAULT_CERTS: Certification[] = [
   {
     id: 'kcpe',
     title: 'Kubernetes Certified Platform Engineer (KCPE)',
@@ -34,6 +36,20 @@ const CERTS = [
 ];
 
 export default function CertificationsPage() {
+  const [certs, setCerts] = useState<Certification[]>(DEFAULT_CERTS);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await api.getCertifications();
+        if (data.length > 0) setCerts(data);
+      } catch {
+        // Use defaults
+      }
+    };
+    load();
+  }, []);
+
   return (
     <div className="container-max py-10 space-y-10">
       {/* Header */}
@@ -52,7 +68,7 @@ export default function CertificationsPage() {
 
       {/* Certifications Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {CERTS.map((cert) => (
+        {certs.map((cert) => (
           <div
             key={cert.id}
             className="glass-panel p-6 space-y-5 flex flex-col justify-between border-slate-800 hover:border-cyan-500/30 transition-all"

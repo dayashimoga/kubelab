@@ -1,7 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { Play, Copy, Check, FileCode, CheckCircle2, RotateCcw, AlertCircle } from 'lucide-react';
+
+// Dynamically import Monaco Editor (SSR-safe via next/dynamic)
+const Editor = dynamic(() => import('@monaco-editor/react').then(mod => mod.default), {
+  ssr: false,
+  loading: () => (
+    <div className="flex-1 flex items-center justify-center bg-slate-950 text-slate-500 text-xs font-mono">
+      Loading Monaco Editor…
+    </div>
+  ),
+});
 
 interface MonacoYamlEditorProps {
   initialYaml: string;
@@ -32,6 +43,12 @@ export const MonacoYamlEditor: React.FC<MonacoYamlEditorProps> = ({ initialYaml,
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleEditorChange = useCallback((value: string | undefined) => {
+    if (value !== undefined) {
+      setYamlContent(value);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-slate-950 rounded-xl border border-slate-800 overflow-hidden font-mono text-xs shadow-2xl">
@@ -87,23 +104,32 @@ export const MonacoYamlEditor: React.FC<MonacoYamlEditorProps> = ({ initialYaml,
         </div>
       </div>
 
-      {/* Code Textarea Viewport with Line Numbers */}
-      <div className="flex-1 relative flex overflow-hidden">
-        {/* Line numbers column */}
-        <div className="w-10 bg-slate-950 border-r border-slate-800/80 py-3 text-right pr-2 text-slate-600 select-none font-mono text-xs overflow-hidden">
-          {yamlContent.split('\n').map((_, idx) => (
-            <div key={idx} className="leading-relaxed">
-              {idx + 1}
-            </div>
-          ))}
-        </div>
-
-        {/* Text editor */}
-        <textarea
+      {/* Monaco Editor Viewport */}
+      <div className="flex-1 relative overflow-hidden" style={{ minHeight: '300px' }}>
+        <Editor
+          defaultLanguage="yaml"
           value={yamlContent}
-          onChange={(e) => setYamlContent(e.target.value)}
-          className="flex-1 bg-transparent text-cyan-200 p-3 font-mono text-xs leading-relaxed focus:outline-none resize-none selection:bg-cyan-500 selection:text-black overflow-y-auto"
-          spellCheck={false}
+          onChange={handleEditorChange}
+          theme="vs-dark"
+          options={{
+            fontSize: 13,
+            fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", Menlo, monospace',
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            wordWrap: 'on',
+            tabSize: 2,
+            lineNumbers: 'on',
+            renderLineHighlight: 'line',
+            automaticLayout: true,
+            padding: { top: 12, bottom: 12 },
+            cursorBlinking: 'smooth',
+            cursorSmoothCaretAnimation: 'on',
+            smoothScrolling: true,
+            bracketPairColorization: { enabled: true },
+            guides: { indentation: true },
+            suggest: { showWords: false },
+            quickSuggestions: false,
+          }}
         />
       </div>
     </div>

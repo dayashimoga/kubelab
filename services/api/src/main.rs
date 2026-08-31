@@ -22,10 +22,33 @@ async fn main() -> anyhow::Result<()> {
 
     let state = AppState::new(jwt_secret);
 
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+    // Configurable CORS: defaults to localhost dev origins; set CORS_ORIGINS in production
+    let cors = match std::env::var("CORS_ORIGINS") {
+        Ok(origins) => {
+            let allowed: Vec<_> = origins
+                .split(',')
+                .filter_map(|s| s.trim().parse().ok())
+                .collect();
+            tracing::info!("CORS: Restricted to {} origin(s)", allowed.len());
+            CorsLayer::new()
+                .allow_origin(allowed)
+                .allow_methods(Any)
+                .allow_headers(Any)
+        }
+        Err(_) => {
+            // Development defaults — not wide-open Any
+            let dev_origins = vec![
+                "http://localhost:3000".parse().unwrap(),
+                "http://localhost:8080".parse().unwrap(),
+                "http://127.0.0.1:3000".parse().unwrap(),
+            ];
+            tracing::info!("CORS: Using development defaults (localhost only)");
+            CorsLayer::new()
+                .allow_origin(dev_origins)
+                .allow_methods(Any)
+                .allow_headers(Any)
+        }
+    };
 
     let app = create_routes(state)
         .layer(cors)

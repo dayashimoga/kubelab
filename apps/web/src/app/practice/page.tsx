@@ -1,20 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Flame,
-  Award,
-  Clock,
   Zap,
   CheckCircle2,
-  AlertCircle,
   Play,
-  RotateCcw,
-  Sparkles,
-  Check,
 } from 'lucide-react';
+import { api, QuizQuestion } from '@/lib/api';
 
-const SAMPLE_QUESTIONS = [
+/** Default fallback questions for when API is unreachable */
+const DEFAULT_QUESTIONS: QuizQuestion[] = [
   {
     id: 'q1',
     topic: 'Kubernetes Workloads',
@@ -27,8 +23,6 @@ const SAMPLE_QUESTIONS = [
       { id: 'c', text: '6 Pods' },
       { id: 'd', text: '8 Pods' },
     ],
-    correct: 'b',
-    explanation: 'replicas (4) + maxSurge (1) = 5 total Pods maximum during the transition.',
   },
   {
     id: 'q2',
@@ -42,8 +36,6 @@ const SAMPLE_QUESTIONS = [
       { id: 'c', text: 'Seccomp-BPF' },
       { id: 'd', text: 'AppArmor' },
     ],
-    correct: 'b',
-    explanation: 'PID namespaces provide process isolation, giving the root container process PID 1 inside the container.',
   },
   {
     id: 'q3',
@@ -57,32 +49,56 @@ const SAMPLE_QUESTIONS = [
       { id: 'c', text: 'Gateway' },
       { id: 'd', text: 'EnvoyFilter' },
     ],
-    correct: 'b',
-    explanation: 'DestinationRule defines subsets (versions) and traffic policies (mTLS, circuit breaker, load balancer algorithm) applied after VirtualService routing.',
   },
 ];
 
+/** Known correct answers for local grading fallback */
+const CORRECT_ANSWERS: Record<string, string> = { q1: 'b', q2: 'b', q3: 'b' };
+
 export default function PracticeQuizPage() {
+  const [questions, setQuestions] = useState<QuizQuestion[]>(DEFAULT_QUESTIONS);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
+  const [score, setScore] = useState<number | null>(null);
 
-  const currentQ = SAMPLE_QUESTIONS[currentIdx];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await api.getQuizQuestions();
+        if (data.length > 0) setQuestions(data);
+      } catch {
+        // Use defaults
+      }
+    };
+    load();
+  }, []);
+
+  const currentQ = questions[currentIdx];
 
   const handleSelect = (optId: string) => {
     if (submitted) return;
     setSelectedAnswers({ ...selectedAnswers, [currentQ.id]: optId });
   };
 
-  const calculateScore = () => {
-    let score = 0;
-    SAMPLE_QUESTIONS.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correct) {
-        score += q.points;
-      }
-    });
-    return score;
+  const handleSubmit = async () => {
+    setSubmitted(true);
+    try {
+      const result = await api.submitQuiz(selectedAnswers);
+      setScore(result.xp_earned);
+    } catch {
+      // Local grading fallback
+      let localScore = 0;
+      questions.forEach((q) => {
+        if (selectedAnswers[q.id] === CORRECT_ANSWERS[q.id]) {
+          localScore += q.points;
+        }
+      });
+      setScore(localScore);
+    }
   };
+
+  const totalPossible = questions.reduce((sum, q) => sum + q.points, 0);
 
   return (
     <div className="container-max py-10 space-y-8 max-w-4xl">
@@ -106,7 +122,7 @@ export default function PracticeQuizPage() {
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
           <div className="flex items-center gap-3">
             <span className="px-2.5 py-1 rounded bg-indigo-500/20 text-indigo-300 text-xs font-mono font-bold">
-              QUESTION {currentIdx + 1} OF {SAMPLE_QUESTIONS.length}
+              QUESTION {currentIdx + 1} OF {questions.length}
             </span>
             <span className="text-xs text-slate-400 font-mono">{currentQ.topic}</span>
           </div>
@@ -125,7 +141,7 @@ export default function PracticeQuizPage() {
           <div className="space-y-3">
             {currentQ.options.map((opt) => {
               const isSelected = selectedAnswers[currentQ.id] === opt.id;
-              const isCorrect = opt.id === currentQ.correct;
+              const isCorrect = submitted && opt.id === CORRECT_ANSWERS[currentQ.id];
 
               let style = 'bg-slate-900/80 border-slate-800 text-slate-300 hover:bg-slate-800';
               if (submitted) {
@@ -156,14 +172,6 @@ export default function PracticeQuizPage() {
               );
             })}
           </div>
-
-          {/* Explanation Banner */}
-          {submitted && (
-            <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-300 space-y-1">
-              <span className="font-bold text-cyan-400 font-mono uppercase">Explanation:</span>
-              <p>{currentQ.explanation}</p>
-            </div>
-          )}
         </div>
 
         {/* Navigation & Submit Action */}
@@ -179,7 +187,7 @@ export default function PracticeQuizPage() {
           <div className="flex items-center gap-3">
             {!submitted ? (
               <button
-                onClick={() => setSubmitted(true)}
+                onClick={handleSubmit}
                 className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs shadow-lg shadow-cyan-500/20 transition-all"
               >
                 Submit Practice Drill
@@ -187,13 +195,14 @@ export default function PracticeQuizPage() {
             ) : (
               <div className="flex items-center gap-3">
                 <span className="text-xs font-mono text-emerald-400 font-bold">
-                  Score: {calculateScore()} / 175 XP Earned!
+                  Score: {score ?? 0} / {totalPossible} XP Earned!
                 </span>
                 <button
                   onClick={() => {
                     setSubmitted(false);
                     setSelectedAnswers({});
                     setCurrentIdx(0);
+                    setScore(null);
                   }}
                   className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold"
                 >
@@ -202,7 +211,7 @@ export default function PracticeQuizPage() {
               </div>
             )}
 
-            {currentIdx < SAMPLE_QUESTIONS.length - 1 && (
+            {currentIdx < questions.length - 1 && (
               <button
                 onClick={() => setCurrentIdx(currentIdx + 1)}
                 className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors"

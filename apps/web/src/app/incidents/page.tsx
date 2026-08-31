@@ -1,34 +1,50 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   AlertTriangle,
   Activity,
   Terminal,
-  Server,
-  Network,
   Clock,
   ShieldAlert,
-  Play,
   CheckCircle2,
-  AlertOctagon,
-  RotateCcw,
+  Wifi,
+  WifiOff,
   Zap,
 } from 'lucide-react';
 import { WebTerminal } from '@/components/Terminal';
+import { api, IncidentScenario } from '@/lib/api';
+
+/** Default fallback incident for offline/demo mode */
+const DEFAULT_SERVICES = [
+  { name: 'ingress-gateway', tier: 'Ingress', status: 'Degraded', errors: '14.2% HTTP 503' },
+  { name: 'frontend-service', tier: 'Frontend', status: 'Failing', errors: 'DNS NXDOMAIN timeouts' },
+  { name: 'order-api', tier: 'Backend', status: 'Degraded', errors: 'Connection Refused' },
+  { name: 'coredns', tier: 'Infra', status: 'Failing', errors: 'ConfigMap syntax error' },
+  { name: 'postgres-db', tier: 'Database', status: 'Healthy', errors: 'None' },
+];
 
 export default function IncidentSimulatorPage() {
   const [activeTab, setActiveTab] = useState<'topology' | 'terminal' | 'metrics'>('topology');
   const [resolved, setResolved] = useState(false);
   const [selectedDiagnosis, setSelectedDiagnosis] = useState<string | null>(null);
+  const [services, setServices] = useState(DEFAULT_SERVICES);
+  const [apiConnected, setApiConnected] = useState(false);
 
-  const services = [
-    { name: 'ingress-gateway', tier: 'Ingress', status: 'Degraded', errors: '14.2% HTTP 503' },
-    { name: 'frontend-service', tier: 'Frontend', status: 'Failing', errors: 'DNS NXDOMAIN timeouts' },
-    { name: 'order-api', tier: 'Backend', status: 'Degraded', errors: 'Connection Refused' },
-    { name: 'coredns', tier: 'Infra', status: 'Failing', errors: 'ConfigMap syntax error' },
-    { name: 'postgres-db', tier: 'Database', status: 'Healthy', errors: 'None' },
-  ];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await api.getIncidents();
+        if (data.length > 0 && data[0].services?.length > 0) {
+          setServices(data[0].services);
+          setApiConnected(true);
+        }
+      } catch {
+        // Use defaults
+      }
+    };
+    load();
+  }, []);
 
   const handleResolve = () => {
     if (selectedDiagnosis === 'coredns_configmap') {
@@ -142,7 +158,7 @@ export default function IncidentSimulatorPage() {
           {activeTab === 'metrics' && (
             <div className="glass-panel p-6 space-y-3 font-mono text-xs">
               <div className="flex justify-between text-slate-400">
-                <span>PromQL: sum(rate(http_requests_total&#123;status=~"5.."&#125;[1m]))</span>
+                <span>PromQL: sum(rate(http_requests_total&#123;status=~&quot;5..&quot;&#125;[1m]))</span>
                 <span className="text-rose-400 font-bold">CRITICAL SPIKE</span>
               </div>
               <div className="h-48 bg-slate-950 rounded-xl border border-slate-800 p-4 flex items-end gap-1">
