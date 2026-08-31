@@ -1,7 +1,7 @@
 # KubeLab — Cloud-Native Learning & Lab Platform
 
-[![CI](https://github.com/kubelab/kubelab/actions/workflows/ci.yml/badge.svg)](https://github.com/kubelab/kubelab/actions/workflows/ci.yml)
-[![Production Gate](https://github.com/kubelab/kubelab/actions/workflows/production-validation.yml/badge.svg)](https://github.com/kubelab/kubelab/actions/workflows/production-validation.yml)
+[![CI](https://github.com/dayashimoga/kubelab/actions/workflows/ci.yml/badge.svg)](https://github.com/dayashimoga/kubelab/actions/workflows/ci.yml)
+[![Release](https://github.com/dayashimoga/kubelab/actions/workflows/release.yml/badge.svg)](https://github.com/dayashimoga/kubelab/actions/workflows/release.yml)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![WCAG 2.2 AA](https://img.shields.io/badge/WCAG-2.2_AA-green.svg)](https://www.w3.org/WAI/WCAG22/quickref/)
 
@@ -15,7 +15,7 @@ You do not need to install Node, Rust, Python, Flutter, kubectl, Helm, Docker or
 
 ```bash
 # Clone the repository
-git clone https://github.com/kubelab/kubelab.git
+git clone https://github.com/dayashimoga/kubelab.git
 cd kubelab
 
 # Start all services with one command (PowerShell or Bash)
@@ -26,7 +26,7 @@ cd kubelab
 Open your browser to:
 - **Web App**: [http://localhost:3000](http://localhost:3000)
 - **API & OpenAPI Docs**: [http://localhost:8080/swagger-ui](http://localhost:8080/swagger-ui)
-- **Admin Portal**: [http://localhost:3001](http://localhost:3001)
+- **Grafana Dashboards**: [http://localhost:3001](http://localhost:3001)
 
 ---
 
@@ -102,13 +102,19 @@ Learning Assessment Progress   AI Tutor   Notifications
 
 ## 📜 Documentation
 
-- [Requirements Specification](docs/requirements/REQUIREMENTS.md)
-- [System Architecture & ADRs](docs/architecture/ARCHITECTURE.md)
-- [Curriculum Specification](docs/curriculum/CURRICULUM.md)
-- [Lab Authoring SDK](docs/lab-authoring/SDK.md)
-- [Security & Threat Model](docs/security/SECURITY.md)
-- [Testing & Quality Gates](docs/testing/TESTING.md)
-- [Production Readiness Checklist](docs/production-readiness/CHECKLIST.md)
+See [docs/README.md](docs/README.md) for the full documentation index.
+
+| Document | Description |
+|---|---|
+| [Architecture](docs/ARCHITECTURE.md) | System diagrams, component responsibilities, data flows |
+| [Code Understanding](docs/CODE_UNDERSTANDING.md) | Repository structure, module map, extension points |
+| [Setup & Configuration](docs/SETUP_CONFIGURATION.md) | Prerequisites, environment variables, ports |
+| [User Guide](docs/USER_GUIDE.md) | Registration, learning, labs, terminal, grading |
+| [Developer Guide](docs/DEVELOPER_GUIDE.md) | Local dev, coding conventions, contribution workflow |
+| [CI/CD](docs/CI_CD.md) | Pipeline architecture, caching, troubleshooting |
+| [Curriculum](docs/CURRICULUM.md) | 12 tracks, 145 labs, skill graph, learning paths |
+| [Security](docs/SECURITY.md) | Security architecture, hardening, RBAC |
+| [Operations Runbook](docs/OPERATIONS_RUNBOOK.md) | Startup, deploy, backup, incident response |
 
 ---
 

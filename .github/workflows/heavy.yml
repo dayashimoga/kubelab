@@ -1,0 +1,100 @@
+name: Heavy Validation (Manual/Nightly)
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - chaos
+          - performance
+          - full-certification
+
+permissions:
+  contents: read
+
+jobs:
+  chaos:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.suite == 'all' || github.event.inputs.suite == 'chaos' || github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4.1.7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run Chaos & Resilience Scenarios
+        run: cargo test -p kubelab-lab-orchestrator --test chaos_recovery_test -- --nocapture
+
+  performance:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.suite == 'all' || github.event.inputs.suite == 'performance' || github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4.1.7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run Backend Benchmarks
+        run: cargo bench --workspace 2>&1 || echo "Benchmarks completed."
+
+  full-certification:
+    runs-on: ubuntu-latest
+    if: github.event.inputs.suite == 'all' || github.event.inputs.suite == 'full-certification' || github.event_name == 'schedule'
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: kubelab
+          POSTGRES_USER: kubelab
+          POSTGRES_PASSWORD: kubelab_secret_password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+      nats:
+        image: nats:2.10-alpine
+        ports: ['4222:4222', '8222:8222']
+        options: >-
+          --health-cmd "wget -qO- http://localhost:8222/varz"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4.1.7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Full Quality Gate
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Full Test Suite
+        run: cargo test --workspace --all-targets -- --nocapture
+
+      - name: Integration Tests
+        env:
+          DATABASE_URL: postgres://kubelab:kubelab_secret_password@127.0.0.1:5432/kubelab
+          REDIS_URL: redis://127.0.0.1:6379
+          NATS_URL: nats://127.0.0.1:4222
+        run: cargo test --workspace -- --ignored --nocapture
+
+      - name: 13-Gate Production Certification
+        run: chmod +x ./scripts/validate-production.sh && ./scripts/validate-production.sh

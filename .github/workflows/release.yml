@@ -5,11 +5,47 @@ on:
     tags:
       - 'v*.*.*'
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Download Android APK from CI
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          commit: ${{ github.sha }}
+          name: kubelab-android-${{ github.sha }}-apk
+          path: release-artifacts/
+        continue-on-error: true
+
+      - name: Download Android AAB from CI
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          commit: ${{ github.sha }}
+          name: kubelab-android-${{ github.sha }}-aab
+          path: release-artifacts/
+        continue-on-error: true
+
+      - name: Rename artifacts for release
+        run: |
+          cd release-artifacts
+          if [ -f app-release.apk ]; then
+            mv app-release.apk "kubelab-android-${{ steps.version.outputs.version }}.apk"
+          fi
+          if [ -f app-release.aab ]; then
+            mv app-release.aab "kubelab-android-${{ steps.version.outputs.version }}.aab"
+          fi
+          ls -la
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -17,3 +53,6 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
+          files: |
+            release-artifacts/kubelab-android-*.apk
+            release-artifacts/kubelab-android-*.aab

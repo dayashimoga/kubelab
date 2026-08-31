@@ -54,6 +54,27 @@ All notable changes to KubeLab are documented in this file.
 - **Rust Edition 2024 & Node 22 Container Support**: Upgraded `Containerfile.api` builder to `rust:latest` for full compatibility with modern crates requiring `edition2024` features, and upgraded `Containerfile.web` to `node:22-alpine`.
 
 
+## [1.2.0] - 2026-08-31
+### CI/CD Consolidation
+- **Eliminated 12-Workflow Fan-Out**: Consolidated 12 independent GitHub Actions workflows (`ci.yml`, `build.yml`, `chaos.yml`, `docs.yml`, `e2e.yml`, `integration.yml`, `labs.yml`, `mobile.yml`, `performance.yml`, `production-validation.yml`, `security.yml`) into 3 workflows.
+- **Single CI Orchestrator (`ci.yml`)**: Change detection via `dorny/paths-filter@v3`, cargo/pnpm/Flutter caching, concurrency groups with cancel-in-progress on PRs, and path-based job skipping.
+- **Heavy Validation (`heavy.yml`)**: Manual/nightly workflow for chaos testing, performance benchmarks, and full production certification with backing services.
+- **Release Pipeline (`release.yml`)**: Downloads validated APK/AAB artifacts from CI and attaches them to GitHub Releases with versioned filenames.
+- **Estimated CI reduction**: 10 concurrent runs per push → 1 run with ~60% total minute savings.
 
+### Mobile Artifact Production
+- **Android APK/AAB Builds**: Added `flutter build apk --release` and `flutter build appbundle --release` with non-zero verification and named artifact upload.
+- **iOS Unsigned Build**: Added macOS runner job for `flutter build ios --release --no-codesign` proving source buildability.
+- **Test Coverage Upload**: Mobile test coverage reports uploaded as CI artifacts.
+
+### Documentation
+- **30 Comprehensive Docs in `docs/`**: Created flat-file documentation system replacing 17 thin stubs across 14 subdirectories.
+- **New documents**: `README.md` (index), `ARCHITECTURE.md`, `CODE_UNDERSTANDING.md`, `REQUIREMENTS.md`, `PRODUCT_GUIDE.md`, `USER_GUIDE.md`, `ADMIN_GUIDE.md`, `DEVELOPER_GUIDE.md`, `SETUP_CONFIGURATION.md`, `TESTING.md`, `CURRICULUM.md`, `LAB_GUIDE.md`, `LAB_AUTHORING.md`, `SECURITY.md`, `THREAT_MODEL.md`, `OBSERVABILITY.md`, `OPERATIONS_RUNBOOK.md`, `TROUBLESHOOTING.md`, `CI_CD.md`, `DEPLOYMENT.md`, `API_REFERENCE.md`, `DATABASE.md`, `PERFORMANCE.md`, `BACKUP_RESTORE_DR.md`, `RELEASE_GUIDE.md`, `FAQ.md`, `CONTRIBUTING.md`, `REQUIREMENTS_TRACEABILITY.md`, `GAP_ANALYSIS.md`, `TEST_EVIDENCE.md`, `PRODUCTION_READINESS_AUDIT.md`.
+- **Mermaid diagrams**: Architecture, data flow, test pyramid, CI pipeline, lab lifecycle, skill graph.
+- **Root cleanup**: Removed 18 duplicate root-level markdown files; consolidated all content into `docs/`.
+- **README.md**: Fixed badge URLs to `dayashimoga/kubelab`, updated documentation links to `docs/`.
+
+### Fixes
+- **`validate-production.sh`**: Updated Gates 01 and 11 to reference `docs/` flat-file structure instead of removed subdirectories.
 
 

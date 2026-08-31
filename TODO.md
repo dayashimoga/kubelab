@@ -27,8 +27,29 @@
 
 ---
 
-## Future Roadmap (v1.2+)
+### Completed (v1.2.0)
+- [x] CI/CD consolidation: 12 workflows → 3 (ci.yml, release.yml, heavy.yml)
+- [x] Change detection with `dorny/paths-filter@v3` — skip unaffected jobs
+- [x] Concurrency groups with cancel-in-progress on PRs
+- [x] Cargo/pnpm/Flutter caching in CI
+- [x] Android APK + AAB artifact production with verification
+- [x] iOS unsigned build (macOS runner, no-codesign)
+- [x] Mobile test coverage upload
+- [x] Release pipeline downloads CI artifacts and attaches to GitHub Releases
+- [x] 30 comprehensive documentation files in `docs/` flat structure
+- [x] Mermaid architecture/flow/pipeline/skill diagrams
+- [x] Removed 18 duplicate root-level markdown files
+- [x] Fixed badge URLs to `dayashimoga/kubelab`
+- [x] Updated `validate-production.sh` gates for new docs structure
+
+---
+
+## Future Roadmap (v1.3+)
 - [ ] Direct WebAssembly client-side sandbox execution
 - [ ] eBPF network visualization panel
 - [ ] Multi-region cluster federation simulator
-
+- [ ] OAuth/OIDC social login
+- [ ] Helm chart packaging
+- [ ] Pre-built Grafana dashboards
+- [ ] Signed iOS IPA distribution (requires Apple Developer credentials)
+- [ ] Full WCAG 2.2 AA accessibility audit

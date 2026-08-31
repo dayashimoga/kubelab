@@ -22,7 +22,7 @@ run_gate() {
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-run_gate "Gate 01: Repository Integrity & Core Audit Artifacts" "[ -f '$ROOT/README.md' ] && [ -f '$ROOT/PRODUCTION_READINESS_AUDIT.md' ] && [ -f '$ROOT/REQUIREMENTS_TRACEABILITY.md' ]"
+run_gate "Gate 01: Repository Integrity & Core Audit Artifacts" "[ -f '$ROOT/README.md' ] && [ -f '$ROOT/docs/PRODUCTION_READINESS_AUDIT.md' ] && [ -f '$ROOT/docs/REQUIREMENTS_TRACEABILITY.md' ]"
 run_gate "Gate 02: Database Schema & Migration DDL" "[ -f '$ROOT/services/api/migrations/0001_init.sql' ] && grep -q 'CREATE TABLE IF NOT EXISTS users' '$ROOT/services/api/migrations/0001_init.sql'"
 run_gate "Gate 03: Static Analysis & Type Checking" "cargo check --workspace"
 run_gate "Gate 04: Backend Test Suite (100% Pass Required)" "cargo test --workspace"
@@ -32,7 +32,7 @@ run_gate "Gate 07: Web Application & PWA Integrity" "[ -f '$ROOT/apps/web/public
 run_gate "Gate 08: Mobile Client Flutter Scaffold" "[ -f '$ROOT/apps/mobile/pubspec.yaml' ] && [ -f '$ROOT/apps/mobile/lib/main.dart' ]"
 run_gate "Gate 09: GitOps & Istio Service Mesh Manifests" "[ -f '$ROOT/infrastructure/gitops/argocd/root-app.yaml' ] && [ -f '$ROOT/infrastructure/mesh/istio/virtualservice-canary.yaml' ]"
 run_gate "Gate 10: Playwright E2E Test Specifications" "[ -f '$ROOT/apps/web/playwright.config.ts' ] && [ -f '$ROOT/apps/web/e2e/auth.spec.ts' ]"
-run_gate "Gate 11: Complete Documentation Suite" "[ -d '$ROOT/docs/architecture' ] && [ -d '$ROOT/docs/labs' ] && [ -d '$ROOT/docs/security' ]"
+run_gate "Gate 11: Complete Documentation Suite" "[ -f '$ROOT/docs/ARCHITECTURE.md' ] && [ -f '$ROOT/docs/LAB_GUIDE.md' ] && [ -f '$ROOT/docs/SECURITY.md' ] && [ -f '$ROOT/docs/README.md' ]"
 run_gate "Gate 12: Live Backing Services & Integration Tests" "cargo test -- --ignored || true"
 run_gate "Gate 13: Infrastructure Lifecycles & Container Configs" "[ -f '$ROOT/infrastructure/containers/podman-compose.yml' ] && [ -f '$ROOT/scripts/up.sh' ] && [ -f '$ROOT/scripts/k8s-up.sh' ]"
 

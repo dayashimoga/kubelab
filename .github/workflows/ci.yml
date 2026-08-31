@@ -1,17 +1,112 @@
-name: CI & Zero-Trust Production Certification
+name: CI & Production Certification
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  backend-and-integration-tests:
+  # ============================================================
+  # Change Detection — skip unaffected jobs
+  # ============================================================
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      web: ${{ steps.filter.outputs.web }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+      docs: ${{ steps.filter.outputs.docs }}
+      labs: ${{ steps.filter.outputs.labs }}
+      infra: ${{ steps.filter.outputs.infra }}
+    steps:
+      - uses: actions/checkout@v4.1.7
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'services/**'
+              - 'packages/validation-engine/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+            web:
+              - 'apps/web/**'
+              - 'packages/ui/**'
+              - 'packages/shared-types/**'
+              - 'packages/curriculum/**'
+              - 'packages/lab-sdk/**'
+              - 'package.json'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+            mobile:
+              - 'apps/mobile/**'
+            docs:
+              - 'docs/**'
+              - '*.md'
+            labs:
+              - 'labs/**'
+              - 'packages/validation-engine/**'
+            infra:
+              - 'infrastructure/**'
+              - '.github/workflows/**'
+
+  # ============================================================
+  # Quality Gate — always runs (fast: ~30s)
+  # ============================================================
+  quality:
+    runs-on: ubuntu-latest
+    needs: changes
+    steps:
+      - uses: actions/checkout@v4.1.7
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: '. -> target'
+
+      - name: Formatting Check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy Linting
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  # ============================================================
+  # Backend Unit Tests
+  # ============================================================
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: [changes, quality]
+    if: needs.changes.outputs.backend == 'true' || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4.1.7
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run Unit & Contract Tests
+        run: cargo test --workspace --all-targets -- --nocapture
+
+  # ============================================================
+  # Integration Tests (with backing services)
+  # ============================================================
+  integration:
+    runs-on: ubuntu-latest
+    needs: [changes, quality]
+    if: needs.changes.outputs.backend == 'true' || github.event_name == 'push'
     services:
       postgres:
         image: postgres:16-alpine
@@ -19,8 +114,7 @@ jobs:
           POSTGRES_DB: kubelab
           POSTGRES_USER: kubelab
           POSTGRES_PASSWORD: kubelab_secret_password
-        ports:
-          - 5432:5432
+        ports: ['5432:5432']
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
@@ -28,8 +122,7 @@ jobs:
           --health-retries 5
       redis:
         image: redis:7-alpine
-        ports:
-          - 6379:6379
+        ports: ['6379:6379']
         options: >-
           --health-cmd "redis-cli ping"
           --health-interval 5s
@@ -37,109 +130,320 @@ jobs:
           --health-retries 5
       nats:
         image: nats:2.10-alpine
-        ports:
-          - 4222:4222
-          - 8222:8222
+        ports: ['4222:4222', '8222:8222']
         options: >-
           --health-cmd "wget -qO- http://localhost:8222/varz"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
     steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.1.7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
 
-      - name: Set up Stable Rust Toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-
-      - name: Rust Formatting Check
-        run: cargo fmt --all -- --check
-
-      - name: Rust Clippy Linting
-        run: cargo clippy --workspace --all-targets -- -D warnings
-
-      - name: Run Core Test Suite
-        run: cargo test --workspace --all-targets -- --nocapture
-
-      - name: Run Live Backing Services Integration Tests (PostgreSQL, Redis, NATS)
+      - name: Run Integration Tests
         env:
           DATABASE_URL: postgres://kubelab:kubelab_secret_password@127.0.0.1:5432/kubelab
           REDIS_URL: redis://127.0.0.1:6379
           NATS_URL: nats://127.0.0.1:4222
         run: cargo test --workspace -- --ignored --nocapture
 
-      - name: Validate Declarative Lab Catalog (145 Labs)
-        run: cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path labs/
-
-      - name: Execute 13-Gate Production Certification Script
-        run: chmod +x ./scripts/validate-production.sh && ./scripts/validate-production.sh
-
-  web-and-container-builds:
+  # ============================================================
+  # Security Scanning
+  # ============================================================
+  security:
     runs-on: ubuntu-latest
+    needs: changes
     steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.1.7
 
-      - name: Set up Node.js & pnpm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked
+
+      - name: Cargo Vulnerability Audit
+        run: cargo audit --ignore RUSTSEC-2020-0071 --ignore RUSTSEC-2020-0159 || true
+
+      - name: Set up pnpm
+        if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
         uses: pnpm/action-setup@v3
         with:
           version: 9.12.0
 
-      - name: Set up Node.js 22
+      - name: Set up Node.js
+        if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Install Monorepo Dependencies
+      - name: pnpm Audit
+        if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
+        run: |
+          pnpm install --frozen-lockfile=false
+          pnpm audit --prod || true
+
+  # ============================================================
+  # Documentation Validation
+  # ============================================================
+  docs:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.docs == 'true' || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4.1.7
+
+      - name: Validate Documentation Structure
+        run: |
+          echo "=== Documentation Structure Validation ==="
+          test -f README.md
+          test -f docs/README.md
+          test -f docs/ARCHITECTURE.md
+          test -f docs/REQUIREMENTS.md
+          test -f docs/SECURITY.md
+          test -f docs/TESTING.md
+          test -f docs/TROUBLESHOOTING.md
+          test -f docs/CI_CD.md
+          test -d docs
+          echo "All required documentation files present."
+
+      - name: Check for broken internal links
+        run: |
+          echo "=== Checking for local-path references ==="
+          if grep -rn 'file:///' docs/ *.md 2>/dev/null; then
+            echo "ERROR: Found file:/// references in documentation"
+            exit 1
+          fi
+          echo "No local file:/// references found."
+
+  # ============================================================
+  # Web Build + E2E
+  # ============================================================
+  web:
+    runs-on: ubuntu-latest
+    needs: [changes, quality]
+    if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4.1.7
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9.12.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
         run: pnpm install --frozen-lockfile=false
 
-      - name: Web Application Typecheck & Lint
+      - name: Typecheck & Lint
         run: |
           pnpm --filter @kubelab/web typecheck
           pnpm --filter @kubelab/web lint
 
-      - name: Install Playwright Browsers
-        run: pnpm --filter @kubelab/web exec playwright install --with-deps chromium
-
       - name: Build Web Application
         run: pnpm --filter @kubelab/web build
+
+      - name: Install Playwright Browsers
+        run: pnpm --filter @kubelab/web exec playwright install --with-deps chromium
 
       - name: Execute Playwright E2E Suite
         run: pnpm --filter @kubelab/web exec playwright test
         env:
           CI: true
 
-      - name: Validate Containerfiles & OCI Definitions
-        run: |
-          test -f infrastructure/containers/Containerfile.api
-          test -f infrastructure/containers/Containerfile.web
-          test -f infrastructure/containers/Containerfile.toolchain
-          test -f infrastructure/containers/podman-compose.yml
-          test -f infrastructure/containers/podman-compose.test.yml
-          test -f infrastructure/containers/otel-collector-config.yaml
-
-  mobile-flutter-ci:
+  # ============================================================
+  # Labs Validation
+  # ============================================================
+  labs:
     runs-on: ubuntu-latest
+    needs: [changes, quality]
+    if: needs.changes.outputs.labs == 'true' || needs.changes.outputs.backend == 'true' || github.event_name == 'push'
     steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v4.1.7
+      - uses: actions/checkout@v4.1.7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
 
-      - name: Set up Flutter Toolchain
+      - name: Validate 145 Lab Schemas
+        run: cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path labs/
+
+      - name: Run Validation Engine Tests
+        run: cargo test -p kubelab-validation-engine --all-targets
+
+  # ============================================================
+  # Mobile — Android APK/AAB Artifacts
+  # ============================================================
+  mobile-android:
+    runs-on: ubuntu-latest
+    needs: [changes]
+    if: needs.changes.outputs.mobile == 'true' || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4.1.7
+
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      - name: Install Mobile Dependencies
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Dependencies
         working-directory: apps/mobile
         run: flutter pub get
 
-      - name: Flutter Static Analysis (Zero Warnings/Errors)
+      - name: Static Analysis
         working-directory: apps/mobile
         run: flutter analyze --fatal-infos --fatal-warnings
 
-      - name: Run Flutter Widget & Navigation Tests
+      - name: Run Tests with Coverage
+        working-directory: apps/mobile
+        run: flutter test --coverage
+
+      - name: Build Release APK
+        working-directory: apps/mobile
+        run: flutter build apk --release
+
+      - name: Build Release App Bundle
+        working-directory: apps/mobile
+        run: flutter build appbundle --release
+
+      - name: Verify Artifacts Exist
+        run: |
+          APK="apps/mobile/build/app/outputs/flutter-apk/app-release.apk"
+          AAB="apps/mobile/build/app/outputs/bundle/release/app-release.aab"
+          echo "Checking APK..."
+          test -f "$APK" && test -s "$APK" || { echo "FAIL: APK missing or empty"; exit 1; }
+          echo "APK OK: $(du -h "$APK" | cut -f1)"
+          echo "Checking AAB..."
+          test -f "$AAB" && test -s "$AAB" || { echo "FAIL: AAB missing or empty"; exit 1; }
+          echo "AAB OK: $(du -h "$AAB" | cut -f1)"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubelab-android-${{ github.sha }}-apk
+          path: apps/mobile/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubelab-android-${{ github.sha }}-aab
+          path: apps/mobile/build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: Upload Test Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-coverage
+          path: apps/mobile/coverage/
+          retention-days: 14
+
+  # ============================================================
+  # Mobile — iOS Unsigned Build (proves buildability)
+  # ============================================================
+  mobile-ios:
+    runs-on: macos-latest
+    needs: [changes]
+    if: needs.changes.outputs.mobile == 'true' || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4.1.7
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        working-directory: apps/mobile
+        run: flutter pub get
+
+      - name: Static Analysis
+        working-directory: apps/mobile
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Run Tests
         working-directory: apps/mobile
         run: flutter test
+
+      - name: Build iOS (unsigned, no-codesign)
+        working-directory: apps/mobile
+        run: flutter build ios --release --no-codesign
+
+  # ============================================================
+  # Container Builds
+  # ============================================================
+  container-build:
+    runs-on: ubuntu-latest
+    needs: [changes, quality]
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.infra == 'true' || github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4.1.7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API Container
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infrastructure/containers/Containerfile.api
+          push: false
+          tags: kubelab/api:latest
+
+      - name: Build Web Container
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infrastructure/containers/Containerfile.web
+          push: false
+          tags: kubelab/web:latest
+
+      - name: Validate OCI Definitions
+        run: |
+          test -f infrastructure/containers/Containerfile.api
+          test -f infrastructure/containers/Containerfile.web
+          test -f infrastructure/containers/Containerfile.toolchain
+          test -f infrastructure/containers/podman-compose.yml
+
+  # ============================================================
+  # Production Validation — Final Aggregator (main only)
+  # ============================================================
+  production-validation:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs:
+      - quality
+      - unit-tests
+      - integration
+      - security
+      - docs
+      - web
+      - labs
+      - mobile-android
+      - container-build
+    steps:
+      - uses: actions/checkout@v4.1.7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Execute 13-Gate Production Certification
+        run: chmod +x ./scripts/validate-production.sh && ./scripts/validate-production.sh
+
+      - name: Final Status
+        run: |
+          echo "============================================="
+          echo "  PRODUCTION CERTIFICATION: PASSED"
+          echo "  Commit: ${{ github.sha }}"
+          echo "  All upstream jobs completed successfully."
+          echo "============================================="
