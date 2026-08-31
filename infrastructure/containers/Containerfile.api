@@ -1,0 +1,46 @@
+# ==========================================
+# Stage 1: Build Rust Binaries
+# ==========================================
+FROM docker.io/library/rust:1.79-bullseye AS builder
+
+WORKDIR /usr/src/kubelab
+
+# Copy workspace definition
+COPY Cargo.toml ./
+COPY services ./services
+COPY packages ./packages
+
+# Build all release binaries
+RUN cargo build --release -p kubelab-api
+
+# ==========================================
+# Stage 2: Minimal Distroless / Debian Runtime
+# ==========================================
+FROM docker.io/library/debian:bullseye-slim AS runner
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    libssl1.1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root user
+RUN groupadd -r kubelab && useradd -r -g kubelab -u 10001 kubelab
+
+# Copy binary from builder
+COPY --from=builder --chown=kubelab:kubelab /usr/src/kubelab/target/release/kubelab-api /usr/local/bin/kubelab-api
+
+USER kubelab
+
+ENV RUST_LOG=info,kubelab=debug
+ENV PORT=8080
+ENV HOST=0.0.0.0
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/healthz || exit 1
+
+CMD ["/usr/local/bin/kubelab-api"]

@@ -1,0 +1,46 @@
+id: "incident-coredns-failure"
+title: "Production Incident: CoreDNS Outage & Cascading 503 Errors"
+difficulty: "expert"
+duration_minutes: 30
+track: "incidents"
+prerequisites:
+  - "k8s-services-clusterip"
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "2000m"
+    memory_limit: "2048Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-1 ALERT TRIGGERED**: All microservices are failing to resolve backend databases and inter-service dependencies.
+  CoreDNS pods in `kube-system` were misconfigured with a corrupted Corefile ConfigMap.
+  1. Inspect CoreDNS deployment logs in `kube-system`.
+  2. Restore the healthy Corefile syntax in the `coredns` ConfigMap.
+  3. Perform a rollout restart of `deployment/coredns` and verify cluster DNS resolution recovers.
+tasks:
+  - id: "task-fix-coredns"
+    title: "Restore CoreDNS Health"
+    description: "Ensure coredns deployment in kube-system is fully healthy and ready"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "deployments"
+      name: "coredns"
+      namespace: "kube-system"
+      assertions:
+        - field: "status.readyReplicas"
+          operator: "greater_than"
+          expected: 0
+hints:
+  - text: "Inspect `kubectl -n kube-system get configmap coredns -o yaml` and check for syntax errors."
+    penalty_points: 25
+solution: |
+  kubectl -n kube-system rollout restart deployment/coredns
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 35

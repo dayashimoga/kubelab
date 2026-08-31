@@ -1,0 +1,59 @@
+[workspace]
+members = [
+    "services/api",
+    "services/auth",
+    "services/learning",
+    "services/assessment",
+    "services/labs",
+    "services/lab-orchestrator",
+    "services/progress",
+    "services/notification",
+    "services/ai-tutor",
+    "packages/validation-engine"
+]
+resolver = "2"
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+authors = ["KubeLab Core Team <team@kubelab.io>"]
+license = "Apache-2.0"
+repository = "https://github.com/kubelab/kubelab"
+
+[workspace.dependencies]
+tokio = { version = "1.39", features = ["full"] }
+axum = { version = "0.7", features = ["ws", "macros", "multipart"] }
+tower = { version = "0.4", features = ["full"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "compression-full", "timeout", "fs"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+serde_yaml = { version = "0.9" }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid", "json", "migrate"] }
+redis = { version = "0.26", features = ["tokio-comp", "connection-manager", "json"] }
+async-nats = { version = "0.36" }
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+opentelemetry = { version = "0.23", features = ["trace"] }
+opentelemetry_sdk = { version = "0.23", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.16", features = ["grpc-tonic"] }
+tracing-opentelemetry = { version = "0.24" }
+uuid = { version = "1.10", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+jsonwebtoken = { version = "9.3" }
+argon2 = { version = "0.5" }
+reqwest = { version = "0.12", features = ["json", "stream"] }
+thiserror = { version = "1.0" }
+anyhow = { version = "1.0" }
+futures = { version = "0.3" }
+futures-util = { version = "0.3" }
+k8s-openapi = { version = "0.22", features = ["latest"] }
+kube = { version = "0.93", features = ["runtime", "derive", "client", "ws"] }
+utoipa = { version = "4.2", features = ["axum_extras", "chrono", "uuid"] }
+utoipa-swagger-ui = { version = "7.1", features = ["axum"] }
+validator = { version = "0.18", features = ["derive"] }
+rand = { version = "0.8" }
+regex = { version = "1.10" }
+async-trait = { version = "0.1" }
+tempfile = { version = "3.12" }
+bytes = { version = "1.7" }
+tokio-tungstenite = { version = "0.23" }

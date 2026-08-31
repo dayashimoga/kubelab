@@ -1,0 +1,24 @@
+name: Documentation Integrity
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify Documentation Structure
+        run: |
+          test -f README.md
+          test -f REQUIREMENTS.md
+          test -f ARCHITECTURE.md
+          test -f SECURITY.md
+          test -d docs/curriculum
+          test -d docs/labs
+          test -d docs/security
+          echo "Documentation verification passed."

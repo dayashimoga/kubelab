@@ -1,0 +1,46 @@
+id: "gitops-argocd-drift"
+title: "Detecting & Self-Healing GitOps Drift with Argo CD"
+difficulty: "intermediate"
+duration_minutes: 25
+track: "gitops"
+prerequisites:
+  - "k8s-deployments-scaling"
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  An engineer manually edited a Deployment replica count in the cluster directly.
+  Configure an Argo CD Application named `order-service` with `syncPolicy.automated.selfHeal=true` and `syncPolicy.automated.prune=true` to automatically reconcile live state drift.
+tasks:
+  - id: "task-configure-self-heal"
+    title: "Enable Argo CD Automated Self-Heal"
+    description: "Configure the Application manifest with automated selfHeal and prune enabled"
+    points: 100
+    validation:
+      type: "k8s_resource"
+      resource: "applications"
+      name: "order-service"
+      namespace: "argocd"
+      assertions:
+        - field: "spec.syncPolicy.automated.selfHeal"
+          operator: "equals"
+          expected: true
+        - field: "spec.syncPolicy.automated.prune"
+          operator: "equals"
+          expected: true
+hints:
+  - text: "Add `syncPolicy.automated: { prune: true, selfHeal: true }` under `.spec`"
+    penalty_points: 15
+solution: |
+  kubectl patch application order-service -n argocd --type=merge -p '{"spec":{"syncPolicy":{"automated":{"prune":true,"selfHeal":true}}}}'
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 30

@@ -1,0 +1,62 @@
+id: "k8s-rbac-role-binding"
+title: "Restricting Pod Access with RBAC Roles and RoleBindings"
+difficulty: "intermediate"
+duration_minutes: 20
+track: "security"
+prerequisites:
+  - "k8s-pod-basics"
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "500m"
+    memory_limit: "512Mi"
+initial_state:
+  manifests: []
+scenario: |
+  Create a Role named `pod-reader` that allows `get`, `list`, and `watch` verbs on `pods` resources.
+  Bind this Role to the ServiceAccount named `developer-sa` using a RoleBinding named `read-pods-binding`.
+tasks:
+  - id: "task-create-role"
+    title: "Create Role pod-reader"
+    description: "Create a Role with read-only permissions on pods"
+    points: 50
+    validation:
+      type: "k8s_resource"
+      resource: "roles"
+      name: "pod-reader"
+      assertions:
+        - field: "rules[0].resources[0]"
+          operator: "equals"
+          expected: "pods"
+        - field: "rules[0].verbs"
+          operator: "contains"
+          expected: "get"
+  - id: "task-create-rolebinding"
+    title: "Create RoleBinding read-pods-binding"
+    description: "Bind pod-reader to ServiceAccount developer-sa"
+    points: 50
+    validation:
+      type: "k8s_resource"
+      resource: "rolebindings"
+      name: "read-pods-binding"
+      assertions:
+        - field: "roleRef.name"
+          operator: "equals"
+          expected: "pod-reader"
+        - field: "subjects[0].name"
+          operator: "equals"
+          expected: "developer-sa"
+hints:
+  - text: "Use `kubectl create role pod-reader --verb=get,list,watch --resource=pods`"
+    penalty_points: 10
+solution: |
+  kubectl create role pod-reader --verb=get,list,watch --resource=pods
+  kubectl create serviceaccount developer-sa
+  kubectl create rolebinding read-pods-binding --role=pod-reader --serviceaccount=default:developer-sa
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25

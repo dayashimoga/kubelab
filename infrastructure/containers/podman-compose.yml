@@ -1,0 +1,103 @@
+version: '3.8'
+
+networks:
+  kubelab-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  nats_data:
+
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: kubelab-postgres
+    environment:
+      POSTGRES_DB: kubelab
+      POSTGRES_USER: kubelab
+      POSTGRES_PASSWORD: kubelab_secret_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../services/api/migrations:/docker-entrypoint-initdb.d:ro
+    networks:
+      - kubelab-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kubelab -d kubelab"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: docker.io/library/redis:7-alpine
+    container_name: kubelab-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - kubelab-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  nats:
+    image: docker.io/library/nats:2.10-alpine
+    container_name: kubelab-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["-js", "-m", "8222"]
+    volumes:
+      - nats_data:/data
+    networks:
+      - kubelab-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8222/varz"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infrastructure/containers/Containerfile.api
+    container_name: kubelab-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://kubelab:kubelab_secret_password@postgres:5432/kubelab
+      REDIS_URL: redis://redis:6379
+      NATS_URL: nats://nats:4222
+      JWT_SECRET: super_secure_kubelab_jwt_secret_key_32_chars!
+      PORT: 8080
+      RUST_LOG: info,kubelab=debug
+    ports:
+      - "8080:8080"
+    networks:
+      - kubelab-net
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infrastructure/containers/Containerfile.web
+    container_name: kubelab-web
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    networks:
+      - kubelab-net

@@ -1,0 +1,59 @@
+id: "k8s-deployments-scaling"
+title: "Deployments, Scaling and Rolling Updates"
+difficulty: "intermediate"
+duration_minutes: 20
+track: "kubernetes"
+prerequisites:
+  - "k8s-pod-basics"
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  Deploy a scalable web API with 3 replicas and a RollingUpdate deployment strategy.
+tasks:
+  - id: "task-create-deployment"
+    title: "Create the Deployment"
+    description: "Create a Deployment named `api-server` using image `nginx:1.25-alpine` with 3 replicas."
+    points: 50
+    validation:
+      type: "k8s_resource"
+      resource: "deployments"
+      name: "api-server"
+      assertions:
+        - field: "spec.replicas"
+          operator: "equals"
+          expected: 3
+        - field: "status.readyReplicas"
+          operator: "equals"
+          expected: 3
+  - id: "task-rolling-strategy"
+    title: "Configure RollingUpdate Strategy"
+    description: "Ensure maxSurge is set to 1 and maxUnavailable is set to 0."
+    points: 50
+    validation:
+      type: "k8s_resource"
+      resource: "deployments"
+      name: "api-server"
+      assertions:
+        - field: "spec.strategy.rollingUpdate.maxSurge"
+          operator: "equals"
+          expected: 1
+        - field: "spec.strategy.rollingUpdate.maxUnavailable"
+          operator: "equals"
+          expected: 0
+hints:
+  - text: "Specify `.spec.strategy.type: RollingUpdate` and `.spec.strategy.rollingUpdate` parameters."
+    penalty_points: 10
+solution: |
+  kubectl create deployment api-server --image=nginx:1.25-alpine --replicas=3
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25

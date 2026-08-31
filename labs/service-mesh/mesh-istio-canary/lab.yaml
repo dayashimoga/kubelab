@@ -1,0 +1,62 @@
+id: "mesh-istio-canary"
+title: "Istio 90/10 Weighted Canary Traffic Shifting"
+difficulty: "advanced"
+duration_minutes: 25
+track: "service-mesh"
+prerequisites:
+  - "k8s-services-clusterip"
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1500m"
+    memory_limit: "1536Mi"
+initial_state:
+  manifests: []
+scenario: |
+  Route 90% of incoming HTTP requests to subset `v1` and 10% to subset `v2` of the `payment-service` using an Istio VirtualService.
+tasks:
+  - id: "task-virtualservice-weights"
+    title: "Configure VirtualService Traffic Weights"
+    description: "Create VirtualService payment-route with 90% v1 and 10% v2 weights"
+    points: 100
+    validation:
+      type: "k8s_resource"
+      resource: "virtualservices"
+      name: "payment-route"
+      assertions:
+        - field: "spec.http[0].route[0].weight"
+          operator: "equals"
+          expected: 90
+        - field: "spec.http[0].route[1].weight"
+          operator: "equals"
+          expected: 10
+hints:
+  - text: "Use `spec.http[].route` array with `destination.subset` and `weight` attributes."
+    penalty_points: 10
+solution: |
+  kubectl apply -f - <<EOF
+  apiVersion: networking.istio.io/v1alpha3
+  kind: VirtualService
+  metadata:
+    name: payment-route
+  spec:
+    hosts:
+    - payment-service
+    http:
+    - route:
+      - destination:
+          host: payment-service
+          subset: v1
+        weight: 90
+      - destination:
+          host: payment-service
+          subset: v2
+        weight: 10
+  EOF
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 30
