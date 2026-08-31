@@ -3,10 +3,11 @@ use regex::Regex;
 use serde_json::Value;
 
 pub fn extract_json_field<'a>(root: &'a Value, path: &str) -> Option<&'a Value> {
-    if path.is_empty() {
+    let clean_path = path.trim().trim_start_matches('$').trim_start_matches('.');
+    if clean_path.is_empty() {
         return Some(root);
     }
-    let parts: Vec<&str> = path.split('.').collect();
+    let parts: Vec<&str> = clean_path.split('.').collect();
     let mut current = root;
 
     for part in parts {

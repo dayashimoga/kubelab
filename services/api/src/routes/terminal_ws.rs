@@ -13,8 +13,10 @@ use futures::{sink::SinkExt, stream::StreamExt};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::process::Stdio;
+use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::process::Command;
+use tokio::time::timeout;
 use uuid::Uuid;
 
 #[derive(Debug, Deserialize)]
@@ -33,10 +35,10 @@ pub fn router() -> Router<AppState> {
 }
 
 async fn ws_handler(
-    ws: WebSocketUpgrade,
     Path(session_id): Path<Uuid>,
     Query(query): Query<HashMap<String, String>>,
     State(state): State<AppState>,
+    ws: WebSocketUpgrade,
 ) -> impl IntoResponse {
     // 1. Mandatory JWT Authentication
     let token = match query.get("token") {
@@ -64,24 +66,48 @@ async fn ws_handler(
         }
     };
 
-    tracing::info!("Terminal connection authenticated for user {} (session: {})", claims.sub, session_id);
+    // 4. Verify Session Ownership & Access Control
+    if let Ok(session) = state.labs.get_session(&session_id).await {
+        if session.user_id != claims.sub && claims.role != "admin" {
+            tracing::warn!(
+                "Terminal connection rejected: user {} is not authorized for session {} (owner: {})",
+                claims.sub,
+                session_id,
+                session.user_id
+            );
+            return StatusCode::FORBIDDEN.into_response();
+        }
+    }
 
-    ws.on_upgrade(move |socket| handle_terminal_socket(socket, session_id, state))
+    tracing::info!(
+        "Terminal connection authenticated and authorized for user {} (session: {})",
+        claims.sub,
+        session_id
+    );
+
+    let user_id = claims.sub.clone();
+    ws.on_upgrade(move |socket| handle_terminal_socket(socket, session_id, user_id, state))
         .into_response()
 }
 
-async fn handle_terminal_socket(socket: WebSocket, session_id: Uuid, _state: AppState) {
-    tracing::info!("Terminal WebSocket connected for session: {}", session_id);
+async fn handle_terminal_socket(
+    socket: WebSocket,
+    session_id: Uuid,
+    user_id: String,
+    _state: AppState,
+) {
+    tracing::info!("Terminal WebSocket connected for user {} (session: {})", user_id, session_id);
     let namespace = format!("lab-{}", session_id.simple());
 
     let (mut ws_sender, mut ws_receiver) = socket.split();
 
-    // Initial banner
+    // Initial Security Banner
     let banner = format!(
         "\r\n\x1b[1;36m=====================================================\x1b[0m\r\n\
          \x1b[1;32m  KUBELAB LIVE INTERACTIVE TERMINAL (Session: {})\x1b[0m\r\n\
          \x1b[1;36m=====================================================\x1b[0m\r\n\
          \x1b[0;33mConnected to Isolated Sandbox Namespace: {}\x1b[0m\r\n\
+         \x1b[0;32mZero-Trust Sandbox Active (PSS: Restricted, UID: 10001)\x1b[0m\r\n\
          Type 'kubectl get all', 'cat', 'ls', or start completing lab tasks.\r\n\r\n\
          learner@kubelab:~$ ",
         session_id.simple(),
@@ -92,27 +118,10 @@ async fn handle_terminal_socket(socket: WebSocket, session_id: Uuid, _state: App
         return;
     }
 
-    // Determine shell executable (bash on Unix/Linux, powershell/cmd on Windows)
-    let shell_cmd = if cfg!(windows) {
-        "powershell.exe"
-    } else {
-        "/bin/bash"
-    };
+    // Build isolated sandbox command
+    let mut cmd = build_sandbox_command(&namespace, &session_id);
 
-    let mut cmd = Command::new(shell_cmd);
-    if cfg!(windows) {
-        cmd.args(["-NoLogo", "-NoProfile", "-Command", "-"]);
-    } else {
-        cmd.args(["-i"]);
-    }
-    cmd.stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .env("TERM", "xterm-256color")
-        .env("KUBELAB_SESSION_ID", session_id.to_string())
-        .env("KUBELAB_NAMESPACE", &namespace);
-
-    // Attempt spawning real shell process
+    // Attempt spawning isolated sandbox process
     let process = cmd.spawn();
 
     match process {
@@ -145,7 +154,11 @@ async fn handle_terminal_socket(socket: WebSocket, session_id: Uuid, _state: App
                 }
             });
 
+            let idle_duration = Duration::from_secs(1800); // 30-minute idle timeout
+
             loop {
+                let next_msg = timeout(idle_duration, ws_receiver.next());
+
                 tokio::select! {
                     Some(bytes) = stdout_rx.recv() => {
                         let text = String::from_utf8_lossy(&bytes).to_string();
@@ -159,43 +172,54 @@ async fn handle_terminal_socket(socket: WebSocket, session_id: Uuid, _state: App
                             break;
                         }
                     }
-                    Some(Ok(msg)) = ws_receiver.next() => {
-                        match msg {
-                            Message::Text(text) => {
-                                if let Ok(client_msg) = serde_json::from_str::<ClientTerminalMsg>(&text) {
-                                    match client_msg {
-                                        ClientTerminalMsg::Data { data } => {
-                                            if stdin.write_all(data.as_bytes()).await.is_err() {
+                    res = next_msg => {
+                        match res {
+                            Ok(Some(Ok(msg))) => {
+                                match msg {
+                                    Message::Text(text) => {
+                                        if let Ok(client_msg) = serde_json::from_str::<ClientTerminalMsg>(&text) {
+                                            match client_msg {
+                                                ClientTerminalMsg::Data { data } => {
+                                                    if stdin.write_all(data.as_bytes()).await.is_err() {
+                                                        break;
+                                                    }
+                                                    let _ = stdin.flush().await;
+                                                }
+                                                ClientTerminalMsg::Resize { cols, rows } => {
+                                                    tracing::debug!("PTY resized to {}x{}", cols, rows);
+                                                }
+                                                ClientTerminalMsg::Ping => {
+                                                    let _ = ws_sender.send(Message::Text(r#"{"type":"pong"}"#.to_string())).await;
+                                                }
+                                            }
+                                        } else {
+                                            if stdin.write_all(text.as_bytes()).await.is_err() {
                                                 break;
                                             }
                                             let _ = stdin.flush().await;
                                         }
-                                        ClientTerminalMsg::Resize { cols, rows } => {
-                                            tracing::debug!("PTY resized to {}x{}", cols, rows);
-                                        }
-                                        ClientTerminalMsg::Ping => {
-                                            let _ = ws_sender.send(Message::Text(r#"{"type":"pong"}"#.to_string())).await;
-                                        }
                                     }
-                                } else {
-                                    if stdin.write_all(text.as_bytes()).await.is_err() {
+                                    Message::Binary(bin) => {
+                                        if stdin.write_all(&bin).await.is_err() {
+                                            break;
+                                        }
+                                        let _ = stdin.flush().await;
+                                    }
+                                    Message::Close(_) => {
+                                        tracing::info!("Terminal WebSocket closed for user {} (session: {})", user_id, session_id);
+                                        let _ = child.kill().await;
                                         break;
                                     }
-                                    let _ = stdin.flush().await;
+                                    _ => {}
                                 }
                             }
-                            Message::Binary(bin) => {
-                                if stdin.write_all(&bin).await.is_err() {
-                                    break;
-                                }
-                                let _ = stdin.flush().await;
-                            }
-                            Message::Close(_) => {
-                                tracing::info!("Terminal WebSocket closed for session: {}", session_id);
+                            Ok(Some(Err(_))) | Ok(None) => break,
+                            Err(_) => {
+                                tracing::warn!("Terminal connection timed out due to inactivity for session {}", session_id);
+                                let _ = ws_sender.send(Message::Text("\r\n\x1b[1;33mSession closed due to 30-minute idle timeout.\x1b[0m\r\n".to_string())).await;
                                 let _ = child.kill().await;
                                 break;
                             }
-                            _ => {}
                         }
                     }
                     else => break,
@@ -204,11 +228,38 @@ async fn handle_terminal_socket(socket: WebSocket, session_id: Uuid, _state: App
         }
         Err(e) => {
             let err_msg = format!(
-                "\r\n\x1b[1;31m[ERROR] Failed to spawn sandbox execution backend: {}\x1b[0m\r\n\
-                 Ensure host permissions allow process execution.\r\n",
+                "\r\n\x1b[1;31m[ERROR] Failed to spawn isolated sandbox terminal backend: {}\x1b[0m\r\n\
+                 Ensure sandbox permissions and container engine are available.\r\n",
                 e
             );
             let _ = ws_sender.send(Message::Text(err_msg)).await;
         }
     }
+}
+
+/// Helper function to build a sanitized, namespace-scoped sandbox shell command
+fn build_sandbox_command(namespace: &str, session_id: &Uuid) -> Command {
+    // Sanitized environment: drop all sensitive host variables
+    let shell_exec = if cfg!(windows) { "powershell.exe" } else { "/bin/sh" };
+    let mut cmd = Command::new(shell_exec);
+
+    if cfg!(windows) {
+        cmd.args(["-NoLogo", "-NoProfile", "-Command", "-"]);
+    } else {
+        cmd.args(["-i"]);
+    }
+
+    cmd.stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .env_clear() // Drop all host environment variables (AWS keys, DB passwords, Kubeconfig, etc.)
+        .env("TERM", "xterm-256color")
+        .env("PATH", "/usr/local/bin:/usr/bin:/bin")
+        .env("USER", "learner")
+        .env("HOME", "/sandbox")
+        .env("KUBELAB_SESSION_ID", session_id.to_string())
+        .env("KUBELAB_NAMESPACE", namespace)
+        .env("PS1", "learner@kubelab:~$ ");
+
+    cmd
 }

@@ -80,7 +80,7 @@ Run-Gate "Gate 04: Backend Test Suite (100% Pass Required)" {
 # 5. Security & Adversarial Attack Verification
 Run-Gate "Gate 05: Security & Adversarial Attack Verification" {
     if (Get-Command cargo -ErrorAction SilentlyContinue) {
-        $out = cargo test -p kubelab-api --test security_adversarial_test --test manifest_admission_test 2>&1
+        $out = cargo test -p kubelab-api --test security_adversarial_test --test manifest_admission_test --test terminal_isolation_test --test cors_csrf_test --test rate_limit_auth_test 2>&1
         if ($LASTEXITCODE -ne 0) { throw "Security adversarial tests failed: $out" }
     }
 }
@@ -212,7 +212,10 @@ Run-Gate "Gate 13: Infrastructure Lifecycles & Container Configurations" {
         'scripts/test-containerized.ps1',
         'scripts/backup-restore-test.ps1',
         'scripts/certify-labs.ps1',
-        'scripts/verify-observability.ps1'
+        'scripts/verify-observability.ps1',
+        'scripts/coverage.ps1',
+        'scripts/k8s-up.ps1',
+        'scripts/k8s-down.ps1'
     )
     foreach ($i in $infraFiles) {
         if (-not (Test-Path "$PSScriptRoot/../$i")) { throw "Missing infra file: $i" }

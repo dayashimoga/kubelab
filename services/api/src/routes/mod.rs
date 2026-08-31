@@ -14,8 +14,15 @@ use axum::{
     Json, Router,
 };
 use serde_json::json;
+use tower_http::cors::{Any, CorsLayer};
 
 pub fn create_routes(state: AppState) -> Router {
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods(Any)
+        .allow_headers(Any)
+        .expose_headers(Any);
+
     let api_v1 = Router::new()
         .nest("/auth", auth::router())
         .nest("/", learning::router())
@@ -46,6 +53,7 @@ pub fn create_routes(state: AppState) -> Router {
         .route("/metrics", get(prometheus_metrics_handler))
         .route("/swagger-ui", get(swagger_ui_handler))
         .nest("/v1", api_v1)
+        .layer(cors)
         .with_state(state)
 }
 

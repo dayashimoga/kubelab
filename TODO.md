@@ -14,10 +14,21 @@
 - [x] Kind v0.24 disposable cluster automation
 - [x] Zero-residue cleanup and purge scripts
 - [x] Full documentation suite (Product Spec, Repository Structure, Setup, Developer Guide, Operations, DR)
+- [x] Server-side manifest admission controller (`admission.rs`)
+- [x] WebSocket terminal session ownership & isolation hardening (`terminal_ws.rs`)
+- [x] Pod Security Standards restricted profile & LimitRange enforcement
+- [x] Removal of auto-pass grading fallbacks
+- [x] Automated PostgreSQL disaster recovery & backup/restore verification (RPO=0, RTO<5s)
+- [x] 145 Declarative lab schema & evaluator runtime certification
+- [x] Unified Prometheus + Tempo + Loki Grafana observability stack
+- [x] Disposable Kind K8s cluster automation & zero-residue cleanup scripts
+- [x] GitHub Actions CI Playwright test execution & security audit scanning
+- [x] Complete threat model & DR operations runbooks
 
 ---
 
-## Future Roadmap (v1.1+)
+## Future Roadmap (v1.2+)
 - [ ] Direct WebAssembly client-side sandbox execution
 - [ ] eBPF network visualization panel
 - [ ] Multi-region cluster federation simulator
+

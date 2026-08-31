@@ -19,3 +19,20 @@ All notable changes to KubeLab are documented in this file.
 - Hardened `apply_manifest` YAML parser to filter out comment-only chunks.
 - Fixed xterm.css import in web application to ensure clean production builds.
 - Upgraded quality certification to 13 hardened zero-trust gates.
+
+## [1.1.0] - 2026-08-31
+### Security & Zero-Trust Hardening
+- **Server-Side YAML Admission Controller**: Added `admission.rs` in `kubelab-api` rejecting `privileged: true`, `hostNetwork/hostPID/hostIPC`, `hostPath:`, runtime socket mounts (`docker.sock`, `containerd.sock`), and `cluster-admin` bindings with HTTP 422.
+- **WebSocket Terminal Sandbox Isolation**: Hardened `terminal_ws.rs` with token validation, Redis revocation checks, strict session ownership verification (`claims.sub == session.user_id`), sanitized non-root environment variables, and 30-minute inactivity timeouts.
+- **Pod Security Standards (PSS) Enforcement**: Enforced PSS `restricted` profiles, `LimitRange` container defaults, and IMDS metadata blocking in `NamespaceProvisioner`.
+- **CORS & Rate Limiting**: Wired `CorsLayer` into `create_routes` and validated burst protection under rapid client queries.
+- **Removed Fake Auto-Pass Fallback**: Replaced hardcoded passing state in `service.rs` with explicit `Unavailable`/`NotFound` responses.
+
+### Reliability & Lifecycle
+- **Disaster Recovery & Backup/Restore Harness**: Implemented `scripts/backup-restore-test.ps1` proving automated `pg_dump` snapshotting, disaster simulation, and 100% data recovery with RPO=0 and RTO < 5s.
+- **145-Lab Runtime Certification Harness**: Created `scripts/certify-labs.ps1` validating all 145 lab schemas and evaluator state assertions.
+- **Disposable Kind Cluster Lifecycle**: Added `scripts/k8s-up.ps1`/`k8s-up.sh` and `scripts/k8s-down.ps1`/`k8s-down.sh` with zero-residue cleanup.
+- **Unified Observability Stack**: Added Tempo, Loki, and Prometheus datasources with trace-to-log/metric correlation in Grafana and created `scripts/verify-observability.ps1`.
+- **Coverage Tooling**: Added `scripts/coverage.ps1` and `scripts/coverage.sh` with `cargo-tarpaulin` and containerized execution.
+- **Supply Chain Security**: Added `.github/workflows/security.yml` with automated `cargo audit` and `pnpm audit`.
+

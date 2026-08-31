@@ -46,3 +46,4 @@ regex = { workspace = true }
 [dev-dependencies]
 http-body-util = "0.1"
 tower = { workspace = true }
+tokio-tungstenite = { workspace = true }
