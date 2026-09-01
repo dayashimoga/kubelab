@@ -1,0 +1,45 @@
+id: "incident-oomkill-jvm"
+title: "Production Incident: Memory Throttling & OOMKilled CrashLoop"
+difficulty: "expert"
+duration_minutes: 25
+track: "incidents"
+objectives:
+  - Diagnose container exit code 137 (OOMKilled)
+  - Tune container memory limits and JVM heap MaxRAMPercentage
+prerequisites: []
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-1 ALERT**: The payment processing microservice is continuously crashing with exit code 137 (OOMKilled).
+  The container memory limit is set to 256Mi, but the service requires at least 512Mi under current load.
+  1. Inspect pod status and identify the OOMKilled reason.
+  2. Increase the container memory limit in `deployment/payment-service` to 512Mi.
+  3. Verify all replicas become Ready.
+tasks:
+  - id: "task-fix-oomkill"
+    title: "Remediate OOMKilled Payment Service"
+    description: "Ensure payment-service has 512Mi memory limit and is ready"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "deployments"
+      name: "payment-service"
+      namespace: "default"
+      assertions:
+        - field: "spec.template.spec.containers[0].resources.limits.memory"
+          operator: "equals"
+          expected: "512Mi"
+hints:
+  - text: "Use `kubectl set resources deployment/payment-service --limits=memory=512Mi`"
+    penalty_points: 25
+solution: |
+  kubectl set resources deployment/payment-service --limits=memory=512Mi
+cleanup:
+  auto: true

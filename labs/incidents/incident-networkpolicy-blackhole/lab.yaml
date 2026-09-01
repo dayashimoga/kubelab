@@ -1,0 +1,64 @@
+id: "incident-networkpolicy-blackhole"
+title: "Production Incident: Egress NetworkPolicy Database Blackhole"
+difficulty: "expert"
+duration_minutes: 25
+track: "incidents"
+objectives:
+  - Troubleshoot zero-trust NetworkPolicy isolation issues
+  - Allow necessary egress traffic to Postgres port 5432
+prerequisites: []
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-1 ALERT**: Web frontend cannot reach order-service backend API.
+  A strict DefaultDeny NetworkPolicy was applied without granting egress to backend pods on port 8080.
+  1. Inspect network policies in the namespace.
+  2. Add egress rules allowing traffic to `app: order-service` on TCP 8080.
+  3. Validate HTTP connectivity is restored.
+tasks:
+  - id: "task-fix-netpol-blackhole"
+    title: "Restore NetworkPolicy Egress Connectivity"
+    description: "Ensure network policy allows order-api egress on port 8080"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "networkpolicies"
+      name: "allow-order-api-egress"
+      namespace: "default"
+      assertions:
+        - field: "spec.egress[0].ports[0].port"
+          operator: "equals"
+          expected: 8080
+hints:
+  - text: "Define an egress rule specifying `to: podSelector: matchLabels: {app: order-service}` and port 8080."
+    penalty_points: 25
+solution: |
+  kubectl apply -f - <<EOF
+  apiVersion: networking.k8s.io/v1
+  kind: NetworkPolicy
+  metadata:
+    name: allow-order-api-egress
+  spec:
+    podSelector:
+      matchLabels:
+        app: web-frontend
+    policyTypes:
+    - Egress
+    egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            app: order-service
+      ports:
+      - protocol: TCP
+        port: 8080
+  EOF
+cleanup:
+  auto: true

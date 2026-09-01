@@ -256,21 +256,52 @@ async fn handle_terminal_socket(
     }
 }
 
-/// Helper function to build a sanitized, namespace-scoped sandbox shell command
+/// Helper function to build a sanitized, namespace-scoped sandbox PTY command
 fn build_sandbox_command(namespace: &str, session_id: &Uuid) -> Command {
-    // Sanitized environment: drop all sensitive host variables
-    let shell_exec = if cfg!(windows) {
-        "powershell.exe"
-    } else {
-        "/bin/sh"
-    };
-    let mut cmd = Command::new(shell_exec);
+    // 1. Check if kubectl/live K8s sandbox is requested
+    let has_kubectl = which_command("kubectl");
+    let has_podman = which_command("podman");
 
-    if cfg!(windows) {
-        cmd.args(["-NoLogo", "-NoProfile", "-Command", "-"]);
+    let mut cmd = if has_kubectl {
+        let mut c = Command::new("kubectl");
+        c.args([
+            "exec",
+            "-i",
+            "-n",
+            namespace,
+            "deploy/learner-sandbox",
+            "--",
+            "/bin/sh",
+        ]);
+        c
+    } else if has_podman {
+        let mut c = Command::new("podman");
+        c.args([
+            "exec",
+            "-i",
+            "--user",
+            "10001:10001",
+            "--workdir",
+            "/sandbox",
+            &format!("kubelab-sandbox-{}", session_id.simple()),
+            "/bin/sh",
+        ]);
+        c
     } else {
-        cmd.args(["-i"]);
-    }
+        // Fallback local isolated execution
+        let shell_exec = if cfg!(windows) {
+            "powershell.exe"
+        } else {
+            "/bin/sh"
+        };
+        let mut c = Command::new(shell_exec);
+        if cfg!(windows) {
+            c.args(["-NoLogo", "-NoProfile", "-Command", "-"]);
+        } else {
+            c.args(["-i"]);
+        }
+        c
+    };
 
     cmd.stdin(Stdio::piped())
         .stdout(Stdio::piped())
@@ -285,4 +316,20 @@ fn build_sandbox_command(namespace: &str, session_id: &Uuid) -> Command {
         .env("PS1", "learner@kubelab:~$ ");
 
     cmd
+}
+
+fn which_command(cmd: &str) -> bool {
+    std::env::var_os("PATH")
+        .and_then(|paths| {
+            std::env::split_paths(&paths).find_map(|p| {
+                let full_path = p.join(cmd);
+                let full_path_exe = p.join(format!("{}.exe", cmd));
+                if full_path.is_file() || full_path_exe.is_file() {
+                    Some(())
+                } else {
+                    None
+                }
+            })
+        })
+        .is_some()
 }

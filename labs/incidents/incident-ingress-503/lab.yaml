@@ -1,0 +1,45 @@
+id: "incident-ingress-503"
+title: "Production Incident: Ingress 503 Service Unavailable"
+difficulty: "expert"
+duration_minutes: 20
+track: "incidents"
+objectives:
+  - Troubleshoot Ingress controller 503 errors
+  - Fix service selector and target port mismatch
+prerequisites: []
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-1 ALERT**: External traffic routed via Ingress returns HTTP 503 Service Temporarily Unavailable.
+  The Service selector does not match the Deployment labels, resulting in 0 Endpoints.
+  1. Inspect `kubectl get endpoints catalog-service`.
+  2. Fix `spec.selector` in `service/catalog-service` to match `app: catalog`.
+  3. Verify endpoints populate and 503 errors cease.
+tasks:
+  - id: "task-fix-ingress-503"
+    title: "Fix Service Selector and Restore Endpoints"
+    description: "Ensure service catalog-service has selector app=catalog"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "services"
+      name: "catalog-service"
+      namespace: "default"
+      assertions:
+        - field: "spec.selector.app"
+          operator: "equals"
+          expected: "catalog"
+hints:
+  - text: "Check `kubectl get pods --show-labels` vs `kubectl describe svc catalog-service`."
+    penalty_points: 25
+solution: |
+  kubectl patch svc catalog-service -p '{"spec":{"selector":{"app":"catalog"}}}'
+cleanup:
+  auto: true

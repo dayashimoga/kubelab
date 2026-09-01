@@ -1,0 +1,45 @@
+id: "incident-istio-circuit-breaker"
+title: "Production Incident: Istio Circuit Breaker Cascading Ejection"
+difficulty: "expert"
+duration_minutes: 25
+track: "incidents"
+objectives:
+  - Configure Envoy DestinationRule outlierDetection and connectionPool
+  - Protect upstream services from fail-fast cascading dropouts
+prerequisites: []
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-1 ALERT**: High error rates triggered the Envoy circuit breaker, ejecting 100% of upstream backend hosts.
+  The `maxEjectionPercent` was set to 100% with `consecutive5xxErrors: 1`.
+  1. Inspect `DestinationRule/backend-circuit-breaker`.
+  2. Increase `consecutive5xxErrors` to 5 and cap `maxEjectionPercent` at 50%.
+  3. Verify backend traffic recovers and unhealthy instances are gracefully degraded.
+tasks:
+  - id: "task-tune-circuit-breaker"
+    title: "Tune Istio Outlier Detection Policy"
+    description: "Ensure DestinationRule has maxEjectionPercent=50"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "destinationrules"
+      name: "backend-circuit-breaker"
+      namespace: "default"
+      assertions:
+        - field: "spec.trafficPolicy.outlierDetection.maxEjectionPercent"
+          operator: "equals"
+          expected: 50
+hints:
+  - text: "Edit the DestinationRule spec to set `maxEjectionPercent: 50`."
+    penalty_points: 25
+solution: |
+  kubectl patch destinationrule backend-circuit-breaker -p '{"spec":{"trafficPolicy":{"outlierDetection":{"maxEjectionPercent":50,"consecutive5xxErrors":5}}}}'
+cleanup:
+  auto: true

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'desktop_handoff_screen.dart';
+import 'quiz_screen.dart';
 
 class LessonScreen extends StatelessWidget {
   const LessonScreen({super.key});
@@ -50,36 +52,67 @@ class LessonScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             // Continue on Desktop Callout
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0x1A06B6D4), // 10% opacity cyan
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0x4D06B6D4)), // 30% opacity cyan
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Row(
-                    children: [
-                      Icon(Icons.desktop_windows, color: Color(0xFF06B6D4)),
-                      SizedBox(width: 8),
-                      Text(
-                        'CONTINUE ON DESKTOP',
-                        style: TextStyle(
-                          color: Color(0xFF06B6D4),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+            InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const DesktopHandoffScreen(
+                      labId: 'k8s-pod-basics',
+                      labTitle: 'Pod Fundamentals (k8s-pod-basics)',
+                    ),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0x1A06B6D4), // 10% opacity cyan
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0x4D06B6D4)), // 30% opacity cyan
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Row(
+                      children: [
+                        Icon(Icons.desktop_windows, color: Color(0xFF06B6D4)),
+                        SizedBox(width: 8),
+                        Text(
+                          'CONTINUE ON DESKTOP',
+                          style: TextStyle(
+                            color: Color(0xFF06B6D4),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'This lesson includes a live interactive terminal lab: "k8s-pod-basics". Tap here to generate handoff link for your desktop browser.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const QuizScreen(trackTitle: 'Kubernetes Core'),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'This lesson includes a live interactive terminal lab: "k8s-pod-basics". Open desktop browser to access full xterm.js sandbox.',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                  ),
-                ],
+                );
+              },
+              icon: const Icon(Icons.quiz, color: Colors.black),
+              label: const Text('TAKE LESSON QUIZ (+300 XP)', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF06B6D4),
+                foregroundColor: const Color(0xFF0A0E17),
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
           ],

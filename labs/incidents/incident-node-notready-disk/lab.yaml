@@ -1,0 +1,44 @@
+id: "incident-node-notready-disk"
+title: "Production Incident: Node DiskPressure & Kubelet Eviction"
+difficulty: "expert"
+duration_minutes: 20
+track: "incidents"
+objectives:
+  - Diagnose Node NotReady due to DiskPressure condition
+  - Clean dangling images and unevict workloads safely
+prerequisites: []
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-1 ALERT**: Worker node `worker-2` entered NotReady state due to `DiskPressure`.
+  Pod logs filled up the root filesystem.
+  1. Inspect `kubectl describe node worker-2`.
+  2. Uncordon the node once disk space is reclaimed.
+  3. Verify node status returns to Ready.
+tasks:
+  - id: "task-fix-node-notready"
+    title: "Restore Worker Node Ready Status"
+    description: "Ensure worker-2 node is Ready and uncordoned"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "nodes"
+      name: "worker-2"
+      assertions:
+        - field: "spec.unschedulable"
+          operator: "equals"
+          expected: false
+hints:
+  - text: "Run `kubectl uncordon worker-2`."
+    penalty_points: 25
+solution: |
+  kubectl uncordon worker-2
+cleanup:
+  auto: true

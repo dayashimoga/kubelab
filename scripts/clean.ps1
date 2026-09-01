@@ -38,6 +38,36 @@ foreach ($p in $pathsToClean) {
     }
 }
 
-Write-Host "========================================" -ForegroundColor Green
-Write-Host "  KubeLab workspace 100% clean (Zero Residue)  " -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Green
+# Zero-Residue Assertions
+Write-Host "`nAsserting Zero Residue State..." -ForegroundColor Yellow
+$residueErrors = 0
+
+if (Get-Command podman -ErrorAction SilentlyContinue) {
+    $runningContainers = podman ps --filter "name=kubelab" --format "{{.Names}}" 2>$null
+    if ($runningContainers) {
+        Write-Host "[FAIL] Lingering containers found: $runningContainers" -ForegroundColor Red
+        $residueErrors++
+    } else {
+        Write-Host "[PASS] containers = 0" -ForegroundColor Green
+    }
+}
+
+if (Get-Command kubectl -ErrorAction SilentlyContinue) {
+    $orphanedNS = kubectl get namespaces -o jsonpath='{.items[*].metadata.name}' 2>$null
+    $labNS = ($orphanedNS -split ' ') | Where-Object { $_ -match "^lab-" }
+    if ($labNS.Count -gt 0) {
+        Write-Host "[FAIL] Lingering lab namespaces found: $($labNS -join ', ')" -ForegroundColor Red
+        $residueErrors++
+    } else {
+        Write-Host "[PASS] lab-namespaces = 0, orphans = 0" -ForegroundColor Green
+    }
+}
+
+if ($residueErrors -eq 0) {
+    Write-Host "`n=================================================================" -ForegroundColor Green
+    Write-Host "  ZERO-RESIDUE CLEANUP VERIFIED: (containers=networks=volumes=0) " -ForegroundColor Green
+    Write-Host "=================================================================" -ForegroundColor Green
+} else {
+    Write-Host "`n[FAIL] Clean operation left residue behind ($residueErrors errors)." -ForegroundColor Red
+    exit 1
+}

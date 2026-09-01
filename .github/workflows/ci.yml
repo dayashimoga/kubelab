@@ -149,7 +149,7 @@ jobs:
         run: cargo test --workspace -- --ignored --nocapture
 
   # ============================================================
-  # Security Scanning
+  # Security Scanning & Supply Chain Assurance
   # ============================================================
   security:
     runs-on: ubuntu-latest
@@ -160,11 +160,11 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - name: Install cargo-audit
-        run: cargo install cargo-audit --locked
+      - name: Install cargo-audit & cargo-tarpaulin
+        run: cargo install cargo-audit cargo-tarpaulin --locked
 
       - name: Cargo Vulnerability Audit
-        run: cargo audit --ignore RUSTSEC-2020-0071 --ignore RUSTSEC-2020-0159 || true
+        run: cargo audit --ignore RUSTSEC-2020-0071 --ignore RUSTSEC-2020-0159
 
       - name: Set up pnpm
         if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
@@ -182,7 +182,21 @@ jobs:
         if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
         run: |
           pnpm install --frozen-lockfile=false
-          pnpm audit --prod || true
+          pnpm audit --prod
+
+      - name: Generate SBOM (Software Bill of Materials)
+        uses: anchore/sbom-action@v0.17.0
+        with:
+          path: ./
+          format: 'spdx-json'
+          output-file: 'target/sbom.spdx.json'
+
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kubelab-sbom-${{ github.sha }}
+          path: target/sbom.spdx.json
+          retention-days: 30
 
   # ============================================================
   # Documentation Validation

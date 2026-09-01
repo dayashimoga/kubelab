@@ -1,0 +1,45 @@
+id: "incident-hpa-thrashing"
+title: "Production Incident: Horizontal Pod Autoscaler Thrashing"
+difficulty: "expert"
+duration_minutes: 20
+track: "incidents"
+objectives:
+  - Configure HPA stabilization window and reasonable CPU utilization thresholds
+  - Prevent rapid pod flapping and cascading node pressure
+prerequisites: []
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-2 ALERT**: The API gateway HPA is thrashing between 2 and 50 replicas every 10 seconds.
+  The target CPU utilization was set to 5% with 0s scale-down stabilization window.
+  1. Inspect `kubectl get hpa api-gateway-hpa`.
+  2. Increase target CPU percentage to 75% and configure a 300s stabilization window.
+  3. Verify replica count stabilizes.
+tasks:
+  - id: "task-fix-hpa-thrashing"
+    title: "Stabilize HPA Target and Scale-Down Policy"
+    description: "Ensure HPA target CPU is 75%"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "horizontalpodautoscalers"
+      name: "api-gateway-hpa"
+      namespace: "default"
+      assertions:
+        - field: "spec.metrics[0].resource.target.averageUtilization"
+          operator: "equals"
+          expected: 75
+hints:
+  - text: "Edit the HPA YAML to set `averageUtilization: 75`."
+    penalty_points: 25
+solution: |
+  kubectl patch hpa api-gateway-hpa -p '{"spec":{"metrics":[{"type":"Resource","resource":{"name":"cpu","target":{"type":"Utilization","averageUtilization":75}}}]}}'
+cleanup:
+  auto: true

@@ -1,0 +1,44 @@
+id: "incident-argocd-drift"
+title: "Production Incident: Argo CD GitOps OutOfSync Drift"
+difficulty: "expert"
+duration_minutes: 20
+track: "incidents"
+objectives:
+  - Detect and reconcile out-of-band manual mutations in Argo CD
+  - Enforce automated self-healing
+prerequisites: []
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-2 ALERT**: The core application is marked `OutOfSync` in Argo CD after an engineer manually edited replica count via kubectl.
+  1. Inspect the live drift using Argo CD CLI or UI.
+  2. Sync the application back to desired Git state.
+  3. Enable `selfHeal: true` in the Application syncPolicy.
+tasks:
+  - id: "task-fix-argocd-drift"
+    title: "Sync Application and Enable Self-Heal"
+    description: "Ensure Argo CD application has automated selfHeal enabled"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "applications"
+      name: "payment-app"
+      namespace: "argocd"
+      assertions:
+        - field: "spec.syncPolicy.automated.selfHeal"
+          operator: "equals"
+          expected: true
+hints:
+  - text: "Patch the Argo CD application spec with `spec.syncPolicy.automated.selfHeal: true`."
+    penalty_points: 25
+solution: |
+  kubectl patch application payment-app -n argocd --type=merge -p '{"spec":{"syncPolicy":{"automated":{"selfHeal":true}}}}'
+cleanup:
+  auto: true

@@ -1,0 +1,45 @@
+id: "incident-tls-cert-expired"
+title: "Production Incident: Ingress TLS Certificate Expiration"
+difficulty: "expert"
+duration_minutes: 20
+track: "incidents"
+objectives:
+  - Rotate expired TLS secrets on Ingress resources
+  - Restore secure HTTPS connectivity without certificate errors
+prerequisites: []
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-1 ALERT**: Customers encounter `SSL_ERROR_EXPIRED_CERTIFICATE` when accessing public endpoints.
+  The Kubernetes secret `tls-cert-production` expired.
+  1. Generate or update the renewed TLS secret.
+  2. Verify the Ingress references the valid `tls-cert-production` secret.
+  3. Validate TLS handshake success.
+tasks:
+  - id: "task-renew-tls"
+    title: "Renew Ingress TLS Secret"
+    description: "Ensure tls-cert-production secret exists and is valid"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "secrets"
+      name: "tls-cert-production"
+      namespace: "default"
+      assertions:
+        - field: "type"
+          operator: "equals"
+          expected: "kubernetes.io/tls"
+hints:
+  - text: "Create a TLS secret with `kubectl create secret tls tls-cert-production --cert=cert.crt --key=key.key`."
+    penalty_points: 25
+solution: |
+  kubectl create secret tls tls-cert-production --cert=cert.pem --key=key.pem --dry-run=client -o yaml | kubectl apply -f -
+cleanup:
+  auto: true

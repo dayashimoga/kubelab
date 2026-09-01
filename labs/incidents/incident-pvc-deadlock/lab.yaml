@@ -1,0 +1,45 @@
+id: "incident-pvc-deadlock"
+title: "Production Incident: Persistent Volume Claim Storage Deadlock"
+difficulty: "expert"
+duration_minutes: 25
+track: "incidents"
+objectives:
+  - Diagnose PVC stuck in Pending state due to StorageClass mismatch
+  - Rebind volume with valid provisioner
+prerequisites: []
+environment:
+  type: "kubernetes"
+  cluster: "disposable"
+  namespace_isolation: true
+  resources:
+    cpu_limit: "1000m"
+    memory_limit: "1024Mi"
+initial_state:
+  manifests: []
+scenario: |
+  **SEV-2 ALERT**: Database StatefulSet pods are stuck in Pending status.
+  The PVC requested a non-existent StorageClass `fast-nvme-ssd`.
+  1. Inspect `kubectl get pvc,events`.
+  2. Fix the StorageClass to `standard` or available CSI driver.
+  3. Verify the volume binds and database pod enters Running state.
+tasks:
+  - id: "task-fix-pvc-deadlock"
+    title: "Resolve PVC Binding Deadlock"
+    description: "Ensure database PVC is bound and pod is running"
+    points: 150
+    validation:
+      type: "k8s_resource"
+      resource: "persistentvolumeclaims"
+      name: "data-postgres-0"
+      namespace: "default"
+      assertions:
+        - field: "status.phase"
+          operator: "equals"
+          expected: "Bound"
+hints:
+  - text: "Check `kubectl get storageclass` to see the available default storage provisioner."
+    penalty_points: 25
+solution: |
+  kubectl patch pvc data-postgres-0 -p '{"spec":{"storageClassName":"standard"}}'
+cleanup:
+  auto: true
