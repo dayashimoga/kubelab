@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:kubelab_mobile/main.dart';
 import 'package:kubelab_mobile/data/curriculum_data.dart';
 import 'package:kubelab_mobile/screens/tracks_screen.dart';
 import 'package:kubelab_mobile/screens/lesson_screen.dart';

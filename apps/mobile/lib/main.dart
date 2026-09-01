@@ -46,8 +46,6 @@ class CurriculumBootstrap extends StatefulWidget {
 class _CurriculumBootstrapState extends State<CurriculumBootstrap> {
   bool _isLoading = true;
   String? _errorMessage;
-  int _trackCount = 0;
-  int _lessonCount = 0;
 
   @override
   void initState() {
@@ -92,8 +90,6 @@ class _CurriculumBootstrapState extends State<CurriculumBootstrap> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _trackCount = trackCount;
-          _lessonCount = lessonCount;
         });
       }
     } catch (e, stack) {
