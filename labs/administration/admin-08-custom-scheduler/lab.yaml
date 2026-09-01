@@ -1,51 +1,76 @@
 id: admin-08-custom-scheduler
-title: Deploying a Secondary Custom Scheduler
-difficulty: intermediate
-duration_minutes: 20
+title: Deploying & Using Custom Secondary Schedulers
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Deploy custom scheduler algorithms and route specialized workloads via schedulerName.
 objectives:
-- Master Deploying a Secondary Custom Scheduler in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Deploying & Using Custom Secondary Schedulers architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in admin-08-custom-scheduler
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Run custom scheduler container with leader election
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-08-custom-scheduler
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-08-custom-scheduler
 tasks:
-- id: task-verify-admin-08-custom-scheduler
-  title: Verify Deploying a Secondary Custom Scheduler
-  description: Verify metadata.name on pods 'target-resource'
-  points: 100
+- id: task-01-admin-08-custom-scheduler
+  title: Deploy & Configure Deploying & Using Custom Secondary Schedulers
+  description: Apply the declarative manifest for admin-08-custom-scheduler and ensure
+    resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: pods
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: admin-08-custom-scheduler
+    namespace: lab-admin-08-custom-scheduler
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-admin-08-custom-scheduler
+  title: Verify Production Hardening & Labels for Deploying & Using Custom Secondary
+    Schedulers
+  description: Verify metadata labels and security compliance in namespace lab-admin-08-custom-scheduler.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: admin-08-custom-scheduler
+    namespace: lab-admin-08-custom-scheduler
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: admin-08-custom-scheduler
 hints:
-- text: Inspect Kubernetes documentation for `pods` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-08-custom-scheduler
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-08-custom-scheduler.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-08-custom-scheduler
+    -n lab-admin-08-custom-scheduler`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-08-custom-scheduler/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

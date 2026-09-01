@@ -1,4 +1,4 @@
 import { Track } from '@kubelab/shared-types';
-import registryData from './curriculum.json';
+import curriculumData from './curriculum.json';
 
-export const TRACKS: Track[] = (registryData as any).tracks;
+export const TRACKS: Track[] = curriculumData.tracks as unknown as Track[];

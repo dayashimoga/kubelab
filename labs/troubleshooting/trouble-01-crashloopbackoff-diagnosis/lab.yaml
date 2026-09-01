@@ -1,0 +1,82 @@
+id: trouble-01-crashloopbackoff-diagnosis
+title: Diagnosing & Fixing CrashLoopBackOff Errors
+difficulty: advanced
+duration_minutes: 15
+track: troubleshooting
+scenario: Extract exit codes (1, 137, 139), inspect previous container logs, and fix
+  startup entrypoint failures.
+objectives:
+- Master Diagnosing & Fixing CrashLoopBackOff Errors architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in trouble-01-crashloopbackoff-diagnosis
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-trouble-01-crashloopbackoff-diagnosis
+      labels:
+        kubelab.io/track: troubleshooting
+        kubelab.io/lab: trouble-01-crashloopbackoff-diagnosis
+tasks:
+- id: task-01-trouble-01-crashloopbackoff-diagnosis
+  title: Deploy & Configure Diagnosing & Fixing CrashLoopBackOff Errors
+  description: Apply the declarative manifest for trouble-01-crashloopbackoff-diagnosis
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: trouble-01-crashloopbackoff-diagnosis
+    namespace: lab-trouble-01-crashloopbackoff-diagnosis
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-trouble-01-crashloopbackoff-diagnosis
+  title: Verify Production Hardening & Labels for Diagnosing & Fixing CrashLoopBackOff
+    Errors
+  description: Verify metadata labels and security compliance in namespace lab-trouble-01-crashloopbackoff-diagnosis.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: trouble-01-crashloopbackoff-diagnosis
+    namespace: lab-trouble-01-crashloopbackoff-diagnosis
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: trouble-01-crashloopbackoff-diagnosis
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-trouble-01-crashloopbackoff-diagnosis
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=trouble-01-crashloopbackoff-diagnosis
+    -n lab-trouble-01-crashloopbackoff-diagnosis`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/troubleshooting/trouble-01-crashloopbackoff-diagnosis/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

@@ -1,0 +1,82 @@
+id: gitops-09-flux-kustomization-controller
+title: GitOps Automation with Flux CD & Source Controller
+difficulty: advanced
+duration_minutes: 15
+track: gitops
+scenario: Manage continuous deployment pipelines using Flux GitRepository and Kustomization
+  controllers.
+objectives:
+- Master GitOps Automation with Flux CD & Source Controller architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in gitops-09-flux-kustomization-controller
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-gitops-09-flux-kustomization-controller
+      labels:
+        kubelab.io/track: gitops
+        kubelab.io/lab: gitops-09-flux-kustomization-controller
+tasks:
+- id: task-01-gitops-09-flux-kustomization-controller
+  title: Deploy & Configure GitOps Automation with Flux CD & Source Controller
+  description: Apply the declarative manifest for gitops-09-flux-kustomization-controller
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-09-flux-kustomization-controller
+    namespace: lab-gitops-09-flux-kustomization-controller
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-gitops-09-flux-kustomization-controller
+  title: Verify Production Hardening & Labels for GitOps Automation with Flux CD &
+    Source Controller
+  description: Verify metadata labels and security compliance in namespace lab-gitops-09-flux-kustomization-controller.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-09-flux-kustomization-controller
+    namespace: lab-gitops-09-flux-kustomization-controller
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: gitops-09-flux-kustomization-controller
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-gitops-09-flux-kustomization-controller
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=gitops-09-flux-kustomization-controller
+    -n lab-gitops-09-flux-kustomization-controller`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/gitops/gitops-09-flux-kustomization-controller/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

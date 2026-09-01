@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +10,14 @@ import 'package:kubelab_mobile/screens/quiz_screen.dart';
 import 'package:kubelab_mobile/screens/ai_tutor_sheet.dart';
 
 void main() {
+  setUpAll(() async {
+    final file = File('assets/data/curriculum.json');
+    if (await file.exists()) {
+      final jsonStr = await file.readAsString();
+      CurriculumRepository.initializeFromJson(jsonStr);
+    }
+  });
+
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
@@ -48,7 +57,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('ZERO-TRUST KUBERNETES SECURITY & RBAC'), findsOneWidget);
-      expect(find.text('Restricting Pod Access with RBAC Roles and RoleBindings'), findsOneWidget);
+      expect(find.text('Namespace RBAC Roles & RoleBindings'), findsOneWidget);
 
       // 3. Test Service Mesh track
       final meshTrack = CurriculumRepository.getTrackBySlug('service-mesh')!;
@@ -59,15 +68,15 @@ void main() {
       expect(find.text('Deploying Istio Service Mesh Operator'), findsOneWidget);
     });
 
-    testWidgets('LessonScreen displays unique markdown content, warnings, and lab handoff', (WidgetTester tester) async {
+    testWidgets('LessonScreen displays unique markdown content, warnings, and lab launcher', (WidgetTester tester) async {
       final lesson = CurriculumRepository.tracks[0].modules[0].lessons[0];
       await tester.pumpWidget(MaterialApp(home: LessonScreen(lesson: lesson)));
       await tester.pumpAndSettle();
 
       expect(find.text(lesson.title), findsWidgets);
-      expect(find.text('CONTINUE ON DESKTOP'), findsOneWidget);
-      expect(find.text('COMMON PRODUCTION MISTAKES'), findsOneWidget);
-      expect(find.text('PRODUCTION HARDENING & SECURITY'), findsOneWidget);
+      expect(find.text('LAUNCH LAB'), findsOneWidget);
+      expect(find.text('COMMON PRODUCTION PITFALLS'), findsOneWidget);
+      expect(find.text('SECURITY & RELIABILITY BEST PRACTICES'), findsOneWidget);
     });
 
     testWidgets('QuizScreen loads unique lesson questions and evaluates correctly', (WidgetTester tester) async {
@@ -75,17 +84,17 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: QuizScreen(lessonQuiz: quiz)));
       await tester.pumpAndSettle();
 
-      expect(find.text(quiz.title.toUpperCase()), findsOneWidget);
+      expect(find.text(quiz.title), findsOneWidget);
       expect(find.text(quiz.questions[0].prompt), findsOneWidget);
 
-      // Tap first option (which is correct for generated quizzes)
+      // Tap first option (which is correct index 0 for generated quizzes)
       await tester.tap(find.text(quiz.questions[0].options[0]));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('SUBMIT ANSWER'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Score: 100 XP'), findsOneWidget);
+      expect(find.text('CORRECT ANSWER'), findsOneWidget);
     });
 
     testWidgets('AI Tutor sheet renders mode chips and responds', (WidgetTester tester) async {

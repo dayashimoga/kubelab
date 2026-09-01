@@ -1,0 +1,82 @@
+id: net-03-ingress-controller-routing
+title: Ingress Controllers & Path-Based HTTP Routing
+difficulty: advanced
+duration_minutes: 15
+track: networking
+scenario: Route HTTP/HTTPS traffic with Ingress resources, TLS termination, and path
+  prefix rules.
+objectives:
+- Master Ingress Controllers & Path-Based HTTP Routing architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in net-03-ingress-controller-routing
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-net-03-ingress-controller-routing
+      labels:
+        kubelab.io/track: networking
+        kubelab.io/lab: net-03-ingress-controller-routing
+tasks:
+- id: task-01-net-03-ingress-controller-routing
+  title: Deploy & Configure Ingress Controllers & Path-Based HTTP Routing
+  description: Apply the declarative manifest for net-03-ingress-controller-routing
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-03-ingress-controller-routing
+    namespace: lab-net-03-ingress-controller-routing
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-net-03-ingress-controller-routing
+  title: Verify Production Hardening & Labels for Ingress Controllers & Path-Based
+    HTTP Routing
+  description: Verify metadata labels and security compliance in namespace lab-net-03-ingress-controller-routing.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-03-ingress-controller-routing
+    namespace: lab-net-03-ingress-controller-routing
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: net-03-ingress-controller-routing
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-net-03-ingress-controller-routing
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=net-03-ingress-controller-routing
+    -n lab-net-03-ingress-controller-routing`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/networking/net-03-ingress-controller-routing/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

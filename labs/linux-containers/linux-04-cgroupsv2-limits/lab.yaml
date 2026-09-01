@@ -1,0 +1,82 @@
+id: linux-04-cgroupsv2-limits
+title: Control Groups v2 (cgroups v2) CPU & Memory Throttling
+difficulty: beginner
+duration_minutes: 15
+track: linux-containers
+scenario: Inspect and configure unified cgroups v2 hierarchy for memory.max, cpu.max,
+  and OOM killer protection.
+objectives:
+- Master Control Groups v2 (cgroups v2) CPU & Memory Throttling architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in linux-04-cgroupsv2-limits
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-linux-04-cgroupsv2-limits
+      labels:
+        kubelab.io/track: linux-containers
+        kubelab.io/lab: linux-04-cgroupsv2-limits
+tasks:
+- id: task-01-linux-04-cgroupsv2-limits
+  title: Deploy & Configure Control Groups v2 (cgroups v2) CPU & Memory Throttling
+  description: Apply the declarative manifest for linux-04-cgroupsv2-limits and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: linux-04-cgroupsv2-limits
+    namespace: lab-linux-04-cgroupsv2-limits
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-linux-04-cgroupsv2-limits
+  title: Verify Production Hardening & Labels for Control Groups v2 (cgroups v2) CPU
+    & Memory Throttling
+  description: Verify metadata labels and security compliance in namespace lab-linux-04-cgroupsv2-limits.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: linux-04-cgroupsv2-limits
+    namespace: lab-linux-04-cgroupsv2-limits
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: linux-04-cgroupsv2-limits
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-linux-04-cgroupsv2-limits
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=linux-04-cgroupsv2-limits
+    -n lab-linux-04-cgroupsv2-limits`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/linux-containers/linux-04-cgroupsv2-limits/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

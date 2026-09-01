@@ -1,0 +1,79 @@
+id: gitops-01-argocd-bootstrap
+title: Bootstrapping Argo CD in Kubernetes
+difficulty: advanced
+duration_minutes: 15
+track: gitops
+scenario: Install Argo CD control plane and configure declarative GitOps repositories.
+objectives:
+- Master Bootstrapping Argo CD in Kubernetes architecture and declarative configurations
+- Diagnose and remediate common production gotchas in gitops-01-argocd-bootstrap
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-gitops-01-argocd-bootstrap
+      labels:
+        kubelab.io/track: gitops
+        kubelab.io/lab: gitops-01-argocd-bootstrap
+tasks:
+- id: task-01-gitops-01-argocd-bootstrap
+  title: Deploy & Configure Bootstrapping Argo CD in Kubernetes
+  description: Apply the declarative manifest for gitops-01-argocd-bootstrap and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-01-argocd-bootstrap
+    namespace: lab-gitops-01-argocd-bootstrap
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-gitops-01-argocd-bootstrap
+  title: Verify Production Hardening & Labels for Bootstrapping Argo CD in Kubernetes
+  description: Verify metadata labels and security compliance in namespace lab-gitops-01-argocd-bootstrap.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-01-argocd-bootstrap
+    namespace: lab-gitops-01-argocd-bootstrap
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: gitops-01-argocd-bootstrap
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-gitops-01-argocd-bootstrap
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=gitops-01-argocd-bootstrap
+    -n lab-gitops-01-argocd-bootstrap`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/gitops/gitops-01-argocd-bootstrap/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

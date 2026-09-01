@@ -1,51 +1,77 @@
 id: storage-01-emptydir-scratch
-title: Ephemeral Fast Storage with emptyDir
-difficulty: intermediate
-duration_minutes: 20
+title: emptyDir Scratch Volumes & In-Memory Mounts
+difficulty: advanced
+duration_minutes: 15
 track: storage
+scenario: 'Use emptyDir with medium: Memory for ephemeral high-performance scratch
+  space.'
 objectives:
-- Master Ephemeral Fast Storage with emptyDir in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master emptyDir Scratch Volumes & In-Memory Mounts architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in storage-01-emptydir-scratch
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Mount in-memory emptyDir RAM disk for caching
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-storage-01-emptydir-scratch
+      labels:
+        kubelab.io/track: storage
+        kubelab.io/lab: storage-01-emptydir-scratch
 tasks:
-- id: task-verify-storage-01-emptydir-scratch
-  title: Verify Ephemeral Fast Storage with emptyDir
-  description: Verify metadata.name on pods 'target-resource'
-  points: 100
+- id: task-01-storage-01-emptydir-scratch
+  title: Deploy & Configure emptyDir Scratch Volumes & In-Memory Mounts
+  description: Apply the declarative manifest for storage-01-emptydir-scratch and
+    ensure resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: pods
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: storage-01-emptydir-scratch
+    namespace: lab-storage-01-emptydir-scratch
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-storage-01-emptydir-scratch
+  title: Verify Production Hardening & Labels for emptyDir Scratch Volumes & In-Memory
+    Mounts
+  description: Verify metadata labels and security compliance in namespace lab-storage-01-emptydir-scratch.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-01-emptydir-scratch
+    namespace: lab-storage-01-emptydir-scratch
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: storage-01-emptydir-scratch
 hints:
-- text: Inspect Kubernetes documentation for `pods` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-storage-01-emptydir-scratch
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f storage-01-emptydir-scratch.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=storage-01-emptydir-scratch
+    -n lab-storage-01-emptydir-scratch`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/storage/storage-01-emptydir-scratch/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

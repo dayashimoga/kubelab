@@ -1,0 +1,81 @@
+id: cert-02-ckad-speed-drill
+title: CKAD Application Developer Speed Drill
+difficulty: advanced
+duration_minutes: 15
+track: certification
+scenario: Build multi-container pods, configure Canary deployments, author CronJobs,
+  and manage ConfigMaps under time pressure.
+objectives:
+- Master CKAD Application Developer Speed Drill architecture and declarative configurations
+- Diagnose and remediate common production gotchas in cert-02-ckad-speed-drill
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-cert-02-ckad-speed-drill
+      labels:
+        kubelab.io/track: certification
+        kubelab.io/lab: cert-02-ckad-speed-drill
+tasks:
+- id: task-01-cert-02-ckad-speed-drill
+  title: Deploy & Configure CKAD Application Developer Speed Drill
+  description: Apply the declarative manifest for cert-02-ckad-speed-drill and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: cert-02-ckad-speed-drill
+    namespace: lab-cert-02-ckad-speed-drill
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-cert-02-ckad-speed-drill
+  title: Verify Production Hardening & Labels for CKAD Application Developer Speed
+    Drill
+  description: Verify metadata labels and security compliance in namespace lab-cert-02-ckad-speed-drill.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: cert-02-ckad-speed-drill
+    namespace: lab-cert-02-ckad-speed-drill
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: cert-02-ckad-speed-drill
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-cert-02-ckad-speed-drill
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=cert-02-ckad-speed-drill
+    -n lab-cert-02-ckad-speed-drill`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/certification/cert-02-ckad-speed-drill/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

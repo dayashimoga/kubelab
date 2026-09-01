@@ -1,0 +1,82 @@
+id: k8s-13-jobs-cronjobs-completions
+title: Batch Jobs, Parallel Completions & CronJobs
+difficulty: intermediate
+duration_minutes: 15
+track: kubernetes
+scenario: Run parallel batch computations with Job completions, backoff limits, and
+  CronJob schedules.
+objectives:
+- Master Batch Jobs, Parallel Completions & CronJobs architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in k8s-13-jobs-cronjobs-completions
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-k8s-13-jobs-cronjobs-completions
+      labels:
+        kubelab.io/track: kubernetes
+        kubelab.io/lab: k8s-13-jobs-cronjobs-completions
+tasks:
+- id: task-01-k8s-13-jobs-cronjobs-completions
+  title: Deploy & Configure Batch Jobs, Parallel Completions & CronJobs
+  description: Apply the declarative manifest for k8s-13-jobs-cronjobs-completions
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: k8s-13-jobs-cronjobs-completions
+    namespace: lab-k8s-13-jobs-cronjobs-completions
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-k8s-13-jobs-cronjobs-completions
+  title: Verify Production Hardening & Labels for Batch Jobs, Parallel Completions
+    & CronJobs
+  description: Verify metadata labels and security compliance in namespace lab-k8s-13-jobs-cronjobs-completions.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: k8s-13-jobs-cronjobs-completions
+    namespace: lab-k8s-13-jobs-cronjobs-completions
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: k8s-13-jobs-cronjobs-completions
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-k8s-13-jobs-cronjobs-completions
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=k8s-13-jobs-cronjobs-completions
+    -n lab-k8s-13-jobs-cronjobs-completions`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/kubernetes/k8s-13-jobs-cronjobs-completions/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

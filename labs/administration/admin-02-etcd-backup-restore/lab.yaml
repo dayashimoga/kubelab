@@ -1,51 +1,76 @@
 id: admin-02-etcd-backup-restore
-title: etcd Snapshot Backup and Restore
-difficulty: intermediate
-duration_minutes: 20
+title: etcd Snapshot Backup & Disaster Recovery
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Perform live etcd database backups with etcdctl and restore snapshots during
+  control-plane outages.
 objectives:
-- Master etcd Snapshot Backup and Restore in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master etcd Snapshot Backup & Disaster Recovery architecture and declarative configurations
+- Diagnose and remediate common production gotchas in admin-02-etcd-backup-restore
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Take snapshot with etcdctl and verify integrity
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-02-etcd-backup-restore
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-02-etcd-backup-restore
 tasks:
-- id: task-verify-admin-02-etcd-backup-restore
-  title: Verify etcd Snapshot Backup and Restore
-  description: Verify metadata.name on pods 'target-resource'
-  points: 100
+- id: task-01-admin-02-etcd-backup-restore
+  title: Deploy & Configure etcd Snapshot Backup & Disaster Recovery
+  description: Apply the declarative manifest for admin-02-etcd-backup-restore and
+    ensure resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: pods
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: admin-02-etcd-backup-restore
+    namespace: lab-admin-02-etcd-backup-restore
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-admin-02-etcd-backup-restore
+  title: Verify Production Hardening & Labels for etcd Snapshot Backup & Disaster
+    Recovery
+  description: Verify metadata labels and security compliance in namespace lab-admin-02-etcd-backup-restore.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: admin-02-etcd-backup-restore
+    namespace: lab-admin-02-etcd-backup-restore
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: admin-02-etcd-backup-restore
 hints:
-- text: Inspect Kubernetes documentation for `pods` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-02-etcd-backup-restore
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-02-etcd-backup-restore.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-02-etcd-backup-restore
+    -n lab-admin-02-etcd-backup-restore`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-02-etcd-backup-restore/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

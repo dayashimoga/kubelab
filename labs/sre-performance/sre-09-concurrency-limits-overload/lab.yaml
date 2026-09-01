@@ -1,0 +1,82 @@
+id: sre-09-concurrency-limits-overload
+title: Adaptive Concurrency Limiting & Load Shedding
+difficulty: advanced
+duration_minutes: 15
+track: sre-performance
+scenario: Implement token-bucket rate limiting to shed excess traffic gracefully with
+  HTTP 429.
+objectives:
+- Master Adaptive Concurrency Limiting & Load Shedding architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in sre-09-concurrency-limits-overload
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sre-09-concurrency-limits-overload
+      labels:
+        kubelab.io/track: sre-performance
+        kubelab.io/lab: sre-09-concurrency-limits-overload
+tasks:
+- id: task-01-sre-09-concurrency-limits-overload
+  title: Deploy & Configure Adaptive Concurrency Limiting & Load Shedding
+  description: Apply the declarative manifest for sre-09-concurrency-limits-overload
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: sre-09-concurrency-limits-overload
+    namespace: lab-sre-09-concurrency-limits-overload
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-sre-09-concurrency-limits-overload
+  title: Verify Production Hardening & Labels for Adaptive Concurrency Limiting &
+    Load Shedding
+  description: Verify metadata labels and security compliance in namespace lab-sre-09-concurrency-limits-overload.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: sre-09-concurrency-limits-overload
+    namespace: lab-sre-09-concurrency-limits-overload
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sre-09-concurrency-limits-overload
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sre-09-concurrency-limits-overload
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sre-09-concurrency-limits-overload
+    -n lab-sre-09-concurrency-limits-overload`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/sre-performance/sre-09-concurrency-limits-overload/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

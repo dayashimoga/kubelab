@@ -1,0 +1,82 @@
+id: cert-01-cka-speed-drill
+title: CKA Comprehensive Administration Speed Drill
+difficulty: advanced
+duration_minutes: 15
+track: certification
+scenario: Complete multi-objective tasks covering RBAC, NetworkPolicy, etcd backup,
+  Ingress routing, and node maintenance under strict time constraints.
+objectives:
+- Master CKA Comprehensive Administration Speed Drill architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in cert-01-cka-speed-drill
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-cert-01-cka-speed-drill
+      labels:
+        kubelab.io/track: certification
+        kubelab.io/lab: cert-01-cka-speed-drill
+tasks:
+- id: task-01-cert-01-cka-speed-drill
+  title: Deploy & Configure CKA Comprehensive Administration Speed Drill
+  description: Apply the declarative manifest for cert-01-cka-speed-drill and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: cert-01-cka-speed-drill
+    namespace: lab-cert-01-cka-speed-drill
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-cert-01-cka-speed-drill
+  title: Verify Production Hardening & Labels for CKA Comprehensive Administration
+    Speed Drill
+  description: Verify metadata labels and security compliance in namespace lab-cert-01-cka-speed-drill.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: cert-01-cka-speed-drill
+    namespace: lab-cert-01-cka-speed-drill
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: cert-01-cka-speed-drill
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-cert-01-cka-speed-drill
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=cert-01-cka-speed-drill
+    -n lab-cert-01-cka-speed-drill`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/certification/cert-01-cka-speed-drill/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

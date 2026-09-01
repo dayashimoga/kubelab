@@ -1,0 +1,82 @@
+id: net-01-nodeport-external
+title: NodePort Services & externalTrafficPolicy Routing
+difficulty: advanced
+duration_minutes: 15
+track: networking
+scenario: Route external traffic into cluster nodes using NodePort and compare Cluster
+  vs Local traffic policies.
+objectives:
+- Master NodePort Services & externalTrafficPolicy Routing architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in net-01-nodeport-external
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-net-01-nodeport-external
+      labels:
+        kubelab.io/track: networking
+        kubelab.io/lab: net-01-nodeport-external
+tasks:
+- id: task-01-net-01-nodeport-external
+  title: Deploy & Configure NodePort Services & externalTrafficPolicy Routing
+  description: Apply the declarative manifest for net-01-nodeport-external and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-01-nodeport-external
+    namespace: lab-net-01-nodeport-external
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-net-01-nodeport-external
+  title: Verify Production Hardening & Labels for NodePort Services & externalTrafficPolicy
+    Routing
+  description: Verify metadata labels and security compliance in namespace lab-net-01-nodeport-external.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-01-nodeport-external
+    namespace: lab-net-01-nodeport-external
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: net-01-nodeport-external
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-net-01-nodeport-external
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=net-01-nodeport-external
+    -n lab-net-01-nodeport-external`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/networking/net-01-nodeport-external/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

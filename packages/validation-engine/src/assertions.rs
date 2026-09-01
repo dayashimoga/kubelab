@@ -75,6 +75,20 @@ pub fn evaluate_assertion(assertion: &mut StateAssertion, actual_state: &Value) 
                     false
                 }
             }
+            ValidationOperator::GreaterThanOrEqual => {
+                if let (Some(v), Some(e)) = (val.as_f64(), assertion.expected.as_f64()) {
+                    v >= e
+                } else {
+                    false
+                }
+            }
+            ValidationOperator::LessThanOrEqual => {
+                if let (Some(v), Some(e)) = (val.as_f64(), assertion.expected.as_f64()) {
+                    v <= e
+                } else {
+                    false
+                }
+            }
             ValidationOperator::HttpGet | ValidationOperator::JsonpathMatch => {
                 val == &assertion.expected
             }

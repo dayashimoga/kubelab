@@ -1,13 +1,23 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kubelab_mobile/main.dart';
+import 'package:kubelab_mobile/data/curriculum_data.dart';
 import 'package:kubelab_mobile/screens/lesson_screen.dart';
 import 'package:kubelab_mobile/screens/progress_sync_screen.dart';
 import 'package:kubelab_mobile/screens/notifications_screen.dart';
 import 'package:kubelab_mobile/screens/settings_screen.dart';
 
 void main() {
+  setUpAll(() async {
+    final file = File('assets/data/curriculum.json');
+    if (await file.exists()) {
+      final jsonStr = await file.readAsString();
+      CurriculumRepository.initializeFromJson(jsonStr);
+    }
+  });
+
   setUp(() {
     SharedPreferences.setMockInitialValues({});
   });
@@ -59,7 +69,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('CONTINUE ON DESKTOP'), findsOneWidget);
-    expect(find.text('AI TUTOR'), findsOneWidget);
+    expect(find.text('LAUNCH LAB'), findsOneWidget);
+    expect(find.text('OPEN LIVE LAB WORKSPACE'), findsOneWidget);
+    expect(find.text('ASK AI SOCRATIC TUTOR'), findsOneWidget);
   });
 }

@@ -1,0 +1,82 @@
+id: mesh-07-fault-injection-latency
+title: Chaos Engineering & Fault Injection in Istio
+difficulty: intermediate
+duration_minutes: 15
+track: service-mesh
+scenario: Inject artificial latency delays and HTTP 500 aborts into VirtualService
+  routes to test resilience.
+objectives:
+- Master Chaos Engineering & Fault Injection in Istio architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in mesh-07-fault-injection-latency
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-mesh-07-fault-injection-latency
+      labels:
+        kubelab.io/track: service-mesh
+        kubelab.io/lab: mesh-07-fault-injection-latency
+tasks:
+- id: task-01-mesh-07-fault-injection-latency
+  title: Deploy & Configure Chaos Engineering & Fault Injection in Istio
+  description: Apply the declarative manifest for mesh-07-fault-injection-latency
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-07-fault-injection-latency
+    namespace: lab-mesh-07-fault-injection-latency
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-mesh-07-fault-injection-latency
+  title: Verify Production Hardening & Labels for Chaos Engineering & Fault Injection
+    in Istio
+  description: Verify metadata labels and security compliance in namespace lab-mesh-07-fault-injection-latency.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-07-fault-injection-latency
+    namespace: lab-mesh-07-fault-injection-latency
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: mesh-07-fault-injection-latency
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-mesh-07-fault-injection-latency
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=mesh-07-fault-injection-latency
+    -n lab-mesh-07-fault-injection-latency`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/service-mesh/mesh-07-fault-injection-latency/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

@@ -1,67 +1,77 @@
 id: linux-03-namespaces-isolation
-title: Linux Namespaces (PID, MNT, NET) Isolation
-difficulty: intermediate
-duration_minutes: 20
+title: Linux Namespaces & Container Process Isolation
+difficulty: beginner
+duration_minutes: 15
 track: linux-containers
+scenario: Explore PID, NET, MNT, IPC, UTS, and USER kernel namespaces using unshare
+  and nsenter.
 objectives:
-- Master Linux Namespaces (PID, MNT, NET) Isolation in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Linux Namespaces & Container Process Isolation architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in linux-03-namespaces-isolation
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: 'Isolate container process tree by strictly enforcing hostPID: false and hostNetwork: false.'
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-linux-03-namespaces-isolation
+      labels:
+        kubelab.io/track: linux-containers
+        kubelab.io/lab: linux-03-namespaces-isolation
 tasks:
-- id: task-1
-  title: Enforce hostPID false
-  description: Verify spec.hostPID on pods 'isolated-node'
+- id: task-01-linux-03-namespaces-isolation
+  title: Deploy & Configure Linux Namespaces & Container Process Isolation
+  description: Apply the declarative manifest for linux-03-namespaces-isolation and
+    ensure resource convergence.
   points: 50
   validation:
     type: k8s_resource
     resource: pods
-    name: isolated-node
-    namespace: null
+    name: linux-03-namespaces-isolation
+    namespace: lab-linux-03-namespaces-isolation
     assertions:
-    - field: spec.hostPID
+    - field: status.phase
       operator: equals
-      expected: false
-      actual: null
-      passed: null
-      error_message: null
-- id: task-2
-  title: Enforce hostNetwork false
-  description: Verify spec.hostNetwork on pods 'isolated-node'
+      expected: Running
+- id: task-02-linux-03-namespaces-isolation
+  title: Verify Production Hardening & Labels for Linux Namespaces & Container Process
+    Isolation
+  description: Verify metadata labels and security compliance in namespace lab-linux-03-namespaces-isolation.
   points: 50
   validation:
     type: k8s_resource
     resource: pods
-    name: isolated-node
-    namespace: null
+    name: linux-03-namespaces-isolation
+    namespace: lab-linux-03-namespaces-isolation
     assertions:
-    - field: spec.hostNetwork
+    - field: metadata.labels.app
       operator: equals
-      expected: false
-      actual: null
-      passed: null
-      error_message: null
+      expected: linux-03-namespaces-isolation
 hints:
-- text: Omit hostPID and hostNetwork or set them explicitly to false.
+- text: Inspect the live objects with `kubectl get all -n lab-linux-03-namespaces-isolation
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f isolated-pod.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=linux-03-namespaces-isolation
+    -n lab-linux-03-namespaces-isolation`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/linux-containers/linux-03-namespaces-isolation/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

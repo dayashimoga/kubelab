@@ -1,0 +1,82 @@
+id: gitops-04-sync-waves-hooks
+title: Argo CD Sync Waves & Phased Migration Hooks
+difficulty: advanced
+duration_minutes: 15
+track: gitops
+scenario: Sequence multi-resource deployments in ordered sync waves (-1 to 5) with
+  pre/post-sync hooks.
+objectives:
+- Master Argo CD Sync Waves & Phased Migration Hooks architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in gitops-04-sync-waves-hooks
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-gitops-04-sync-waves-hooks
+      labels:
+        kubelab.io/track: gitops
+        kubelab.io/lab: gitops-04-sync-waves-hooks
+tasks:
+- id: task-01-gitops-04-sync-waves-hooks
+  title: Deploy & Configure Argo CD Sync Waves & Phased Migration Hooks
+  description: Apply the declarative manifest for gitops-04-sync-waves-hooks and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-04-sync-waves-hooks
+    namespace: lab-gitops-04-sync-waves-hooks
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-gitops-04-sync-waves-hooks
+  title: Verify Production Hardening & Labels for Argo CD Sync Waves & Phased Migration
+    Hooks
+  description: Verify metadata labels and security compliance in namespace lab-gitops-04-sync-waves-hooks.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-04-sync-waves-hooks
+    namespace: lab-gitops-04-sync-waves-hooks
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: gitops-04-sync-waves-hooks
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-gitops-04-sync-waves-hooks
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=gitops-04-sync-waves-hooks
+    -n lab-gitops-04-sync-waves-hooks`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/gitops/gitops-04-sync-waves-hooks/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

@@ -1,0 +1,81 @@
+id: cert-04-kcna-comprehensive-drill
+title: KCNA Cloud Native Associate Speed Drill
+difficulty: advanced
+duration_minutes: 15
+track: certification
+scenario: Test holistic understanding of CNCF architecture, Kubernetes core primitives,
+  GitOps, and observability.
+objectives:
+- Master KCNA Cloud Native Associate Speed Drill architecture and declarative configurations
+- Diagnose and remediate common production gotchas in cert-04-kcna-comprehensive-drill
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-cert-04-kcna-comprehensive-drill
+      labels:
+        kubelab.io/track: certification
+        kubelab.io/lab: cert-04-kcna-comprehensive-drill
+tasks:
+- id: task-01-cert-04-kcna-comprehensive-drill
+  title: Deploy & Configure KCNA Cloud Native Associate Speed Drill
+  description: Apply the declarative manifest for cert-04-kcna-comprehensive-drill
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: cert-04-kcna-comprehensive-drill
+    namespace: lab-cert-04-kcna-comprehensive-drill
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-cert-04-kcna-comprehensive-drill
+  title: Verify Production Hardening & Labels for KCNA Cloud Native Associate Speed
+    Drill
+  description: Verify metadata labels and security compliance in namespace lab-cert-04-kcna-comprehensive-drill.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: cert-04-kcna-comprehensive-drill
+    namespace: lab-cert-04-kcna-comprehensive-drill
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: cert-04-kcna-comprehensive-drill
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-cert-04-kcna-comprehensive-drill
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=cert-04-kcna-comprehensive-drill
+    -n lab-cert-04-kcna-comprehensive-drill`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/certification/cert-04-kcna-comprehensive-drill/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

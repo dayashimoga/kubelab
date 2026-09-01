@@ -1,0 +1,82 @@
+id: trouble-07-node-notready-kubelet
+title: Recovering Node NotReady States & Kubelet Crashes
+difficulty: advanced
+duration_minutes: 15
+track: troubleshooting
+scenario: Inspect node disk pressure taints, PIDs exhaustion, and restart crashed
+  kubelet daemons.
+objectives:
+- Master Recovering Node NotReady States & Kubelet Crashes architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in trouble-07-node-notready-kubelet
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-trouble-07-node-notready-kubelet
+      labels:
+        kubelab.io/track: troubleshooting
+        kubelab.io/lab: trouble-07-node-notready-kubelet
+tasks:
+- id: task-01-trouble-07-node-notready-kubelet
+  title: Deploy & Configure Recovering Node NotReady States & Kubelet Crashes
+  description: Apply the declarative manifest for trouble-07-node-notready-kubelet
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: trouble-07-node-notready-kubelet
+    namespace: lab-trouble-07-node-notready-kubelet
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-trouble-07-node-notready-kubelet
+  title: Verify Production Hardening & Labels for Recovering Node NotReady States
+    & Kubelet Crashes
+  description: Verify metadata labels and security compliance in namespace lab-trouble-07-node-notready-kubelet.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: trouble-07-node-notready-kubelet
+    namespace: lab-trouble-07-node-notready-kubelet
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: trouble-07-node-notready-kubelet
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-trouble-07-node-notready-kubelet
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=trouble-07-node-notready-kubelet
+    -n lab-trouble-07-node-notready-kubelet`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/troubleshooting/trouble-07-node-notready-kubelet/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

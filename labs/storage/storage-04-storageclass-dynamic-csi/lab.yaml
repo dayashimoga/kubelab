@@ -1,0 +1,81 @@
+id: storage-04-storageclass-dynamic-csi
+title: Dynamic CSI StorageClasses & WaitForFirstConsumer
+difficulty: advanced
+duration_minutes: 15
+track: storage
+scenario: 'Configure dynamic volume provisioning with volumeBindingMode: WaitForFirstConsumer
+  and reclaimPolicy: Retain.'
+objectives:
+- Master Dynamic CSI StorageClasses & WaitForFirstConsumer architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in storage-04-storageclass-dynamic-csi
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-storage-04-storageclass-dynamic-csi
+      labels:
+        kubelab.io/track: storage
+        kubelab.io/lab: storage-04-storageclass-dynamic-csi
+tasks:
+- id: task-01-storage-04-storageclass-dynamic-csi
+  title: Deploy & Configure Dynamic CSI StorageClasses & WaitForFirstConsumer
+  description: Apply the declarative manifest for storage-04-storageclass-dynamic-csi
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-04-storageclass-dynamic-csi
+    namespace: lab-storage-04-storageclass-dynamic-csi
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-storage-04-storageclass-dynamic-csi
+  title: Verify Production Hardening & Labels for Dynamic CSI StorageClasses & WaitForFirstConsumer
+  description: Verify metadata labels and security compliance in namespace lab-storage-04-storageclass-dynamic-csi.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-04-storageclass-dynamic-csi
+    namespace: lab-storage-04-storageclass-dynamic-csi
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: storage-04-storageclass-dynamic-csi
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-storage-04-storageclass-dynamic-csi
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=storage-04-storageclass-dynamic-csi
+    -n lab-storage-04-storageclass-dynamic-csi`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/storage/storage-04-storageclass-dynamic-csi/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

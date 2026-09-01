@@ -1,0 +1,82 @@
+id: obs-07-distributed-tracing-tempo
+title: Distributed Context Tracing with Grafana Tempo
+difficulty: intermediate
+duration_minutes: 15
+track: observability
+scenario: Trace distributed transactions across microservices with W3C traceparent
+  context propagation.
+objectives:
+- Master Distributed Context Tracing with Grafana Tempo architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in obs-07-distributed-tracing-tempo
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-obs-07-distributed-tracing-tempo
+      labels:
+        kubelab.io/track: observability
+        kubelab.io/lab: obs-07-distributed-tracing-tempo
+tasks:
+- id: task-01-obs-07-distributed-tracing-tempo
+  title: Deploy & Configure Distributed Context Tracing with Grafana Tempo
+  description: Apply the declarative manifest for obs-07-distributed-tracing-tempo
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: obs-07-distributed-tracing-tempo
+    namespace: lab-obs-07-distributed-tracing-tempo
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-obs-07-distributed-tracing-tempo
+  title: Verify Production Hardening & Labels for Distributed Context Tracing with
+    Grafana Tempo
+  description: Verify metadata labels and security compliance in namespace lab-obs-07-distributed-tracing-tempo.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: obs-07-distributed-tracing-tempo
+    namespace: lab-obs-07-distributed-tracing-tempo
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: obs-07-distributed-tracing-tempo
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-obs-07-distributed-tracing-tempo
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=obs-07-distributed-tracing-tempo
+    -n lab-obs-07-distributed-tracing-tempo`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/observability/obs-07-distributed-tracing-tempo/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

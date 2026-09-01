@@ -8,6 +8,8 @@ pub enum ValidationOperator {
     MatchesRegex,
     GreaterThan,
     LessThan,
+    GreaterThanOrEqual,
+    LessThanOrEqual,
     HttpGet,
     JsonpathMatch,
 }

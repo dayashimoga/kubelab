@@ -1,0 +1,82 @@
+id: mesh-06-authorizationpolicy-rbac
+title: Fine-Grained Service Mesh Authorization Policies
+difficulty: intermediate
+duration_minutes: 15
+track: service-mesh
+scenario: Enforce Layer 7 RBAC rules allowing specific JWT principals, HTTP methods,
+  and paths.
+objectives:
+- Master Fine-Grained Service Mesh Authorization Policies architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in mesh-06-authorizationpolicy-rbac
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-mesh-06-authorizationpolicy-rbac
+      labels:
+        kubelab.io/track: service-mesh
+        kubelab.io/lab: mesh-06-authorizationpolicy-rbac
+tasks:
+- id: task-01-mesh-06-authorizationpolicy-rbac
+  title: Deploy & Configure Fine-Grained Service Mesh Authorization Policies
+  description: Apply the declarative manifest for mesh-06-authorizationpolicy-rbac
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-06-authorizationpolicy-rbac
+    namespace: lab-mesh-06-authorizationpolicy-rbac
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-mesh-06-authorizationpolicy-rbac
+  title: Verify Production Hardening & Labels for Fine-Grained Service Mesh Authorization
+    Policies
+  description: Verify metadata labels and security compliance in namespace lab-mesh-06-authorizationpolicy-rbac.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-06-authorizationpolicy-rbac
+    namespace: lab-mesh-06-authorizationpolicy-rbac
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: mesh-06-authorizationpolicy-rbac
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-mesh-06-authorizationpolicy-rbac
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=mesh-06-authorizationpolicy-rbac
+    -n lab-mesh-06-authorizationpolicy-rbac`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/service-mesh/mesh-06-authorizationpolicy-rbac/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

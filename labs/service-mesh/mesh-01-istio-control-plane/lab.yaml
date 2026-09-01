@@ -1,51 +1,74 @@
 id: mesh-01-istio-control-plane
 title: Deploying Istio Service Mesh Operator
 difficulty: intermediate
-duration_minutes: 20
+duration_minutes: 15
 track: service-mesh
+scenario: Install istiod control plane and configure global service mesh profiles.
 objectives:
-- Master Deploying Istio Service Mesh Operator in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Deploying Istio Service Mesh Operator architecture and declarative configurations
+- Diagnose and remediate common production gotchas in mesh-01-istio-control-plane
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Install istiod and ingressgateway components
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-mesh-01-istio-control-plane
+      labels:
+        kubelab.io/track: service-mesh
+        kubelab.io/lab: mesh-01-istio-control-plane
 tasks:
-- id: task-verify-mesh-01-istio-control-plane
-  title: Verify Deploying Istio Service Mesh Operator
-  description: Verify metadata.name on deployments 'target-resource'
-  points: 100
+- id: task-01-mesh-01-istio-control-plane
+  title: Deploy & Configure Deploying Istio Service Mesh Operator
+  description: Apply the declarative manifest for mesh-01-istio-control-plane and
+    ensure resource convergence.
+  points: 50
   validation:
     type: k8s_resource
     resource: deployments
-    name: target-resource
-    namespace: null
+    name: mesh-01-istio-control-plane
+    namespace: lab-mesh-01-istio-control-plane
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-mesh-01-istio-control-plane
+  title: Verify Production Hardening & Labels for Deploying Istio Service Mesh Operator
+  description: Verify metadata labels and security compliance in namespace lab-mesh-01-istio-control-plane.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-01-istio-control-plane
+    namespace: lab-mesh-01-istio-control-plane
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: mesh-01-istio-control-plane
 hints:
-- text: Inspect Kubernetes documentation for `deployments` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-mesh-01-istio-control-plane
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f mesh-01-istio-control-plane.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=mesh-01-istio-control-plane
+    -n lab-mesh-01-istio-control-plane`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/service-mesh/mesh-01-istio-control-plane/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

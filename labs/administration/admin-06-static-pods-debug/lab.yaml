@@ -1,51 +1,76 @@
 id: admin-06-static-pods-debug
-title: Managing Static Pod Manifests
-difficulty: intermediate
-duration_minutes: 20
+title: Static Pod Architecture & Kubelet Manifest Watcher
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Debug and recover control plane static pods in /etc/kubernetes/manifests.
 objectives:
-- Master Managing Static Pod Manifests in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Static Pod Architecture & Kubelet Manifest Watcher architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in admin-06-static-pods-debug
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Deploy control-plane components under /etc/kubernetes/manifests
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-06-static-pods-debug
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-06-static-pods-debug
 tasks:
-- id: task-verify-admin-06-static-pods-debug
-  title: Verify Managing Static Pod Manifests
-  description: Verify metadata.name on pods 'target-resource'
-  points: 100
+- id: task-01-admin-06-static-pods-debug
+  title: Deploy & Configure Static Pod Architecture & Kubelet Manifest Watcher
+  description: Apply the declarative manifest for admin-06-static-pods-debug and ensure
+    resource convergence.
+  points: 50
   validation:
     type: k8s_resource
     resource: pods
-    name: target-resource
-    namespace: null
+    name: admin-06-static-pods-debug
+    namespace: lab-admin-06-static-pods-debug
     assertions:
-    - field: metadata.name
+    - field: status.phase
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: Running
+- id: task-02-admin-06-static-pods-debug
+  title: Verify Production Hardening & Labels for Static Pod Architecture & Kubelet
+    Manifest Watcher
+  description: Verify metadata labels and security compliance in namespace lab-admin-06-static-pods-debug.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: admin-06-static-pods-debug
+    namespace: lab-admin-06-static-pods-debug
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: admin-06-static-pods-debug
 hints:
-- text: Inspect Kubernetes documentation for `pods` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-06-static-pods-debug
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-06-static-pods-debug.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-06-static-pods-debug
+    -n lab-admin-06-static-pods-debug`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-06-static-pods-debug/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

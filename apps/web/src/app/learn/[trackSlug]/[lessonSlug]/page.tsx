@@ -63,30 +63,53 @@ export default function LessonViewPage({
     },
   ]);
 
-  const handleTutorSubmit = (e: React.FormEvent) => {
+  const [isTutorLoading, setIsTutorLoading] = useState(false);
+
+  const handleTutorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tutorInput.trim()) return;
 
     const userText = tutorInput.trim();
     setTutorInput('');
     setTutorMessages((prev) => [...prev, { sender: 'user', text: userText }]);
+    setIsTutorLoading(true);
 
-    // Pedagogical response
-    setTimeout(() => {
-      let reply = '';
-      if (tutorMode === 'explain') {
-        reply = `**Conceptual Breakdown**: In ${lesson.title}, Kubernetes uses declarative reconciliation. The API server stores your desired state, and controllers continuously drive current state to match.`;
-      } else if (tutorMode === 'socratic') {
-        reply = `**Socratic Query**: To solve this, consider: what happens if the container crashes during startup? Which probe (startup, liveness, readiness) prevents traffic from routing to it?`;
-      } else if (tutorMode === 'hint') {
-        reply = `**Next Step Hint**: Run \`kubectl describe -f manifest.yaml\` and verify the selector labels match your pod template labels.`;
-      } else if (tutorMode === 'diagnose') {
-        reply = `**Diagnostic Triage**: Common failure modes in ${lesson.title} include selector mismatches, missing RBAC ClusterRole bindings, and OOMKills.`;
+    try {
+      const res = await fetch('http://localhost:8080/v1/ai-tutor/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: tutorMode,
+          topic: lesson.title,
+          user_prompt: userText,
+          lab_id: lesson.associatedLabId,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const reply = data.reply_markdown || data.reply || data.message || 'No response received from tutor.';
+        setTutorMessages((prev) => [...prev, { sender: 'tutor', text: reply }]);
       } else {
-        reply = `**Architectural Review**: Excellent progress! Always enforce non-root security contexts, define resource requests/limits, and configure PodDisruptionBudgets.`;
+        setTutorMessages((prev) => [
+          ...prev,
+          {
+            sender: 'tutor',
+            text: `⚠️ **AI Socratic Tutor Offline / Unconfigured**\n\nThe backend AI tutor service is currently unreachable (Status: ${res.status}). Ensure the KubeLab backend server is running and configure \`OLLAMA_HOST\` or \`OPENAI_API_KEY\` to enable live AI reasoning.\n\nIn the meantime, refer to the verified lesson documentation and operational commands above.`,
+          },
+        ]);
       }
-      setTutorMessages((prev) => [...prev, { sender: 'tutor', text: reply }]);
-    }, 400);
+    } catch {
+      setTutorMessages((prev) => [
+        ...prev,
+        {
+          sender: 'tutor',
+          text: `⚠️ **AI Socratic Tutor Offline**\n\nCould not establish connection to \`http://localhost:8080/v1/ai-tutor/chat\`. Start the backend service with \`cargo run -p kubelab-api\` to enable live AI tutor interactions.`,
+        },
+      ]);
+    } finally {
+      setIsTutorLoading(false);
+    }
   };
 
   const handleOptionSelect = (index: number) => {

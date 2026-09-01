@@ -1,0 +1,80 @@
+id: helm-01-chart-structure-scaffold
+title: Helm Chart Layout & Chart.yaml Metadata
+difficulty: advanced
+duration_minutes: 15
+track: helm-kustomize
+scenario: Create production Helm charts with Chart.yaml, values.yaml, and template
+  structures.
+objectives:
+- Master Helm Chart Layout & Chart.yaml Metadata architecture and declarative configurations
+- Diagnose and remediate common production gotchas in helm-01-chart-structure-scaffold
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-helm-01-chart-structure-scaffold
+      labels:
+        kubelab.io/track: helm-kustomize
+        kubelab.io/lab: helm-01-chart-structure-scaffold
+tasks:
+- id: task-01-helm-01-chart-structure-scaffold
+  title: Deploy & Configure Helm Chart Layout & Chart.yaml Metadata
+  description: Apply the declarative manifest for helm-01-chart-structure-scaffold
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: helm-01-chart-structure-scaffold
+    namespace: lab-helm-01-chart-structure-scaffold
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-helm-01-chart-structure-scaffold
+  title: Verify Production Hardening & Labels for Helm Chart Layout & Chart.yaml Metadata
+  description: Verify metadata labels and security compliance in namespace lab-helm-01-chart-structure-scaffold.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: helm-01-chart-structure-scaffold
+    namespace: lab-helm-01-chart-structure-scaffold
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: helm-01-chart-structure-scaffold
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-helm-01-chart-structure-scaffold
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=helm-01-chart-structure-scaffold
+    -n lab-helm-01-chart-structure-scaffold`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/helm-kustomize/helm-01-chart-structure-scaffold/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

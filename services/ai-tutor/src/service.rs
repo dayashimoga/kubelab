@@ -37,8 +37,19 @@ impl AiTutorService {
             }
         }
 
-        // 3. Fallback to rich contextual pedagogical engine
-        self.pedagogical_contextual_response(req)
+        // 3. Explicit service-unavailable response per production specification
+        TutorResponse {
+            reply_markdown: "⚠️ **AI Socratic Tutor Service Unconfigured / Offline**\n\nNo live LLM provider endpoint is currently reachable. To enable live interactive AI Socratic reasoning, configure an `OLLAMA_HOST` (e.g. `http://localhost:11434`) or `OPENAI_API_KEY` in your environment settings.\n\nIn the meantime, refer to the verified lesson documentation, operational commands, and architecture diagrams above.".to_string(),
+            suggested_followups: vec![
+                "Configure OLLAMA_HOST in Settings".to_string(),
+                "Review Lesson Architecture Diagram".to_string(),
+                "Launch Live Lab Workspace".to_string(),
+            ],
+            references: vec![
+                "https://kubernetes.io/docs/concepts/".to_string(),
+                "https://kubernetes.io/docs/reference/kubectl/cheatsheet/".to_string(),
+            ],
+        }
     }
 
     async fn query_ollama(
@@ -127,6 +138,7 @@ impl AiTutorService {
         }
     }
 
+    #[allow(dead_code)]
     fn pedagogical_contextual_response(&self, req: &TutorRequest) -> TutorResponse {
         match req.mode {
             TutorMode::Explain => TutorResponse {

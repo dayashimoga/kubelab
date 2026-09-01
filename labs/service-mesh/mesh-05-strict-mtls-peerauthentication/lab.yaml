@@ -1,0 +1,81 @@
+id: mesh-05-strict-mtls-peerauthentication
+title: Enforcing STRICT Mutual TLS Across Service Mesh
+difficulty: intermediate
+duration_minutes: 15
+track: service-mesh
+scenario: Enforce zero-trust encrypted mTLS and SPIFFE identity validation using PeerAuthentication.
+objectives:
+- Master Enforcing STRICT Mutual TLS Across Service Mesh architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in mesh-05-strict-mtls-peerauthentication
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-mesh-05-strict-mtls-peerauthentication
+      labels:
+        kubelab.io/track: service-mesh
+        kubelab.io/lab: mesh-05-strict-mtls-peerauthentication
+tasks:
+- id: task-01-mesh-05-strict-mtls-peerauthentication
+  title: Deploy & Configure Enforcing STRICT Mutual TLS Across Service Mesh
+  description: Apply the declarative manifest for mesh-05-strict-mtls-peerauthentication
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-05-strict-mtls-peerauthentication
+    namespace: lab-mesh-05-strict-mtls-peerauthentication
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-mesh-05-strict-mtls-peerauthentication
+  title: Verify Production Hardening & Labels for Enforcing STRICT Mutual TLS Across
+    Service Mesh
+  description: Verify metadata labels and security compliance in namespace lab-mesh-05-strict-mtls-peerauthentication.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-05-strict-mtls-peerauthentication
+    namespace: lab-mesh-05-strict-mtls-peerauthentication
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: mesh-05-strict-mtls-peerauthentication
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-mesh-05-strict-mtls-peerauthentication
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=mesh-05-strict-mtls-peerauthentication
+    -n lab-mesh-05-strict-mtls-peerauthentication`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/service-mesh/mesh-05-strict-mtls-peerauthentication/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

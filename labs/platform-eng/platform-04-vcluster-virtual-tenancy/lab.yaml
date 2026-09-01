@@ -1,0 +1,80 @@
+id: platform-04-vcluster-virtual-tenancy
+title: Multi-Tenancy Isolation with vCluster
+difficulty: advanced
+duration_minutes: 15
+track: platform-eng
+scenario: Spin up lightweight, fully isolated virtual Kubernetes clusters inside shared
+  host namespaces.
+objectives:
+- Master Multi-Tenancy Isolation with vCluster architecture and declarative configurations
+- Diagnose and remediate common production gotchas in platform-04-vcluster-virtual-tenancy
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-platform-04-vcluster-virtual-tenancy
+      labels:
+        kubelab.io/track: platform-eng
+        kubelab.io/lab: platform-04-vcluster-virtual-tenancy
+tasks:
+- id: task-01-platform-04-vcluster-virtual-tenancy
+  title: Deploy & Configure Multi-Tenancy Isolation with vCluster
+  description: Apply the declarative manifest for platform-04-vcluster-virtual-tenancy
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: platform-04-vcluster-virtual-tenancy
+    namespace: lab-platform-04-vcluster-virtual-tenancy
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-platform-04-vcluster-virtual-tenancy
+  title: Verify Production Hardening & Labels for Multi-Tenancy Isolation with vCluster
+  description: Verify metadata labels and security compliance in namespace lab-platform-04-vcluster-virtual-tenancy.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: platform-04-vcluster-virtual-tenancy
+    namespace: lab-platform-04-vcluster-virtual-tenancy
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: platform-04-vcluster-virtual-tenancy
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-platform-04-vcluster-virtual-tenancy
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=platform-04-vcluster-virtual-tenancy
+    -n lab-platform-04-vcluster-virtual-tenancy`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/platform-eng/platform-04-vcluster-virtual-tenancy/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

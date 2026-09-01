@@ -1,0 +1,81 @@
+id: sec-02-clusterrole-clusterbinding
+title: Cluster-Wide RBAC ClusterRoles & Bindings
+difficulty: intermediate
+duration_minutes: 15
+track: security
+scenario: Manage cluster-scoped authorizations for nodes, persistent volumes, and
+  multi-namespace controllers.
+objectives:
+- Master Cluster-Wide RBAC ClusterRoles & Bindings architecture and declarative configurations
+- Diagnose and remediate common production gotchas in sec-02-clusterrole-clusterbinding
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sec-02-clusterrole-clusterbinding
+      labels:
+        kubelab.io/track: security
+        kubelab.io/lab: sec-02-clusterrole-clusterbinding
+tasks:
+- id: task-01-sec-02-clusterrole-clusterbinding
+  title: Deploy & Configure Cluster-Wide RBAC ClusterRoles & Bindings
+  description: Apply the declarative manifest for sec-02-clusterrole-clusterbinding
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-02-clusterrole-clusterbinding
+    namespace: lab-sec-02-clusterrole-clusterbinding
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-sec-02-clusterrole-clusterbinding
+  title: Verify Production Hardening & Labels for Cluster-Wide RBAC ClusterRoles &
+    Bindings
+  description: Verify metadata labels and security compliance in namespace lab-sec-02-clusterrole-clusterbinding.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-02-clusterrole-clusterbinding
+    namespace: lab-sec-02-clusterrole-clusterbinding
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sec-02-clusterrole-clusterbinding
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sec-02-clusterrole-clusterbinding
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sec-02-clusterrole-clusterbinding
+    -n lab-sec-02-clusterrole-clusterbinding`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/security/sec-02-clusterrole-clusterbinding/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

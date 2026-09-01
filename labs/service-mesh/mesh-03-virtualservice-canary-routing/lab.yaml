@@ -1,0 +1,82 @@
+id: mesh-03-virtualservice-canary-routing
+title: VirtualService Dynamic Traffic Shifting & Canary
+difficulty: intermediate
+duration_minutes: 15
+track: service-mesh
+scenario: Route traffic dynamically between v1 and v2 service subsets based on percentages
+  and HTTP headers.
+objectives:
+- Master VirtualService Dynamic Traffic Shifting & Canary architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in mesh-03-virtualservice-canary-routing
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-mesh-03-virtualservice-canary-routing
+      labels:
+        kubelab.io/track: service-mesh
+        kubelab.io/lab: mesh-03-virtualservice-canary-routing
+tasks:
+- id: task-01-mesh-03-virtualservice-canary-routing
+  title: Deploy & Configure VirtualService Dynamic Traffic Shifting & Canary
+  description: Apply the declarative manifest for mesh-03-virtualservice-canary-routing
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-03-virtualservice-canary-routing
+    namespace: lab-mesh-03-virtualservice-canary-routing
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-mesh-03-virtualservice-canary-routing
+  title: Verify Production Hardening & Labels for VirtualService Dynamic Traffic Shifting
+    & Canary
+  description: Verify metadata labels and security compliance in namespace lab-mesh-03-virtualservice-canary-routing.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-03-virtualservice-canary-routing
+    namespace: lab-mesh-03-virtualservice-canary-routing
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: mesh-03-virtualservice-canary-routing
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-mesh-03-virtualservice-canary-routing
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=mesh-03-virtualservice-canary-routing
+    -n lab-mesh-03-virtualservice-canary-routing`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/service-mesh/mesh-03-virtualservice-canary-routing/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

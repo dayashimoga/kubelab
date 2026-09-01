@@ -63,3 +63,8 @@ lab-data/
 postgres-data/
 redis-data/
 nats-data/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo

@@ -1,51 +1,76 @@
 id: admin-09-api-priority-fairness
-title: API Priority & Fairness (APF) Tuning
-difficulty: intermediate
-duration_minutes: 20
+title: API Priority and Fairness (APF) Rate Limiting
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Prevent API server starvation using FlowSchemas and PriorityLevelConfigurations.
 objectives:
-- Master API Priority & Fairness (APF) Tuning in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master API Priority and Fairness (APF) Rate Limiting architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in admin-09-api-priority-fairness
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Tune FlowSchema and PriorityLevelConfiguration
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-09-api-priority-fairness
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-09-api-priority-fairness
 tasks:
-- id: task-verify-admin-09-api-priority-fairness
-  title: Verify API Priority & Fairness (APF) Tuning
-  description: Verify metadata.name on pods 'target-resource'
-  points: 100
+- id: task-01-admin-09-api-priority-fairness
+  title: Deploy & Configure API Priority and Fairness (APF) Rate Limiting
+  description: Apply the declarative manifest for admin-09-api-priority-fairness and
+    ensure resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: pods
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: admin-09-api-priority-fairness
+    namespace: lab-admin-09-api-priority-fairness
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-admin-09-api-priority-fairness
+  title: Verify Production Hardening & Labels for API Priority and Fairness (APF)
+    Rate Limiting
+  description: Verify metadata labels and security compliance in namespace lab-admin-09-api-priority-fairness.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: admin-09-api-priority-fairness
+    namespace: lab-admin-09-api-priority-fairness
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: admin-09-api-priority-fairness
 hints:
-- text: Inspect Kubernetes documentation for `pods` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-09-api-priority-fairness
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-09-api-priority-fairness.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-09-api-priority-fairness
+    -n lab-admin-09-api-priority-fairness`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-09-api-priority-fairness/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

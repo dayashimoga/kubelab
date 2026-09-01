@@ -1,0 +1,82 @@
+id: sre-03-vpa-resource-recommendations
+title: Vertical Pod Autoscaler (VPA) & Resource Right-Sizing
+difficulty: advanced
+duration_minutes: 15
+track: sre-performance
+scenario: Analyze live memory/CPU consumption and compute optimal resource requests
+  using VPA.
+objectives:
+- Master Vertical Pod Autoscaler (VPA) & Resource Right-Sizing architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in sre-03-vpa-resource-recommendations
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sre-03-vpa-resource-recommendations
+      labels:
+        kubelab.io/track: sre-performance
+        kubelab.io/lab: sre-03-vpa-resource-recommendations
+tasks:
+- id: task-01-sre-03-vpa-resource-recommendations
+  title: Deploy & Configure Vertical Pod Autoscaler (VPA) & Resource Right-Sizing
+  description: Apply the declarative manifest for sre-03-vpa-resource-recommendations
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: sre-03-vpa-resource-recommendations
+    namespace: lab-sre-03-vpa-resource-recommendations
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-sre-03-vpa-resource-recommendations
+  title: Verify Production Hardening & Labels for Vertical Pod Autoscaler (VPA) &
+    Resource Right-Sizing
+  description: Verify metadata labels and security compliance in namespace lab-sre-03-vpa-resource-recommendations.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: sre-03-vpa-resource-recommendations
+    namespace: lab-sre-03-vpa-resource-recommendations
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sre-03-vpa-resource-recommendations
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sre-03-vpa-resource-recommendations
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sre-03-vpa-resource-recommendations
+    -n lab-sre-03-vpa-resource-recommendations`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/sre-performance/sre-03-vpa-resource-recommendations/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

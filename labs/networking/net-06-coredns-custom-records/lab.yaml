@@ -1,0 +1,81 @@
+id: net-06-coredns-custom-records
+title: CoreDNS Custom Records & Upstream Forwarding
+difficulty: advanced
+duration_minutes: 15
+track: networking
+scenario: Customize cluster DNS with CoreDNS Corefile rewrite rules and upstream forwarders.
+objectives:
+- Master CoreDNS Custom Records & Upstream Forwarding architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in net-06-coredns-custom-records
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-net-06-coredns-custom-records
+      labels:
+        kubelab.io/track: networking
+        kubelab.io/lab: net-06-coredns-custom-records
+tasks:
+- id: task-01-net-06-coredns-custom-records
+  title: Deploy & Configure CoreDNS Custom Records & Upstream Forwarding
+  description: Apply the declarative manifest for net-06-coredns-custom-records and
+    ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-06-coredns-custom-records
+    namespace: lab-net-06-coredns-custom-records
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-net-06-coredns-custom-records
+  title: Verify Production Hardening & Labels for CoreDNS Custom Records & Upstream
+    Forwarding
+  description: Verify metadata labels and security compliance in namespace lab-net-06-coredns-custom-records.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-06-coredns-custom-records
+    namespace: lab-net-06-coredns-custom-records
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: net-06-coredns-custom-records
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-net-06-coredns-custom-records
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=net-06-coredns-custom-records
+    -n lab-net-06-coredns-custom-records`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/networking/net-06-coredns-custom-records/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

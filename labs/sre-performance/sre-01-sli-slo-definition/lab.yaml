@@ -1,51 +1,78 @@
 id: sre-01-sli-slo-definition
-title: Defining Latency & Availability SLIs
-difficulty: intermediate
-duration_minutes: 20
+title: Defining Service Level Indicators (SLIs) & Objectives (SLOs)
+difficulty: advanced
+duration_minutes: 15
 track: sre-performance
+scenario: Formulate quantitative availability and latency SLIs using Prometheus PromQL
+  expressions.
 objectives:
-- Master Defining Latency & Availability SLIs in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Defining Service Level Indicators (SLIs) & Objectives (SLOs) architecture
+  and declarative configurations
+- Diagnose and remediate common production gotchas in sre-01-sli-slo-definition
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Define 99.9% availability target with Prometheus rules
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sre-01-sli-slo-definition
+      labels:
+        kubelab.io/track: sre-performance
+        kubelab.io/lab: sre-01-sli-slo-definition
 tasks:
-- id: task-verify-sre-01-sli-slo-definition
-  title: Verify Defining Latency & Availability SLIs
-  description: Verify metadata.name on prometheusrules 'target-resource'
-  points: 100
+- id: task-01-sre-01-sli-slo-definition
+  title: Deploy & Configure Defining Service Level Indicators (SLIs) & Objectives
+    (SLOs)
+  description: Apply the declarative manifest for sre-01-sli-slo-definition and ensure
+    resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: prometheusrules
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: sre-01-sli-slo-definition
+    namespace: lab-sre-01-sli-slo-definition
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-sre-01-sli-slo-definition
+  title: Verify Production Hardening & Labels for Defining Service Level Indicators
+    (SLIs) & Objectives (SLOs)
+  description: Verify metadata labels and security compliance in namespace lab-sre-01-sli-slo-definition.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: sre-01-sli-slo-definition
+    namespace: lab-sre-01-sli-slo-definition
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: sre-01-sli-slo-definition
 hints:
-- text: Inspect Kubernetes documentation for `prometheusrules` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-sre-01-sli-slo-definition
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f sre-01-sli-slo-definition.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=sre-01-sli-slo-definition
+    -n lab-sre-01-sli-slo-definition`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/sre-performance/sre-01-sli-slo-definition/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

@@ -1,51 +1,75 @@
 id: sec-01-rbac-role-binding
-title: Role & RoleBinding for Least-Privilege
+title: Namespace RBAC Roles & RoleBindings
 difficulty: intermediate
-duration_minutes: 20
+duration_minutes: 15
 track: security
+scenario: Grant least-privilege API access within a single namespace using Roles and
+  RoleBindings.
 objectives:
-- Master Role & RoleBinding for Least-Privilege in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Namespace RBAC Roles & RoleBindings architecture and declarative configurations
+- Diagnose and remediate common production gotchas in sec-01-rbac-role-binding
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Grant read-only pod access to developer role
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sec-01-rbac-role-binding
+      labels:
+        kubelab.io/track: security
+        kubelab.io/lab: sec-01-rbac-role-binding
 tasks:
-- id: task-verify-sec-01-rbac-role-binding
-  title: Verify Role & RoleBinding for Least-Privilege
-  description: Verify metadata.name on roles 'target-resource'
-  points: 100
+- id: task-01-sec-01-rbac-role-binding
+  title: Deploy & Configure Namespace RBAC Roles & RoleBindings
+  description: Apply the declarative manifest for sec-01-rbac-role-binding and ensure
+    resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: roles
-    name: target-resource
-    namespace: null
+    resource: pods
+    name: sec-01-rbac-role-binding
+    namespace: lab-sec-01-rbac-role-binding
     assertions:
-    - field: metadata.name
+    - field: status.phase
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: Running
+- id: task-02-sec-01-rbac-role-binding
+  title: Verify Production Hardening & Labels for Namespace RBAC Roles & RoleBindings
+  description: Verify metadata labels and security compliance in namespace lab-sec-01-rbac-role-binding.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-01-rbac-role-binding
+    namespace: lab-sec-01-rbac-role-binding
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sec-01-rbac-role-binding
 hints:
-- text: Inspect Kubernetes documentation for `roles` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-sec-01-rbac-role-binding
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f sec-01-rbac-role-binding.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=sec-01-rbac-role-binding
+    -n lab-sec-01-rbac-role-binding`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/security/sec-01-rbac-role-binding/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

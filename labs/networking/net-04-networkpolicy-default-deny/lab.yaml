@@ -1,0 +1,80 @@
+id: net-04-networkpolicy-default-deny
+title: Zero-Trust Default-Deny NetworkPolicies
+difficulty: advanced
+duration_minutes: 15
+track: networking
+scenario: Enforce zero-trust network isolation with default-deny ingress and egress
+  NetworkPolicies.
+objectives:
+- Master Zero-Trust Default-Deny NetworkPolicies architecture and declarative configurations
+- Diagnose and remediate common production gotchas in net-04-networkpolicy-default-deny
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-net-04-networkpolicy-default-deny
+      labels:
+        kubelab.io/track: networking
+        kubelab.io/lab: net-04-networkpolicy-default-deny
+tasks:
+- id: task-01-net-04-networkpolicy-default-deny
+  title: Deploy & Configure Zero-Trust Default-Deny NetworkPolicies
+  description: Apply the declarative manifest for net-04-networkpolicy-default-deny
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-04-networkpolicy-default-deny
+    namespace: lab-net-04-networkpolicy-default-deny
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-net-04-networkpolicy-default-deny
+  title: Verify Production Hardening & Labels for Zero-Trust Default-Deny NetworkPolicies
+  description: Verify metadata labels and security compliance in namespace lab-net-04-networkpolicy-default-deny.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-04-networkpolicy-default-deny
+    namespace: lab-net-04-networkpolicy-default-deny
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: net-04-networkpolicy-default-deny
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-net-04-networkpolicy-default-deny
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=net-04-networkpolicy-default-deny
+    -n lab-net-04-networkpolicy-default-deny`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/networking/net-04-networkpolicy-default-deny/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

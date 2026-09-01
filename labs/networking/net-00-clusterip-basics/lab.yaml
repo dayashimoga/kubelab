@@ -1,47 +1,82 @@
-id: "net-00-clusterip-basics"
-title: "Exposing Pods with ClusterIP & Endpoints"
-difficulty: "beginner"
+id: net-00-clusterip-basics
+title: ClusterIP Service & kube-proxy Packet Routing
+difficulty: advanced
 duration_minutes: 15
-track: "networking"
-prerequisites:
-  - "k8s-deployments-scaling"
+track: networking
+scenario: Expose internal workloads using ClusterIP services, EndpointSlices, and
+  iptables/IPVS proxying.
+objectives:
+- Master ClusterIP Service & kube-proxy Packet Routing architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in net-00-clusterip-basics
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
 environment:
-  type: "kubernetes"
-  cluster: "disposable"
+  type: kubernetes
+  cluster: disposable
   namespace_isolation: true
   resources:
-    cpu_limit: "500m"
-    memory_limit: "512Mi"
+    cpu_limit: 500m
+    memory_limit: 512Mi
 initial_state:
-  manifests: []
-scenario: |
-  Create a ClusterIP service named `auth-service` that exposes Pods with label `app=auth` on port 8080 targeting container port 8080.
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-net-00-clusterip-basics
+      labels:
+        kubelab.io/track: networking
+        kubelab.io/lab: net-00-clusterip-basics
 tasks:
-  - id: "task-create-service"
-    title: "Create ClusterIP Service"
-    description: "Create a Service named auth-service with type ClusterIP routing to app=auth"
-    points: 100
-    validation:
-      type: "k8s_resource"
-      resource: "services"
-      name: "auth-service"
-      assertions:
-        - field: "spec.type"
-          operator: "equals"
-          expected: "ClusterIP"
-        - field: "spec.ports[0].port"
-          operator: "equals"
-          expected: 8080
-        - field: "spec.selector.app"
-          operator: "equals"
-          expected: "auth"
+- id: task-01-net-00-clusterip-basics
+  title: Deploy & Configure ClusterIP Service & kube-proxy Packet Routing
+  description: Apply the declarative manifest for net-00-clusterip-basics and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-00-clusterip-basics
+    namespace: lab-net-00-clusterip-basics
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-net-00-clusterip-basics
+  title: Verify Production Hardening & Labels for ClusterIP Service & kube-proxy Packet
+    Routing
+  description: Verify metadata labels and security compliance in namespace lab-net-00-clusterip-basics.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-00-clusterip-basics
+    namespace: lab-net-00-clusterip-basics
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: net-00-clusterip-basics
 hints:
-  - text: "Use `kubectl expose deployment auth-server --name=auth-service --port=8080 --target-port=8080`"
-    penalty_points: 10
-solution: |
-  kubectl expose deployment auth-server --name=auth-service --port=8080 --target-port=8080
+- text: Inspect the live objects with `kubectl get all -n lab-net-00-clusterip-basics
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=net-00-clusterip-basics
+    -n lab-net-00-clusterip-basics`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/networking/net-00-clusterip-basics/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
-  timeout_minutes: 20
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

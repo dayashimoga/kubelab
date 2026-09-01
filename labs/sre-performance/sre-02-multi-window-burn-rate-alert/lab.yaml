@@ -1,0 +1,82 @@
+id: sre-02-multi-window-burn-rate-alert
+title: Multi-Window Multi-Burn-Rate Alerting Rules
+difficulty: advanced
+duration_minutes: 15
+track: sre-performance
+scenario: Implement Google SRE multi-window error budget burn rate alerting to eliminate
+  noise and fatigue.
+objectives:
+- Master Multi-Window Multi-Burn-Rate Alerting Rules architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in sre-02-multi-window-burn-rate-alert
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sre-02-multi-window-burn-rate-alert
+      labels:
+        kubelab.io/track: sre-performance
+        kubelab.io/lab: sre-02-multi-window-burn-rate-alert
+tasks:
+- id: task-01-sre-02-multi-window-burn-rate-alert
+  title: Deploy & Configure Multi-Window Multi-Burn-Rate Alerting Rules
+  description: Apply the declarative manifest for sre-02-multi-window-burn-rate-alert
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: sre-02-multi-window-burn-rate-alert
+    namespace: lab-sre-02-multi-window-burn-rate-alert
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-sre-02-multi-window-burn-rate-alert
+  title: Verify Production Hardening & Labels for Multi-Window Multi-Burn-Rate Alerting
+    Rules
+  description: Verify metadata labels and security compliance in namespace lab-sre-02-multi-window-burn-rate-alert.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: sre-02-multi-window-burn-rate-alert
+    namespace: lab-sre-02-multi-window-burn-rate-alert
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sre-02-multi-window-burn-rate-alert
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sre-02-multi-window-burn-rate-alert
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sre-02-multi-window-burn-rate-alert
+    -n lab-sre-02-multi-window-burn-rate-alert`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/sre-performance/sre-02-multi-window-burn-rate-alert/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0
