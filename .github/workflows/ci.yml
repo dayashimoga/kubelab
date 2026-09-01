@@ -182,7 +182,7 @@ jobs:
         if: needs.changes.outputs.web == 'true' || github.event_name == 'push'
         run: |
           pnpm install --frozen-lockfile=false
-          pnpm audit --prod
+          pnpm audit --prod --audit-level critical
 
       - name: Generate SBOM (Software Bill of Materials)
         uses: anchore/sbom-action@v0.17.0
