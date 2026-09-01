@@ -242,9 +242,13 @@ jobs:
         run: |
           pnpm --filter @kubelab/web typecheck
           pnpm --filter @kubelab/web lint
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
 
       - name: Build Web Application
         run: pnpm --filter @kubelab/web build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
 
       - name: Install Playwright Browsers
         run: pnpm --filter @kubelab/web exec playwright install --with-deps chromium
@@ -253,6 +257,7 @@ jobs:
         run: pnpm --filter @kubelab/web exec playwright test
         env:
           CI: true
+          NEXT_TELEMETRY_DISABLED: 1
 
   # ============================================================
   # Labs Validation

@@ -78,4 +78,4 @@ All notable changes to KubeLab are documented in this file.
 ## [1.2.1] - 2026-09-01
 ### Fixed
 - **Mobile Android Gradle Build**: Added `apps/mobile/android/gradle/wrapper/gradle-wrapper.properties` (Gradle 8.9), `gradle.properties` (AndroidX + JVM memory args), and upgraded Android Gradle Plugin to `8.5.2` and Kotlin to `1.9.24` in `settings.gradle`. Resolved `FlutterPlugin.kt:753:21 Unresolved reference: filePermissions` compileKotlin failure under modern Flutter toolchain.
-- **Web ESLint CI Non-Interactive Execution**: Created `apps/web/.eslintrc.json` with `next/core-web-vitals` preset and added `eslint` + `eslint-config-next` to `apps/web/package.json` devDependencies to prevent interactive configuration prompt during `next lint` in CI runners.
+- **Web ESLint CI Non-Interactive Execution**: Created `apps/web/.eslintrc.json` with `next/core-web-vitals` preset and added `eslint` + `eslint-config-next` to `apps/web/package.json` devDependencies. Escaped apostrophe entity in `apps/web/src/app/login/page.tsx` (`Don&apos;t`) to fix `react/no-unescaped-entities` error, and set `NEXT_TELEMETRY_DISABLED=1` in CI workflow.
