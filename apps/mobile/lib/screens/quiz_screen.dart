@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import '../services/progress_service.dart';
+import '../data/curriculum_data.dart';
 
 class QuizQuestion {
   final String id;
@@ -18,55 +20,22 @@ class QuizQuestion {
 }
 
 class QuizScreen extends StatefulWidget {
+  final MobileLessonQuiz? lessonQuiz;
   final String trackTitle;
-  final List<QuizQuestion> questions;
+  final String? lessonId;
+  final int? lessonXp;
+  final List<QuizQuestion>? questions;
   final ApiService? apiService;
 
   const QuizScreen({
     super.key,
+    this.lessonQuiz,
     this.trackTitle = 'Kubernetes Core',
-    this.questions = _defaultQuestions,
+    this.lessonId,
+    this.lessonXp,
+    this.questions,
     this.apiService,
   });
-
-  static const List<QuizQuestion> _defaultQuestions = [
-    QuizQuestion(
-      id: 'q1',
-      prompt: 'Which Pod Security Standard profile strictly forbids running privileged containers and hostPath mounts?',
-      options: [
-        'Privileged',
-        'Baseline',
-        'Restricted',
-        'Default',
-      ],
-      correctIndex: 2,
-      explanation: 'The Restricted profile enforces pod hardening best practices, disallowing privileged containers, host namespaces, and hostPath volumes.',
-    ),
-    QuizQuestion(
-      id: 'q2',
-      prompt: 'What Kubernetes resource provides declarative, zero-trust traffic filtering between pods?',
-      options: [
-        'Ingress',
-        'NetworkPolicy',
-        'ServiceAccount',
-        'LimitRange',
-      ],
-      correctIndex: 1,
-      explanation: 'NetworkPolicy resources let you specify how groups of pods are allowed to communicate with each other and other network endpoints.',
-    ),
-    QuizQuestion(
-      id: 'q3',
-      prompt: 'In GitOps with Argo CD, what happens when a cluster resource is modified out-of-band and selfHeal is enabled?',
-      options: [
-        'The cluster change is committed back to Git',
-        'Argo CD halts all sync operations',
-        'Argo CD automatically overwrites the mutation with Git desired state',
-        'The application status turns permanently Error',
-      ],
-      correctIndex: 2,
-      explanation: 'With self-heal enabled, Argo CD detects live state drift and automatically reverts the cluster to match the version-controlled Git manifest.',
-    ),
-  ];
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -80,11 +49,46 @@ class _QuizScreenState extends State<QuizScreen> {
   bool _finished = false;
 
   late final ApiService _apiService;
+  late final List<QuizQuestion> _questions;
+  late final String _quizId;
+  late final String _quizTitle;
 
   @override
   void initState() {
     super.initState();
     _apiService = widget.apiService ?? ApiService();
+
+    if (widget.lessonQuiz != null) {
+      _quizId = widget.lessonQuiz!.id;
+      _quizTitle = widget.lessonQuiz!.title;
+      _questions = widget.lessonQuiz!.questions.map((q) {
+        return QuizQuestion(
+          id: q.id,
+          prompt: q.prompt,
+          options: q.options,
+          correctIndex: q.correctIndex,
+          explanation: q.explanation,
+        );
+      }).toList();
+    } else if (widget.questions != null && widget.questions!.isNotEmpty) {
+      _quizId = 'custom-quiz';
+      _quizTitle = 'QUIZ: ${widget.trackTitle.toUpperCase()}';
+      _questions = widget.questions!;
+    } else {
+      // Default to first quiz in repository
+      final firstQuiz = CurriculumRepository.quizzes.values.first;
+      _quizId = firstQuiz.id;
+      _quizTitle = firstQuiz.title;
+      _questions = firstQuiz.questions.map((q) {
+        return QuizQuestion(
+          id: q.id,
+          prompt: q.prompt,
+          options: q.options,
+          correctIndex: q.correctIndex,
+          explanation: q.explanation,
+        );
+      }).toList();
+    }
   }
 
   void _handleOptionSelect(int index) {
@@ -97,7 +101,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Future<void> _handleSubmitAnswer() async {
     if (_selectedOption == null) return;
 
-    final q = widget.questions[_currentIndex];
+    final q = _questions[_currentIndex];
     final isCorrect = _selectedOption == q.correctIndex;
 
     setState(() {
@@ -108,6 +112,7 @@ class _QuizScreenState extends State<QuizScreen> {
     // Queue action for cloud sync
     try {
       await _apiService.queueOfflineAction('quiz_submission', {
+        'quizId': _quizId,
         'questionId': q.id,
         'selected': _selectedOption,
         'correct': isCorrect,
@@ -116,14 +121,23 @@ class _QuizScreenState extends State<QuizScreen> {
     } catch (_) {}
   }
 
-  void _handleNext() {
-    if (_currentIndex < widget.questions.length - 1) {
+  Future<void> _handleNext() async {
+    if (_currentIndex < _questions.length - 1) {
       setState(() {
         _currentIndex++;
         _selectedOption = null;
         _submitted = false;
       });
     } else {
+      // Quiz completed! Save progress
+      final maxScore = _questions.length * 100;
+      final xpEarned = widget.lessonXp ?? _score;
+      await ProgressService.instance.saveQuizResult(_quizId, _score, maxScore, xpEarned);
+
+      if (widget.lessonId != null) {
+        await ProgressService.instance.markLessonCompleted(widget.lessonId!, xpEarned);
+      }
+
       setState(() {
         _finished = true;
       });
@@ -137,13 +151,14 @@ class _QuizScreenState extends State<QuizScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0F172A),
         title: Text(
-          'QUIZ: ${widget.trackTitle.toUpperCase()}',
+          _quizTitle.toUpperCase(),
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.1,
             color: Color(0xFF06B6D4),
           ),
+          overflow: TextOverflow.ellipsis,
         ),
       ),
       body: _finished ? _buildSummary() : _buildQuestion(),
@@ -151,7 +166,7 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Widget _buildQuestion() {
-    final q = widget.questions[_currentIndex];
+    final q = _questions[_currentIndex];
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -161,7 +176,7 @@ class _QuizScreenState extends State<QuizScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Question ${_currentIndex + 1} of ${widget.questions.length}',
+                'Question ${_currentIndex + 1} of ${_questions.length}',
                 style: const TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.bold),
               ),
               Text(
@@ -174,7 +189,7 @@ class _QuizScreenState extends State<QuizScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
-              value: (_currentIndex + 1) / widget.questions.length,
+              value: (_currentIndex + 1) / _questions.length,
               backgroundColor: const Color(0xFF1E293B),
               valueColor: const AlwaysStoppedAnimation(Color(0xFF06B6D4)),
               minHeight: 6,
@@ -184,7 +199,7 @@ class _QuizScreenState extends State<QuizScreen> {
           Text(
             q.prompt,
             style: const TextStyle(
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Colors.white,
               height: 1.4,
@@ -236,7 +251,7 @@ class _QuizScreenState extends State<QuizScreen> {
                         Expanded(
                           child: Text(
                             q.options[index],
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.3),
                           ),
                         ),
                       ],
@@ -260,7 +275,7 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
               child: Text(
                 q.explanation,
-                style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 13),
+                style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 13, height: 1.3),
               ),
             ),
             const SizedBox(height: 12),
@@ -277,7 +292,7 @@ class _QuizScreenState extends State<QuizScreen> {
             ),
             child: Text(
               _submitted
-                  ? (_currentIndex < widget.questions.length - 1 ? 'NEXT QUESTION' : 'VIEW RESULTS')
+                  ? (_currentIndex < _questions.length - 1 ? 'NEXT QUESTION' : 'VIEW RESULTS')
                   : 'SUBMIT ANSWER',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
@@ -288,33 +303,65 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Widget _buildSummary() {
+    final maxScore = _questions.length * 100;
+    final percentage = (maxScore > 0) ? ((_score / maxScore) * 100).toInt() : 100;
+    final isPassed = percentage >= 66;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.stars, size: 80, color: Color(0xFF10B981)),
+            Icon(
+              isPassed ? Icons.stars : Icons.refresh_rounded,
+              size: 80,
+              color: isPassed ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+            ),
             const SizedBox(height: 16),
-            const Text(
-              'Quiz Completed!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+            Text(
+              isPassed ? 'Mastery Achieved!' : 'Review & Retry',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 8),
             Text(
-              'Earned +$_score XP',
-              style: const TextStyle(fontSize: 18, color: Color(0xFF06B6D4), fontWeight: FontWeight.bold),
+              'Scored $_score / $maxScore XP ($percentage%)',
+              style: const TextStyle(fontSize: 16, color: Color(0xFF06B6D4), fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF06B6D4),
-                foregroundColor: const Color(0xFF0A0E17),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              child: const Text('BACK TO CURRICULUM', style: TextStyle(fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton(
+                  onPressed: () {
+                    setState(() {
+                      _currentIndex = 0;
+                      _selectedOption = null;
+                      _submitted = false;
+                      _score = 0;
+                      _finished = false;
+                    });
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF06B6D4),
+                    side: const BorderSide(color: Color(0xFF06B6D4)),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('RETRY QUIZ', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF06B6D4),
+                    foregroundColor: const Color(0xFF0A0E17),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('CONTINUE', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
             ),
           ],
         ),

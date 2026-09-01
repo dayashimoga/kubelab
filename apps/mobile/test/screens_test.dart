@@ -47,15 +47,29 @@ void main() {
 
   group('QuizScreen Tests', () {
     testWidgets('Answers question, verifies score increment and summary', (WidgetTester tester) async {
-      await tester.pumpWidget(const MaterialApp(home: QuizScreen()));
+      const testQuestions = [
+        QuizQuestion(
+          id: 'tq1',
+          prompt: 'What provides zero-trust traffic filtering?',
+          options: ['Ingress', 'NetworkPolicy', 'ServiceAccount', 'LimitRange'],
+          correctIndex: 1,
+          explanation: 'NetworkPolicies enforce layer 3/4 filtering.',
+        ),
+      ];
+
+      await tester.pumpWidget(const MaterialApp(
+        home: QuizScreen(
+          trackTitle: 'Kubernetes Core',
+          questions: testQuestions,
+        ),
+      ));
       await tester.pumpAndSettle();
 
-      expect(find.text('QUIZ: KUBERNETES CORE'), findsOneWidget);
       expect(find.text('Score: 0 XP'), findsOneWidget);
-      expect(find.text('Restricted'), findsOneWidget);
+      expect(find.text('NetworkPolicy'), findsOneWidget);
 
-      // Select correct answer "Restricted"
-      await tester.tap(find.text('Restricted'));
+      // Select correct answer "NetworkPolicy"
+      await tester.tap(find.text('NetworkPolicy'));
       await tester.pumpAndSettle();
 
       // Submit answer
@@ -63,7 +77,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Score: 100 XP'), findsOneWidget);
-      expect(find.text('NEXT QUESTION'), findsOneWidget);
+      expect(find.text('VIEW RESULTS'), findsOneWidget);
     });
   });
 

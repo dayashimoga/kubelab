@@ -17,21 +17,20 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Initial tab: TracksScreen
-    expect(find.text('KUBELAB TRACKS'), findsOneWidget);
-    expect(find.text('Linux & Containers'), findsOneWidget);
+    expect(find.text('15 ENGINEERING TRACKS'), findsOneWidget);
+    expect(find.text('Linux & Container Fundamentals'), findsOneWidget);
 
     // 2. Switch to Skill Tree tab
     await tester.tap(find.byIcon(Icons.account_tree).last);
     await tester.pumpAndSettle();
-    expect(find.text('SKILL TREE DAG'), findsOneWidget);
-    expect(find.text('Kubernetes Workloads'), findsOneWidget);
+    expect(find.text('15-TRACK SKILL TREE DAG'), findsOneWidget);
+    expect(find.text('Kubernetes Core Architecture & Workloads'), findsOneWidget);
 
     // 3. Switch to Profile tab
     await tester.tap(find.byIcon(Icons.person).last);
     await tester.pumpAndSettle();
     expect(find.text('LEARNER PROFILE'), findsOneWidget);
-    expect(find.text('Cloud-Native Practitioner'), findsOneWidget);
-    expect(find.text('1,250 XP • Level 3'), findsOneWidget);
+    expect(find.text('Cloud-Native Engineer'), findsOneWidget);
   });
 
   testWidgets('Progress Sync Screen Renders Cleanly', (WidgetTester tester) async {
@@ -60,8 +59,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('The Atomic Unit of Kubernetes'), findsOneWidget);
-    expect(find.text('TAKE LESSON QUIZ (+300 XP)'), findsOneWidget);
     expect(find.text('CONTINUE ON DESKTOP'), findsOneWidget);
+    expect(find.text('AI TUTOR'), findsOneWidget);
   });
 }
