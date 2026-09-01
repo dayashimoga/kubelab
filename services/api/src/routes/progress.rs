@@ -57,4 +57,3 @@ async fn get_skill_graph(State(state): State<AppState>) -> impl IntoResponse {
     let graph = state.progress.get_skill_graph();
     Json(graph)
 }
-
