@@ -25,7 +25,7 @@ test.describe('15-Track Curriculum & Dynamic Routing E2E Test Suite', () => {
     await page.goto('/learn/linux-containers');
 
     await expect(page.locator('h1')).toContainText('Linux & Container Fundamentals');
-    await expect(page.getByText('Linux Kernel Primitives & Processes')).toBeVisible();
+    await expect(page.getByText('Linux Filesystem Hierarchy & POSIX Permissions')).toBeVisible();
 
     // Click first lesson
     await page.getByText('Linux Filesystem Hierarchy & POSIX Permissions').click();
@@ -36,8 +36,8 @@ test.describe('15-Track Curriculum & Dynamic Routing E2E Test Suite', () => {
 
     // Open AI Tutor
     await page.getByRole('button', { name: 'AI Tutor' }).click();
-    await expect(page.getByText('AI Socratic Tutor')).toBeVisible();
-    await expect(page.getByText('SOCRATIC')).toBeVisible();
+    await expect(page.getByText('AI Socratic Tutor').first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'socratic' })).toBeVisible();
 
     // Open Quiz Modal
     await page.getByRole('button', { name: 'Take Quiz' }).click();
@@ -77,9 +77,9 @@ test.describe('15-Track Curriculum & Dynamic Routing E2E Test Suite', () => {
     await expect(page.locator('h1')).toContainText('Production Incident Response & Chaos');
 
     // Click CoreDNS incident lesson
-    await page.getByText('Incident: CoreDNS Outage & Cascading Failures').click();
+    await page.getByText('Production Incident: CoreDNS Outage & Cascading 503 Errors').click();
 
-    await expect(page.locator('h1')).toContainText('Incident: CoreDNS Outage & Cascading Failures');
+    await expect(page.locator('h1')).toContainText('Production Incident: CoreDNS Outage & Cascading 503 Errors');
     await expect(page.getByText('Launch Sandbox: incident-coredns-failure')).toBeVisible();
   });
 });
