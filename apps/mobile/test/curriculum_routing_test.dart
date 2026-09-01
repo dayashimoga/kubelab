@@ -37,7 +37,7 @@ void main() {
       await tester.pumpWidget(const MaterialApp(home: TracksScreen()));
       await tester.pumpAndSettle();
 
-      expect(find.text('15 ENGINEERING TRACKS'), findsOneWidget);
+      expect(find.text('15 Engineering Tracks'), findsOneWidget);
       expect(find.text('Linux & Container Fundamentals'), findsOneWidget);
       expect(find.text('Kubernetes Core Architecture & Workloads'), findsOneWidget);
     });
