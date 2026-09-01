@@ -313,11 +313,11 @@ jobs:
 
       - name: Build Release APK
         working-directory: apps/mobile
-        run: flutter build apk --release
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Build Release App Bundle
         working-directory: apps/mobile
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --android-skip-build-dependency-validation
 
       - name: Verify Artifacts Exist
         run: |

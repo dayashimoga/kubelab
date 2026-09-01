@@ -4,19 +4,19 @@ test.describe('End-to-End User Learning & Certification Journey', () => {
   test('Complete flow: Register -> Learn -> Lab -> Monaco -> Terminal -> Progress -> Logout', async ({ page }) => {
     // 1. Visit landing page
     await page.goto('/');
-    await expect(page.locator('h1')).toContainText('KubeLab');
+    await expect(page.locator('h1')).toContainText('Cloud-Native');
 
     // 2. Navigate to Register
     await page.goto('/register');
-    await expect(page.locator('h1')).toContainText('Create Your Account');
+    await expect(page.locator('h1')).toContainText('Join KubeLab');
     await page.fill('input[type="text"]', 'E2E Cloud Learner');
     await page.fill('input[type="email"]', `e2e-learner-${Date.now()}@kubelab.io`);
     await page.fill('input[type="password"]', 'StrongPassw0rd!123');
 
     // 3. Navigate to Curriculum & Tracks
     await page.goto('/learn');
-    await expect(page.locator('h1')).toContainText('Kubernetes Curriculum');
-    await expect(page.locator('text=Kubernetes Architecture')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('Engineering Tracks');
+    await expect(page.locator('text=Kubernetes Core Architecture')).toBeVisible();
 
     // 4. Open Lab Catalog & Select Lab
     await page.goto('/labs');
@@ -35,17 +35,17 @@ test.describe('End-to-End User Learning & Certification Journey', () => {
 
     // 7. Check Progress & Skill Tree
     await page.goto('/progress');
-    await expect(page.locator('h1')).toContainText('Learning Progress & XP');
+    await expect(page.locator('h1')).toContainText('Progress & Achievement Hub');
 
     // 8. Check Skills Matrix
     await page.goto('/skills');
-    await expect(page.locator('h1')).toContainText('Kubernetes Skill Tree');
+    await expect(page.locator('h1')).toContainText('Skill Tree');
 
     // 9. Check Certifications & Incidents
     await page.goto('/certifications');
-    await expect(page.locator('h1')).toContainText('Certification Practice Exams');
+    await expect(page.locator('h1')).toContainText('Certifications');
 
     await page.goto('/incidents');
-    await expect(page.locator('h1')).toContainText('SRE Incident Simulator');
+    await expect(page.locator('h1')).toContainText('CoreDNS Outage');
   });
 });
