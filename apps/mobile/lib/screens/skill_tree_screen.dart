@@ -71,7 +71,7 @@ class _SkillTreeScreenState extends State<SkillTreeScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
               side: BorderSide(
-                color: progress > 0 ? color.withOpacity(0.4) : const Color(0xFF1E293B),
+                color: progress > 0 ? color.withValues(alpha: 0.4) : const Color(0xFF1E293B),
               ),
             ),
             child: InkWell(
@@ -93,9 +93,9 @@ class _SkillTreeScreenState extends State<SkillTreeScreen> {
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: color.withOpacity(0.15),
+                        color: color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: color.withOpacity(0.3)),
+                        border: Border.all(color: color.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         '${track.order}',

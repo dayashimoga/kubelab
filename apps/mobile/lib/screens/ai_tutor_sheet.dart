@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../services/api_service.dart';
 
 enum TutorMode { explain, socratic, hint, diagnose, review }
 

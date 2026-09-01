@@ -71,7 +71,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFF0F172A),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: trackColor.withOpacity(0.4)),
+              border: Border.all(color: trackColor.withValues(alpha: 0.4)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,9 +82,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: trackColor.withOpacity(0.15),
+                        color: trackColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: trackColor.withOpacity(0.3)),
+                        border: Border.all(color: trackColor.withValues(alpha: 0.3)),
                       ),
                       child: Text(
                         widget.track.difficulty.toUpperCase(),

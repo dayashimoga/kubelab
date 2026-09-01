@@ -105,4 +105,14 @@ class ProgressService {
     if (xp < 30000) return 7;
     return 8;
   }
+
+  Future<int> getStreakDays() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_streakKey) ?? 1;
+  }
+
+  Future<void> setStreakDays(int days) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_streakKey, days);
+  }
 }

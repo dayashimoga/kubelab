@@ -201,9 +201,9 @@ class _TracksScreenState extends State<TracksScreen> {
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  color: trackColor.withOpacity(0.15),
+                                  color: trackColor.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: trackColor.withOpacity(0.3)),
+                                  border: Border.all(color: trackColor.withValues(alpha: 0.3)),
                                 ),
                                 child: Icon(_getIconData(track.icon), color: trackColor, size: 24),
                               ),
