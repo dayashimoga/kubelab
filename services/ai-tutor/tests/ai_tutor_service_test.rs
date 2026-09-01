@@ -15,6 +15,9 @@ async fn test_ai_tutor_service_prompt_and_hints() {
     };
 
     let response = service.query_tutor(&request).await;
-    assert!(!response.reply_markdown.is_empty(), "AI Tutor should provide a non-empty explanation");
+    assert!(
+        !response.reply_markdown.is_empty(),
+        "AI Tutor should provide a non-empty explanation"
+    );
     assert!(!response.suggested_followups.is_empty());
 }

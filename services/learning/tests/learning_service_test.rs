@@ -34,6 +34,12 @@ async fn test_learning_service_tracks_and_lessons() {
     assert!(!found_lesson.content_markdown.is_empty());
 
     // 5. Query non-existent track & lesson -> returns error
-    assert!(service.get_track_by_slug("non-existent-track").await.is_err());
-    assert!(service.get_lesson_by_id("non-existent-lesson").await.is_err());
+    assert!(service
+        .get_track_by_slug("non-existent-track")
+        .await
+        .is_err());
+    assert!(service
+        .get_lesson_by_id("non-existent-lesson")
+        .await
+        .is_err());
 }

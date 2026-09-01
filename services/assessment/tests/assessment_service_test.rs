@@ -5,9 +5,7 @@ async fn test_assessment_service_quiz_and_grading() {
     let service = AssessmentService::new();
 
     // Query questions for a lesson
-    let questions = service
-        .get_quiz_by_lesson_id("k8s-pod-architecture")
-        .await;
+    let questions = service.get_quiz_by_lesson_id("k8s-pod-architecture").await;
     assert!(
         !questions.is_empty(),
         "Questions should exist for k8s-pod-architecture lesson"

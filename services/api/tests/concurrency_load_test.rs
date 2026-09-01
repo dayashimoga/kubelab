@@ -86,7 +86,12 @@ async fn test_concurrency_load_and_latency_measurement() {
     println!("Latency p50: {:.3}ms", p50);
     println!("Latency p95: {:.3}ms", p95);
     println!("Latency p99: {:.3}ms", p99);
-    println!("Success Rate: {:.2}% ({}/{})", (total_success as f64 / total_requests as f64) * 100.0, total_success, total_requests);
+    println!(
+        "Success Rate: {:.2}% ({}/{})",
+        (total_success as f64 / total_requests as f64) * 100.0,
+        total_success,
+        total_requests
+    );
     println!("==============================================\n");
 
     assert_eq!(total_success, total_requests, "All requests must succeed");

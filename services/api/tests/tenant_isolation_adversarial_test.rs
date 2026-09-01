@@ -35,7 +35,9 @@ async fn test_tenant_isolation_cross_lab_denial() {
         .await
         .unwrap();
     assert_eq!(reg_a.status(), StatusCode::CREATED);
-    let body_bytes = axum::body::to_bytes(reg_a.into_body(), 1024 * 16).await.unwrap();
+    let body_bytes = axum::body::to_bytes(reg_a.into_body(), 1024 * 16)
+        .await
+        .unwrap();
     let body_a: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
     let token_a = body_a["tokens"]["access_token"].as_str().unwrap();
 
@@ -62,7 +64,9 @@ async fn test_tenant_isolation_cross_lab_denial() {
         .await
         .unwrap();
     assert_eq!(reg_b.status(), StatusCode::CREATED);
-    let body_bytes = axum::body::to_bytes(reg_b.into_body(), 1024 * 16).await.unwrap();
+    let body_bytes = axum::body::to_bytes(reg_b.into_body(), 1024 * 16)
+        .await
+        .unwrap();
     let body_b: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
     let token_b = body_b["tokens"]["access_token"].as_str().unwrap();
 
@@ -86,7 +90,9 @@ async fn test_tenant_isolation_cross_lab_denial() {
         .await
         .unwrap();
     assert_eq!(start_a.status(), StatusCode::CREATED);
-    let body_bytes = axum::body::to_bytes(start_a.into_body(), 1024 * 16).await.unwrap();
+    let body_bytes = axum::body::to_bytes(start_a.into_body(), 1024 * 16)
+        .await
+        .unwrap();
     let session_a: serde_json::Value = serde_json::from_slice(&body_bytes).unwrap();
     let session_id_a = session_a["id"].as_str().unwrap();
 
