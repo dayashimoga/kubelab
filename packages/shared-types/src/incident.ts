@@ -1,4 +1,4 @@
-import { DifficultyLevel } from './curriculum.js';
+import { DifficultyLevel } from './curriculum';
 
 export type IncidentSeverity = 'SEV-1' | 'SEV-2' | 'SEV-3' | 'SEV-4';
 

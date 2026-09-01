@@ -1,4 +1,4 @@
-import { DeclarativeLabSchema, ValidatedDeclarativeLab } from './schema.js';
+import { DeclarativeLabSchema, ValidatedDeclarativeLab } from './schema';
 import YAML from 'yaml';
 
 export class LabBuilder {

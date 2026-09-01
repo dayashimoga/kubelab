@@ -629,8 +629,8 @@ export function validateCurriculumIntegrity(): {{
         f.write(registry_ts)
 
     # 4. Write packages/curriculum/src/index.ts
-    index_ts = """export * from './tracks.js';
-export * from './registry.js';
+    index_ts = """export * from './tracks';
+export * from './registry';
 """
     with open(os.path.join(CURRICULUM_SRC, 'index.ts'), 'w', encoding='utf-8') as f:
         f.write(index_ts)

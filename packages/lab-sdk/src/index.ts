@@ -1,3 +1,3 @@
-export * from './schema.js';
-export * from './builder.js';
-export * from './validator.js';
+export * from './schema';
+export * from './builder';
+export * from './validator';
