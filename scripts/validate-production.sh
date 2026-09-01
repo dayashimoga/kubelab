@@ -38,15 +38,15 @@ podman run --rm -v "${ROOT_DIR}/apps/mobile:/workspace" -w /workspace ghcr.io/ci
 echo "    [PASS] Gate 06: Flutter Mobile Companion"
 
 echo "--> Gate 07: TypeScript Shared Packages Build..."
-podman run --rm -v "${ROOT_DIR}:/workspace" -w /workspace mcr.microsoft.com/playwright:v1.48.2-noble sh -c "npm i -g pnpm@9.12.0 && pnpm --filter @kubelab/shared-types build && pnpm --filter @kubelab/curriculum build"
+podman run --rm -v "${ROOT_DIR}:/workspace" -w /workspace mcr.microsoft.com/playwright:v1.48.2-noble sh -c "npm i -g pnpm@9.12.0 && CI=true pnpm install && pnpm --filter @kubelab/shared-types build && pnpm --filter @kubelab/curriculum build"
 echo "    [PASS] Gate 07: TypeScript Shared Packages"
 
 echo "--> Gate 08: Next.js Web App Production Bundle Build..."
-podman run --rm -v "${ROOT_DIR}:/workspace" -w /workspace mcr.microsoft.com/playwright:v1.48.2-noble sh -c "npm i -g pnpm@9.12.0 && pnpm --filter @kubelab/web build"
+podman run --rm -v "${ROOT_DIR}:/workspace" -w /workspace mcr.microsoft.com/playwright:v1.48.2-noble sh -c "npm i -g pnpm@9.12.0 && CI=true pnpm --filter @kubelab/web build"
 echo "    [PASS] Gate 08: Next.js Web App"
 
 echo "--> Gate 09: Playwright End-to-End Test Suite..."
-podman run --rm -v "${ROOT_DIR}:/workspace" -w /workspace mcr.microsoft.com/playwright:v1.48.2-noble sh -c "npm i -g pnpm@9.12.0 && pnpm --filter @kubelab/web exec playwright install chromium && pnpm --filter @kubelab/web exec playwright test"
+podman run --rm -v "${ROOT_DIR}:/workspace" -w /workspace mcr.microsoft.com/playwright:v1.48.2-noble sh -c "npm i -g pnpm@9.12.0 && pnpm --filter @kubelab/web exec playwright install chromium && CI=true pnpm --filter @kubelab/web exec playwright test"
 echo "    [PASS] Gate 09: Playwright E2E Suite"
 
 echo "================================================================="
