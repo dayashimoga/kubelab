@@ -74,7 +74,8 @@ All notable changes to KubeLab are documented in this file.
 - **Root cleanup**: Removed 18 duplicate root-level markdown files; consolidated all content into `docs/`.
 - **README.md**: Fixed badge URLs to `dayashimoga/kubelab`, updated documentation links to `docs/`.
 
-### Fixes
-- **`validate-production.sh`**: Updated Gates 01 and 11 to reference `docs/` flat-file structure instead of removed subdirectories.
 
-
+## [1.2.1] - 2026-09-01
+### Fixed
+- **Mobile Android Gradle Build**: Added `apps/mobile/android/gradle/wrapper/gradle-wrapper.properties` (Gradle 8.9), `gradle.properties` (AndroidX + JVM memory args), and upgraded Android Gradle Plugin to `8.5.2` and Kotlin to `1.9.24` in `settings.gradle`. Resolved `FlutterPlugin.kt:753:21 Unresolved reference: filePermissions` compileKotlin failure under modern Flutter toolchain.
+- **Web ESLint CI Non-Interactive Execution**: Created `apps/web/.eslintrc.json` with `next/core-web-vitals` preset and added `eslint` + `eslint-config-next` to `apps/web/package.json` devDependencies to prevent interactive configuration prompt during `next lint` in CI runners.

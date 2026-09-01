@@ -40,7 +40,11 @@
 - [x] Mermaid architecture/flow/pipeline/skill diagrams
 - [x] Removed 18 duplicate root-level markdown files
 - [x] Fixed badge URLs to `dayashimoga/kubelab`
-- [x] Updated `validate-production.sh` gates for new docs structure
+---
+
+### Completed (v1.2.1)
+- [x] Fixed mobile-android Gradle 8.9 wrapper and AGP 8.5.2 / Kotlin 1.9.24 settings to resolve Flutter compileKotlin `filePermissions` reference error
+- [x] Configured Next.js `.eslintrc.json` and devDependencies for non-interactive CI `next lint` execution
 
 ---
 
