@@ -19,7 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@kubelab/shared-types": ["../../packages/shared-types/src/index.ts"],
+      "@kubelab/curriculum": ["../../packages/curriculum/src/index.ts"],
+      "@kubelab/ui": ["../../packages/ui/src/index.ts"],
+      "@kubelab/lab-sdk": ["../../packages/lab-sdk/src/index.ts"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

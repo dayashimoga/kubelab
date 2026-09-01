@@ -46,7 +46,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export default function TrackDetailPage({ params }: { params: { trackSlug: string } }) {
-  const track = REGISTRY.tracks.find((t) => t.slug === params.trackSlug);
+  const track = REGISTRY.tracks.find((t: any) => t.slug === params.trackSlug);
 
   if (!track) {
     notFound();
@@ -122,7 +122,7 @@ export default function TrackDetailPage({ params }: { params: { trackSlug: strin
         </h2>
 
         <div className="space-y-6">
-          {track.modules.map((mod) => (
+          {track.modules.map((mod: any) => (
             <div
               key={mod.id}
               className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4"
@@ -137,7 +137,7 @@ export default function TrackDetailPage({ params }: { params: { trackSlug: strin
 
               {/* Lessons List */}
               <div className="grid grid-cols-1 gap-3">
-                {mod.lessons.map((lesson) => (
+                {mod.lessons.map((lesson: any) => (
                   <Link
                     key={lesson.id}
                     href={`/learn/${track.slug}/${lesson.slug}`}

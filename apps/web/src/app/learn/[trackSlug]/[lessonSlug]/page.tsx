@@ -26,13 +26,13 @@ export default function LessonViewPage({
 }: {
   params: { trackSlug: string; lessonSlug: string };
 }) {
-  const track = REGISTRY.tracks.find((t) => t.slug === params.trackSlug);
+  const track = REGISTRY.tracks.find((t: any) => t.slug === params.trackSlug);
   if (!track) notFound();
 
   let lesson: any = null;
   for (const m of track.modules) {
     const found = m.lessons.find(
-      (l) => l.slug === params.lessonSlug || l.id === params.lessonSlug || l.associatedLabId === params.lessonSlug
+      (l: any) => l.slug === params.lessonSlug || l.id === params.lessonSlug || l.associatedLabId === params.lessonSlug
     );
     if (found) {
       lesson = found;
@@ -332,7 +332,7 @@ export default function LessonViewPage({
                 </div>
 
                 <div className="space-y-2.5">
-                  {quiz.questions[currentQIndex].options.map((opt, idx) => {
+                  {quiz.questions[currentQIndex].options.map((opt: string, idx: number) => {
                     const isSelected = selectedOption === idx;
                     const isCorrect = idx === quiz.questions[currentQIndex].correctIndex;
 
