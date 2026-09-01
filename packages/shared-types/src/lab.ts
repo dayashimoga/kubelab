@@ -1,4 +1,4 @@
-import { DifficultyLevel, TrackSlug } from './curriculum.js';
+import { DifficultyLevel, TrackSlug } from './curriculum';
 
 export type LabStatus =
   | 'provisioning'

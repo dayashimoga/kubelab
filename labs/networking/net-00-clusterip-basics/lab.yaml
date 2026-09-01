@@ -1,4 +1,4 @@
-id: "k8s-services-clusterip"
+id: "net-00-clusterip-basics"
 title: "Exposing Pods with ClusterIP & Endpoints"
 difficulty: "beginner"
 duration_minutes: 15

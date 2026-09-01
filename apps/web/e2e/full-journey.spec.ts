@@ -24,6 +24,11 @@ test.describe('End-to-End User Learning & Certification Journey', () => {
     await expect(page.locator('h1')).toContainText('Engineering Tracks');
     await expect(page.locator('text=Kubernetes Core Architecture').first()).toBeVisible();
 
+    // 3.5 Navigate to a specific Track Syllabus and Lesson
+    await page.goto('/learn/linux-containers');
+    await expect(page.locator('h1')).toContainText('Linux & Container Fundamentals');
+    await expect(page.locator('text=Linux Filesystem Hierarchy & POSIX Permissions').first()).toBeVisible();
+
     // 4. Open Lab Catalog & Select Lab
     await page.goto('/labs');
     await expect(page.locator('h1')).toContainText('Hands-On Labs');

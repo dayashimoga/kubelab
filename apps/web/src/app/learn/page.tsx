@@ -5,16 +5,19 @@ import Link from 'next/link';
 import {
   Terminal,
   Boxes,
-  Server,
+  Database,
   Network,
-  ShieldCheck,
   Package,
+  Server,
+  ShieldCheck,
   GitBranch,
-  Activity,
   Layers,
+  Activity,
+  Wrench,
   Gauge,
   Cpu,
   AlertTriangle,
+  Award,
   Search,
   BookOpen,
   ArrowRight,
@@ -26,84 +29,98 @@ import { api, TrackSummary } from '@/lib/api';
 const ICON_MAP: Record<string, any> = {
   Terminal,
   Boxes,
-  Server,
+  Database,
   Network,
-  ShieldCheck,
   Package,
+  Server,
+  ShieldCheck,
   GitBranch,
-  Activity,
   Layers,
+  Activity,
+  Wrench,
   Gauge,
   Cpu,
   AlertTriangle,
+  Award,
 };
 
-const DEFAULT_TRACKS = [
+const AUTHORITATIVE_15_TRACKS: TrackSummary[] = [
   {
-    id: 'track-foundations',
-    slug: 'foundations',
-    title: 'Cloud-Native & Linux Foundations',
-    description: 'Linux systems engineering, shell scripting, namespaces, cgroups, and OCI container fundamentals with Docker and Podman.',
+    id: 'track-linux-containers',
+    slug: 'linux-containers',
+    title: 'Linux & Container Fundamentals',
+    description: 'Linux systems engineering, kernel namespaces, cgroups v2, chroot, rootless OCI runtimes, multi-stage Containerfiles, and systemd integration.',
     icon: 'Terminal',
     difficulty: 'Beginner',
     order: 1,
-    total_lessons: 15,
-    total_xp: 1500,
+    total_lessons: 8,
+    total_xp: 1400,
   },
   {
     id: 'track-kubernetes',
     slug: 'kubernetes',
     title: 'Kubernetes Core Architecture & Workloads',
-    description: 'Master Pods, Deployments, Services, ConfigMaps, Secrets, Storage, and Declarative manifests in real Kubernetes clusters.',
+    description: 'Master Pods, Deployments, Services, ConfigMaps, Secrets, Storage, Probes, and Declarative manifests in real Kubernetes clusters.',
     icon: 'Boxes',
     difficulty: 'Beginner',
     order: 2,
-    total_lessons: 20,
-    total_xp: 2500,
+    total_lessons: 15,
+    total_xp: 2900,
   },
   {
-    id: 'track-k8s-admin',
-    slug: 'k8s-admin',
-    title: 'Cluster Administration & etcd Operations',
-    description: 'Bootstrap clusters with kubeadm, handle control-plane high availability, etcd snapshots, disaster recovery, and node upgrades.',
-    icon: 'Server',
+    id: 'track-storage',
+    slug: 'storage',
+    title: 'Storage & Persistent Volumes',
+    description: 'StorageClasses, PersistentVolumeClaims, dynamic CSI volume provisioning, online expansion, volume snapshots, and stateful workloads.',
+    icon: 'Database',
     difficulty: 'Intermediate',
     order: 3,
-    total_lessons: 12,
-    total_xp: 1800,
+    total_lessons: 8,
+    total_xp: 1550,
   },
   {
     id: 'track-networking',
     slug: 'networking',
     title: 'Cloud-Native Networking, CNI & Gateway API',
-    description: 'Deep dive into CNI plugins (Calico/Cilium), CoreDNS resolution, Ingress Controllers, eBPF data planes, and Kubernetes Gateway API.',
+    description: 'CNI plugins (Calico/Cilium), CoreDNS resolution, Ingress Controllers, eBPF data planes, NetworkPolicies, and Kubernetes Gateway API.',
     icon: 'Network',
     difficulty: 'Intermediate',
     order: 4,
-    total_lessons: 14,
-    total_xp: 2100,
+    total_lessons: 13,
+    total_xp: 2600,
+  },
+  {
+    id: 'track-helm-kustomize',
+    slug: 'helm-kustomize',
+    title: 'Packaging with Helm & Kustomize',
+    description: 'Author production Helm charts, manage chart dependencies, leverage Go templates, and apply dry declarative Kustomize overlays.',
+    icon: 'Package',
+    difficulty: 'Intermediate',
+    order: 5,
+    total_lessons: 8,
+    total_xp: 1500,
+  },
+  {
+    id: 'track-administration',
+    slug: 'administration',
+    title: 'Cluster Operations & Administration',
+    description: 'Bootstrap clusters with kubeadm, handle control-plane high availability, etcd snapshots and disaster recovery, node drain, and PKI rotation.',
+    icon: 'Server',
+    difficulty: 'Advanced',
+    order: 6,
+    total_lessons: 12,
+    total_xp: 2700,
   },
   {
     id: 'track-security',
     slug: 'security',
-    title: 'Kubernetes Security, RBAC & Policy Hardening',
-    description: 'Implement RBAC, Pod Security Standards, NetworkPolicies, Seccomp profiles, image vulnerability scanning, and CIS benchmarks.',
+    title: 'Zero-Trust Kubernetes Security & RBAC',
+    description: 'Implement RBAC, Pod Security Standards (Restricted), NetworkPolicies, Seccomp profiles, image vulnerability scanning, and CIS benchmarks.',
     icon: 'ShieldCheck',
     difficulty: 'Intermediate',
-    order: 5,
-    total_lessons: 15,
-    total_xp: 2250,
-  },
-  {
-    id: 'track-helm',
-    slug: 'helm',
-    title: 'Packaging with Helm & Kustomize',
-    description: 'Author production Helm charts, manage chart repositories, leverage Go templates, and apply dry Kustomize overlays.',
-    icon: 'Package',
-    difficulty: 'Intermediate',
-    order: 6,
-    total_lessons: 10,
-    total_xp: 1500,
+    order: 7,
+    total_lessons: 13,
+    total_xp: 2800,
   },
   {
     id: 'track-gitops',
@@ -112,69 +129,91 @@ const DEFAULT_TRACKS = [
     description: 'Implement declarative GitOps workflows, App-of-Apps pattern, automated sync policies, drift detection, and automated rollbacks.',
     icon: 'GitBranch',
     difficulty: 'Intermediate',
-    order: 7,
-    total_lessons: 12,
-    total_xp: 2000,
-  },
-  {
-    id: 'track-observability',
-    slug: 'observability',
-    title: 'OpenTelemetry, Prometheus & Grafana',
-    description: 'End-to-end distributed tracing with OpenTelemetry, metric collection with Prometheus, PromQL alerting, and Grafana dashboarding.',
-    icon: 'Activity',
-    difficulty: 'Advanced',
     order: 8,
-    total_lessons: 15,
-    total_xp: 2400,
+    total_lessons: 11,
+    total_xp: 2350,
   },
   {
     id: 'track-service-mesh',
     slug: 'service-mesh',
     title: 'Service Mesh with Istio & Envoy Proxy',
-    description: 'Traffic shifting, canary releases, mutual TLS (mTLS), fault injection, rate limiting, and Envoy sidecar telemetry.',
+    description: 'Traffic shifting, canary releases, mutual TLS (mTLS), fault injection, circuit breaking, rate limiting, and Envoy sidecar telemetry.',
     icon: 'Layers',
     difficulty: 'Advanced',
     order: 9,
-    total_lessons: 14,
+    total_lessons: 11,
+    total_xp: 2450,
+  },
+  {
+    id: 'track-observability',
+    slug: 'observability',
+    title: 'OpenTelemetry, Prometheus & Grafana',
+    description: 'End-to-end distributed tracing with OpenTelemetry, metric collection with Prometheus, PromQL alerting, Loki log analysis, and Grafana.',
+    icon: 'Activity',
+    difficulty: 'Advanced',
+    order: 10,
+    total_lessons: 10,
+    total_xp: 2200,
+  },
+  {
+    id: 'track-troubleshooting',
+    slug: 'troubleshooting',
+    title: 'Production Troubleshooting & Break-Fix',
+    description: 'Diagnose CrashLoopBackOff, ImagePullBackOff, Pending unschedulable pods, OOMKills, DNS outages, missing endpoints, and node failures.',
+    icon: 'Wrench',
+    difficulty: 'Advanced',
+    order: 11,
+    total_lessons: 10,
     total_xp: 2300,
   },
   {
-    id: 'track-sre',
-    slug: 'sre',
+    id: 'track-sre-performance',
+    slug: 'sre-performance',
     title: 'Site Reliability Engineering & SLOs',
-    description: 'Define meaningful SLIs/SLOs, error budget burn rates, alerting thresholds, HPA/VPA autoscaling, and capacity planning.',
+    description: 'Define meaningful SLIs/SLOs, calculate error budget burn rates, alerting thresholds, HPA/VPA autoscaling, and capacity planning.',
     icon: 'Gauge',
     difficulty: 'Advanced',
-    order: 10,
-    total_lessons: 12,
-    total_xp: 2000,
+    order: 12,
+    total_lessons: 8,
+    total_xp: 1800,
   },
   {
     id: 'track-platform-eng',
     slug: 'platform-eng',
     title: 'Platform Engineering & Multi-Cluster',
-    description: 'Build Internal Developer Platforms (IDPs), write Kubernetes Operators and CRDs in Go/Rust, and manage multi-cluster fleets.',
+    description: 'Build Internal Developer Platforms (IDPs), write Kubernetes Operators and CRDs in Go/Rust, and manage multi-cluster fleets with Cluster API.',
     icon: 'Cpu',
     difficulty: 'Expert',
-    order: 11,
-    total_lessons: 10,
-    total_xp: 2500,
+    order: 13,
+    total_lessons: 7,
+    total_xp: 1900,
   },
   {
     id: 'track-incidents',
     slug: 'incidents',
     title: 'Production Incident Response & Chaos',
-    description: 'Real-world break-fix simulations: debug crashloops, network partitions, DNS degradation, expired certs, and GitOps sync deadlocks.',
+    description: 'Real-world SEV-1 break-fix simulations: live CoreDNS failures, network partitions, PVC deadlocks, expired TLS certs, and GitOps sync jams.',
     icon: 'AlertTriangle',
     difficulty: 'Expert',
-    order: 12,
+    order: 14,
     total_lessons: 10,
-    total_xp: 3000,
+    total_xp: 3200,
+  },
+  {
+    id: 'track-certification',
+    slug: 'certification',
+    title: 'Real-World Exam & Certification Drills',
+    description: 'Timed multi-objective scenario drills covering CKA, CKAD, and CKS curriculum competencies under strict deterministic state evaluation.',
+    icon: 'Award',
+    difficulty: 'Expert',
+    order: 15,
+    total_lessons: 10,
+    total_xp: 3325,
   },
 ];
 
 export default function LearnIndexPage() {
-  const [tracks, setTracks] = useState<TrackSummary[]>(DEFAULT_TRACKS);
+  const [tracks, setTracks] = useState<TrackSummary[]>(AUTHORITATIVE_15_TRACKS);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('all');
 
@@ -207,10 +246,10 @@ export default function LearnIndexPage() {
             <span>Curriculum Tracks</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Cloud-Native Engineering Tracks
+            15 Cloud-Native Engineering Tracks
           </h1>
           <p className="text-slate-400 text-sm leading-relaxed">
-            12 progressive tracks from Linux kernel primitives to distributed Istio meshes, multi-cluster architectures, and production incident response.
+            15 complete progressive engineering tracks from Linux kernel primitives to distributed Istio meshes, multi-cluster architectures, and production incident response.
           </p>
         </div>
 
@@ -220,7 +259,7 @@ export default function LearnIndexPage() {
             <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search tracks..."
+              placeholder="Search tracks or topics..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 transition-colors"
@@ -283,10 +322,10 @@ export default function LearnIndexPage() {
                 </div>
 
                 <Link
-                  href={`/labs/k8s-pod-basics`}
+                  href={`/learn/${track.slug}`}
                   className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 font-semibold"
                 >
-                  <span>Start</span>
+                  <span>Explore</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
