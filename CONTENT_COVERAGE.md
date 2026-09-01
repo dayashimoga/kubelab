@@ -10,8 +10,8 @@ KubeLab provides comprehensive curriculum coverage across all 15 cloud-native do
 - **Lessons**: Over 60 structured modules with interactive markdown, architecture diagrams, and syntax highlighting
 - **Trivia & Quizzes**: Multiple-choice knowledge checks embedded in each module with deterministic scoring
 
-### 2. Hands-On Declarative Labs (145 Total)
-- **Declarative YAML Specifications**: 145 lab definitions across `labs/`
+### 2. Hands-On Declarative Labs (154 Total)
+- **Declarative YAML Specifications**: 154 lab definitions across `labs/`
 - **State-Based Grading**: Evaluated via JSONPath assertions against actual Kubernetes API state (`StateAssertion` rules)
 - **Live Terminal & YAML Editor**: Monaco editor with real-time client-side admission and PTY terminal
 

@@ -112,7 +112,7 @@ See [docs/README.md](docs/README.md) for the full documentation index.
 | [User Guide](docs/USER_GUIDE.md) | Registration, learning, labs, terminal, grading |
 | [Developer Guide](docs/DEVELOPER_GUIDE.md) | Local dev, coding conventions, contribution workflow |
 | [CI/CD](docs/CI_CD.md) | Pipeline architecture, caching, troubleshooting |
-| [Curriculum](docs/CURRICULUM.md) | 12 tracks, 145 labs, skill graph, learning paths |
+| [Curriculum](docs/CURRICULUM.md) | 15 tracks, 154 labs, skill graph, learning paths |
 | [Security](docs/SECURITY.md) | Security architecture, hardening, RBAC |
 | [Operations Runbook](docs/OPERATIONS_RUNBOOK.md) | Startup, deploy, backup, incident response |
 

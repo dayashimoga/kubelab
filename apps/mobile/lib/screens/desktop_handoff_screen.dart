@@ -46,10 +46,11 @@ class _DesktopHandoffScreenState extends State<DesktopHandoffScreen> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
               padding: const EdgeInsets.all(20),
@@ -130,6 +131,7 @@ class _DesktopHandoffScreenState extends State<DesktopHandoffScreen> {
             _stepItem('3', 'Your sandbox terminal, Monaco YAML editor, and progress sync instantly.'),
           ],
         ),
+      ),
       ),
     );
   }

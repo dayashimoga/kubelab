@@ -58,5 +58,5 @@ This document identifies gaps between requirements and current implementation, c
 | P2 gaps | 7 | 0 | 0 |
 | Total gaps | 25 | 0 | 0 |
 | Test coverage (Rust) | Unmeasured | ≥90% | ≥90% |
-| Lab certification | Schema only | Runtime | 145/145 |
+| Lab certification | Schema only | Runtime | 154/154 |
 | Incident scenarios | 1 | ≥10 | ≥10 |

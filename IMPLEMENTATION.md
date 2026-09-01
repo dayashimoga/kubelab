@@ -34,4 +34,4 @@ KubeLab is built on an asynchronous, high-throughput Rust backend, Next.js 15 fr
 - **Container Infrastructure**: Podman / Docker Compose (`infrastructure/containers/podman-compose.yml`)
 - **Kubernetes Sandbox**: Kind v1.30.0 with isolated namespaces, ResourceQuotas, and default-deny NetworkPolicies (`scripts/lab-up.ps1`)
 - **Observability**: OpenTelemetry Collector, Prometheus 2.54, Grafana 11.2 (auto-provisioned)
-- **Declarative Lab Engine**: `kubelab-validation-engine` evaluating JSONPath, Regex, and live cluster object state across 145 lab definitions.
+- **Declarative Lab Engine**: `kubelab-validation-engine` evaluating JSONPath, Regex, and live cluster object state across 154 lab definitions.

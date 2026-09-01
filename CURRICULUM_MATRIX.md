@@ -22,6 +22,6 @@
 
 ## Total Catalog Statistics
 - **Total Tracks**: 15
-- **Total Declarative Labs**: 145
+- **Total Declarative Labs**: 154
 - **Total Incident Scenarios**: 10
 - **Hands-On Coverage**: 100% Declarative YAML & Real K8s State Assertions

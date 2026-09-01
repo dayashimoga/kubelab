@@ -176,11 +176,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             style: TextStyle(color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.1),
           ),
           const SizedBox(height: 12),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
+          Material(
+            color: const Color(0xFF0F172A),
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFF1E293B)),
+              side: const BorderSide(color: Color(0xFF1E293B)),
             ),
             child: Column(
               children: [
@@ -188,7 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('Push Notifications', style: TextStyle(color: Colors.white, fontSize: 14)),
                   subtitle: const Text('Daily practice reminders & incident alerts', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                   value: _notificationsEnabled,
-                  activeColor: const Color(0xFF06B6D4),
+                  activeTrackColor: const Color(0xFF06B6D4),
                   onChanged: (v) => setState(() => _notificationsEnabled = v),
                 ),
                 const Divider(color: Color(0xFF1E293B), height: 1),
@@ -196,7 +196,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('Offline Track Caching', style: TextStyle(color: Colors.white, fontSize: 14)),
                   subtitle: const Text('Pre-fetch lesson theory and quizzes for offline study', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                   value: _offlineCacheEnabled,
-                  activeColor: const Color(0xFF06B6D4),
+                  activeTrackColor: const Color(0xFF06B6D4),
                   onChanged: (v) => setState(() => _offlineCacheEnabled = v),
                 ),
                 const Divider(color: Color(0xFF1E293B), height: 1),
@@ -204,7 +204,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('Haptic Feedback', style: TextStyle(color: Colors.white, fontSize: 14)),
                   subtitle: const Text('Vibrate on quiz submission and XP milestones', style: TextStyle(color: Color(0xFF64748B), fontSize: 12)),
                   value: _hapticFeedbackEnabled,
-                  activeColor: const Color(0xFF06B6D4),
+                  activeTrackColor: const Color(0xFF06B6D4),
                   onChanged: (v) => setState(() => _hapticFeedbackEnabled = v),
                 ),
               ],

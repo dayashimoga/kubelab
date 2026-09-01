@@ -16,7 +16,7 @@
 
 ### Validation Engine
 - `cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path labs/` → PASS
-- Validates all 145 declarative lab schema definitions
+- Validates all 154 declarative lab schema definitions
 
 ### Web Build
 - `pnpm --filter @kubelab/web build` → PASS

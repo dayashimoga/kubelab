@@ -21,8 +21,13 @@ target/
 .packages
 *.iml
 .idea/
-ios/Flutter/Generated.xcconfig
+ios/Flutter/
+apps/mobile/ios/Flutter/
+apps/mobile/ios/Runner/GeneratedPluginRegistrant.*
 android/local.properties
+apps/mobile/android/local.properties
+*.tsbuildinfo
+
 
 # Environment & Secrets
 .env

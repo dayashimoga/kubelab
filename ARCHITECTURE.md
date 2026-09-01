@@ -64,7 +64,7 @@ KubeLab is a production-grade cloud-native learning and lab platform built with:
 | `packages/ui` | TypeScript | Shared UI components |
 | `apps/web` | Next.js | Web application (PWA) |
 | `apps/mobile` | Flutter | Mobile companion app |
-| `labs/` | YAML | 145 declarative lab definitions (15 tracks) |
+| `labs/` | YAML | 154 declarative lab definitions (15 tracks) |
 | `infrastructure/` | YAML/Config | Containers, Kind, GitOps, Istio |
 
 ## Data Flow

@@ -30,7 +30,7 @@ All notable changes to KubeLab are documented in this file.
 
 ### Reliability & Lifecycle
 - **Disaster Recovery & Backup/Restore Harness**: Implemented `scripts/backup-restore-test.ps1` proving automated `pg_dump` snapshotting, disaster simulation, and 100% data recovery with RPO=0 and RTO < 5s.
-- **145-Lab Runtime Certification Harness**: Created `scripts/certify-labs.ps1` validating all 145 lab schemas and evaluator state assertions.
+- **154-Lab Runtime Certification Harness**: Created `scripts/certify-labs.ps1` validating all 154 lab schemas and evaluator state assertions.
 - **Disposable Kind Cluster Lifecycle**: Added `scripts/k8s-up.ps1`/`k8s-up.sh` and `scripts/k8s-down.ps1`/`k8s-down.sh` with zero-residue cleanup.
 - **Unified Observability Stack**: Added Tempo, Loki, and Prometheus datasources with trace-to-log/metric correlation in Grafana and created `scripts/verify-observability.ps1`.
 - **Coverage Tooling**: Added `scripts/coverage.ps1` and `scripts/coverage.sh` with `cargo-tarpaulin` and containerized execution.

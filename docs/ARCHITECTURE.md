@@ -124,7 +124,7 @@ graph TB
 - Declarative lab schema definition and parsing
 - State-based grading via Kubernetes API assertions
 - JSONPath field extraction and comparison
-- Support for 145 lab definitions across 12 tracks
+- Support for 154 lab definitions across 15 tracks
 
 ## Data Flow: Lab Lifecycle
 

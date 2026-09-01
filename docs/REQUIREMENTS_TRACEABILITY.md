@@ -7,7 +7,7 @@
 | FR-01 | User registration | `services/auth/src/password.rs`, `services/api/src/routes/auth.rs` | `auth_flow_test.rs` |
 | FR-02 | JWT authentication | `services/auth/src/jwt.rs`, `services/api/src/routes/auth.rs` | `jwt_edge_cases_test.rs` |
 | FR-03 | Progressive curriculum | `services/learning/src/service.rs`, `packages/curriculum/` | `api_contract_test.rs` |
-| FR-04 | 145 declarative labs | `labs/`, `packages/validation-engine/` | `validate_lab_schema` binary, `evaluator_negative_test.rs` |
+| FR-04 | 154 declarative labs | `labs/`, `packages/validation-engine/` | `validate_lab_schema` binary, `evaluator_negative_test.rs` |
 | FR-05 | Terminal over WebSocket | `services/api/src/routes/terminal_ws.rs` | `terminal_isolation_test.rs` |
 | FR-06 | Monaco editor | `apps/web/src/components/` | Playwright E2E |
 | FR-07 | State-based grading | `packages/validation-engine/src/assertions.rs` | `grading_no_fallback_test.rs` |

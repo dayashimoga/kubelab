@@ -22,7 +22,7 @@ podman run --rm --network host -v "$(pwd):/workspace" -w /workspace \
   kubelab-toolchain cargo test -- --ignored
 
 # 3. Lab Schema Validation
-echo "[4/4] Validating all 145 lab declarative YAML definitions inside container..."
+echo "[4/4] Validating all 154 lab declarative YAML definitions inside container..."
 podman run --rm -v "$(pwd):/workspace" -w /workspace kubelab-toolchain cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path labs/
 
 echo ""

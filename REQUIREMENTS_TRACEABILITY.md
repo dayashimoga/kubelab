@@ -9,7 +9,7 @@ This document traces every functional and non-functional requirement to its impl
 | FR-01 | User registration (email/password/role) | `services/auth/src/`, `services/api/src/routes/auth.rs` | `auth_flow_test.rs`, `jwt_edge_cases_test.rs` | `docs/SECURITY.md` |
 | FR-02 | JWT authentication + session management | `services/auth/src/`, `services/api/src/state.rs` | `auth_flow_test.rs`, `redis_session_test.rs` | `docs/SECURITY.md` |
 | FR-03 | 15-track progressive curriculum | `packages/curriculum/src/tracks.ts`, `labs/` | `lab_catalog_test.rs` | `docs/CURRICULUM.md` |
-| FR-04 | 145 declarative labs with K8s sandbox | `labs/`, `packages/validation-engine/` | `evaluator_comprehensive_test.rs`, `evaluator_negative_test.rs`, `lab_catalog_test.rs` | `docs/LAB_AUTHORING.md` |
+| FR-04 | 154 declarative labs with K8s sandbox | `labs/`, `packages/validation-engine/` | `evaluator_comprehensive_test.rs`, `evaluator_negative_test.rs`, `lab_catalog_test.rs` | `docs/LAB_AUTHORING.md` |
 | FR-05 | xterm.js terminal over WebSocket | `services/api/src/routes/terminal_ws.rs`, `apps/web/src/components/Terminal.tsx` | `terminal_isolation_test.rs`, `e2e/terminal.spec.ts` | `docs/USER_GUIDE.md` |
 | FR-06 | Monaco YAML editor for manifest apply | `apps/web/src/components/MonacoYamlEditor.tsx` | `e2e/full-journey.spec.ts`, `__tests__/editor.test.tsx` | `docs/USER_GUIDE.md` |
 | FR-07 | State-based grading via K8s API | `packages/validation-engine/src/` | `evaluator_comprehensive_test.rs`, `grading_no_fallback_test.rs` | `docs/LAB_AUTHORING.md` |

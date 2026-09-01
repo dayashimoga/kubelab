@@ -41,7 +41,7 @@ kubelab/
 │   ├── ui/                     # React UI component library
 │   ├── curriculum/             # Curriculum data and utilities
 │   └── lab-sdk/                # Lab authoring SDK
-├── labs/                       # 145 declarative lab definitions (YAML)
+├── labs/                       # 154 declarative lab definitions (YAML)
 ├── infrastructure/
 │   ├── containers/             # Containerfiles + compose definitions
 │   ├── gitops/                 # ArgoCD application manifests

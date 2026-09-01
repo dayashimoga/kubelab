@@ -9,7 +9,7 @@ Run via: `cargo bench --workspace`
 |---|---|---|
 | API response latency (p95) | < 200ms | Prometheus histogram |
 | Lab provisioning | < 30s | Trace span duration |
-| 145-lab schema validation | < 5s | CI job duration |
+| 154-lab schema validation | < 5s | CI job duration |
 | Web build time | < 60s | CI job duration |
 | Container image size (API) | < 100MB | `podman images` |
 | Container image size (Web) | < 200MB | `podman images` |

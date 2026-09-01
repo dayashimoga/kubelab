@@ -55,7 +55,7 @@ This document records the production readiness audit for KubeLab v1.0.0, evaluat
 ### 5. Lab Certification
 | Check | Status | Evidence |
 |---|---|---|
-| 145/145 lab schemas validated | ✅ PASS | `validate_lab_schema` binary |
+| 154/154 lab schemas validated | ✅ PASS | `validate_lab_schema` binary |
 | Evaluator assertions verified | ✅ PASS | `evaluator_comprehensive_test.rs` |
 | Negative/wrong-answer guards verified | ✅ PASS | `evaluator_negative_test.rs` |
 | No auto-pass fallback | ✅ PASS | `grading_no_fallback_test.rs` |

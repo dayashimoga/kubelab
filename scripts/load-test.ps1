@@ -56,17 +56,17 @@ if ($isLive) {
         }
     }
 } else {
-    Write-Host "Executing in-process async concurrency stress test harness..." -ForegroundColor Yellow
+    Write-Host "Executing in-process async concurrency stress test harness with measured latencies..." -ForegroundColor Yellow
     if (Get-Command cargo -ErrorAction SilentlyContinue) {
-        $out = cargo test -p kubelab-api --test rate_limit_auth_test --test api_contract_test -- --nocapture 2>&1
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "    [METRICS] In-process concurrent throughput: > 1,000 req/s" -ForegroundColor Green
-            Write-Host "    [METRICS] p95 Latency: < 15ms | Error Rate: 0.00%" -ForegroundColor Green
-            Write-Host "    [PASS] Concurrency stress test passed." -ForegroundColor Green
-        } else {
-            Write-Host "    [FAIL] In-process concurrency test failed: $out" -ForegroundColor Red
+        $out = cargo test -p kubelab-api --test concurrency_load_test -- --nocapture 2>&1
+        $outStr = "$out"
+        Write-Host $outStr
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "    [FAIL] In-process concurrency test failed" -ForegroundColor Red
             exit 1
         }
+    } else {
+        throw "Cargo is required for load testing"
     }
 }
 

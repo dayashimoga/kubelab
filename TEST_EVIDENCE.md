@@ -68,7 +68,7 @@ Reports: `target/coverage/tarpaulin-report.html`, `target/coverage/lcov.info`
 
 | Check | Count | Status |
 |---|---|---|
-| Schema validation | 145/145 | PASS |
+| Schema validation | 154/154 | PASS |
 | Evaluator assertions | All | PASS |
 | Negative conditions | All | PASS |
 | No auto-pass fallback | Verified | PASS |

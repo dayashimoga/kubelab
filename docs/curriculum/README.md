@@ -1,6 +1,6 @@
 # Curriculum Structure & Tracks
 
-KubeLab offers 15 tracks with 145 progressive hands-on labs:
+KubeLab offers 15 tracks with 154 progressive hands-on labs:
 1. Linux & Containers (8 labs)
 2. Kubernetes Core (15 labs)
 3. Storage & PVs (8 labs)

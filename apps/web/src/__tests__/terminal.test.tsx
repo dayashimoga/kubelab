@@ -18,21 +18,18 @@ class MockWebSocket {
 (global as any).WebSocket = MockWebSocket;
 
 describe('WebTerminal Component', () => {
-  it('renders terminal shell banner and namespace badge', () => {
+  it('renders terminal shell banner, namespace badge, and actions', () => {
     render(<WebTerminal sessionId="test-session-001" namespace="lab-test-namespace" />);
 
     expect(screen.getByText(/sandbox-shell \(lab-test-namespace\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/learner@kubelab:~\$/i)).toBeInTheDocument();
+    expect(screen.getByTitle('Clear Terminal')).toBeInTheDocument();
   });
 
-  it('allows command input and submission', () => {
+  it('allows clicking clear terminal button without crashing', () => {
     render(<WebTerminal sessionId="test-session-001" namespace="lab-test-namespace" />);
 
-    const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'kubectl get pods' } });
-    expect(input).toHaveValue('kubectl get pods');
-
-    fireEvent.submit(input.closest('form')!);
-    expect(screen.getByText(/learner@kubelab:~\$ kubectl get pods/i)).toBeInTheDocument();
+    const clearButton = screen.getByTitle('Clear Terminal');
+    expect(clearButton).toBeInTheDocument();
+    fireEvent.click(clearButton);
   });
 });

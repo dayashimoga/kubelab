@@ -176,7 +176,7 @@ class _QuizScreenState extends State<QuizScreen> {
             child: LinearProgressIndicator(
               value: (_currentIndex + 1) / widget.questions.length,
               backgroundColor: const Color(0xFF1E293B),
-              valueColor: const AnimatedStoppedAnimation(Color(0xFF06B6D4)),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF06B6D4)),
               minHeight: 6,
             ),
           ),
@@ -203,14 +203,14 @@ class _QuizScreenState extends State<QuizScreen> {
                 if (_submitted) {
                   if (index == q.correctIndex) {
                     borderCol = const Color(0xFF10B981);
-                    bgCol = const Color(0xFF10B981).withOpacity(0.15);
+                    bgCol = const Color(0x2610B981);
                   } else if (isSelected) {
                     borderCol = const Color(0xFFEF4444);
-                    bgCol = const Color(0xFFEF4444).withOpacity(0.15);
+                    bgCol = const Color(0x26EF4444);
                   }
                 } else if (isSelected) {
                   borderCol = const Color(0xFF06B6D4);
-                  bgCol = const Color(0xFF06B6D4).withOpacity(0.1);
+                  bgCol = const Color(0x1A06B6D4);
                 }
 
                 return InkWell(

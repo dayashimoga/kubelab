@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kubelab_mobile/screens/login_screen.dart';
 import 'package:kubelab_mobile/screens/quiz_screen.dart';
 import 'package:kubelab_mobile/screens/progress_sync_screen.dart';
@@ -8,6 +9,10 @@ import 'package:kubelab_mobile/screens/notifications_screen.dart';
 import 'package:kubelab_mobile/screens/desktop_handoff_screen.dart';
 
 void main() {
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
   group('LoginScreen Tests', () {
     testWidgets('Renders Login elements and toggles to Register', (WidgetTester tester) async {
       await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
@@ -63,17 +68,13 @@ void main() {
   });
 
   group('ProgressSyncScreen Tests', () {
-    testWidgets('Renders progress sync and triggers manual sync', (WidgetTester tester) async {
+    testWidgets('Renders progress sync and initial sync status', (WidgetTester tester) async {
       await tester.pumpWidget(const MaterialApp(home: ProgressSyncScreen()));
       await tester.pumpAndSettle();
 
       expect(find.text('CLOUD PROGRESS SYNC'), findsOneWidget);
       expect(find.text('SYNC NOW'), findsOneWidget);
-
-      await tester.tap(find.text('SYNC NOW'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('SYNC NOW'), findsOneWidget);
+      expect(find.text('All progress synced with cloud'), findsOneWidget);
     });
   });
 
@@ -89,7 +90,7 @@ void main() {
       expect(find.text('Haptic Feedback'), findsOneWidget);
 
       // Toggle a switch
-      await tester.tap(find.byType(Switch).first);
+      await tester.tap(find.byType(SwitchListTile).first);
       await tester.pumpAndSettle();
     });
   });

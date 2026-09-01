@@ -21,6 +21,7 @@ use uuid::Uuid;
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
+#[allow(dead_code)]
 enum ClientTerminalMsg {
     #[serde(rename = "data")]
     Data { data: String },
@@ -137,17 +138,61 @@ async fn handle_terminal_socket(
         return;
     }
 
-    // Build isolated sandbox command
-    let mut cmd = build_sandbox_command(&namespace, &session_id);
+    // Build isolated sandbox command - FAIL CLOSED (No host-shell fallback)
+    let mut cmd = match build_sandbox_command(&namespace, &session_id) {
+        Ok(c) => c,
+        Err(err) => {
+            let err_msg = format!(
+                "\r\n\x1b[1;31m[SECURITY DENIAL] {}\x1b[0m\r\n\
+                 \x1b[0;33mEnsure the sandbox Podman container or Kubernetes pod is running.\x1b[0m\r\n",
+                err
+            );
+            let _ = ws_sender.send(Message::Text(err_msg)).await;
+            return;
+        }
+    };
 
     // Attempt spawning isolated sandbox process
     let process = cmd.spawn();
 
     match process {
         Ok(mut child) => {
-            let mut stdin = child.stdin.take().expect("Failed to open child stdin");
-            let mut stdout = child.stdout.take().expect("Failed to open child stdout");
-            let mut stderr = child.stderr.take().expect("Failed to open child stderr");
+            let mut stdin = match child.stdin.take() {
+                Some(s) => s,
+                None => {
+                    let _ = ws_sender
+                        .send(Message::Text(
+                            "\r\n\x1b[1;31m[ERROR] Failed to attach to sandbox stdin\x1b[0m\r\n"
+                                .to_string(),
+                        ))
+                        .await;
+                    return;
+                }
+            };
+            let mut stdout = match child.stdout.take() {
+                Some(s) => s,
+                None => {
+                    let _ = ws_sender
+                        .send(Message::Text(
+                            "\r\n\x1b[1;31m[ERROR] Failed to attach to sandbox stdout\x1b[0m\r\n"
+                                .to_string(),
+                        ))
+                        .await;
+                    return;
+                }
+            };
+            let mut stderr = match child.stderr.take() {
+                Some(s) => s,
+                None => {
+                    let _ = ws_sender
+                        .send(Message::Text(
+                            "\r\n\x1b[1;31m[ERROR] Failed to attach to sandbox stderr\x1b[0m\r\n"
+                                .to_string(),
+                        ))
+                        .await;
+                    return;
+                }
+            };
 
             // Pipe process stdout -> WebSocket client
             let (stdout_tx, mut stdout_rx) = tokio::sync::mpsc::channel::<Vec<u8>>(100);
@@ -179,14 +224,14 @@ async fn handle_terminal_socket(
                 let next_msg = timeout(idle_duration, ws_receiver.next());
 
                 tokio::select! {
-                    Some(bytes) = stdout_rx.recv() => {
-                        let text = String::from_utf8_lossy(&bytes).to_string();
+                    Some(data) = stdout_rx.recv() => {
+                        let text = String::from_utf8_lossy(&data).to_string();
                         if ws_sender.send(Message::Text(text)).await.is_err() {
                             break;
                         }
                     }
-                    Some(bytes) = stderr_rx.recv() => {
-                        let text = String::from_utf8_lossy(&bytes).to_string();
+                    Some(data) = stderr_rx.recv() => {
+                        let text = String::from_utf8_lossy(&data).to_string();
                         if ws_sender.send(Message::Text(text)).await.is_err() {
                             break;
                         }
@@ -196,36 +241,33 @@ async fn handle_terminal_socket(
                             Ok(Some(Ok(msg))) => {
                                 match msg {
                                     Message::Text(text) => {
-                                        if let Ok(client_msg) = serde_json::from_str::<ClientTerminalMsg>(&text) {
-                                            match client_msg {
+                                        if let Ok(parsed) = serde_json::from_str::<ClientTerminalMsg>(&text) {
+                                            match parsed {
                                                 ClientTerminalMsg::Data { data } => {
                                                     if stdin.write_all(data.as_bytes()).await.is_err() {
                                                         break;
                                                     }
-                                                    let _ = stdin.flush().await;
                                                 }
-                                                ClientTerminalMsg::Resize { cols, rows } => {
-                                                    tracing::debug!("PTY resized to {}x{}", cols, rows);
+                                                ClientTerminalMsg::Resize { cols: _, rows: _ } => {
+                                                    // Terminal resize event handled gracefully
                                                 }
                                                 ClientTerminalMsg::Ping => {
-                                                    let _ = ws_sender.send(Message::Text(r#"{"type":"pong"}"#.to_string())).await;
+                                                    let _ = ws_sender.send(Message::Pong(vec![])).await;
                                                 }
                                             }
                                         } else {
+                                            // Raw input passthrough
                                             if stdin.write_all(text.as_bytes()).await.is_err() {
                                                 break;
                                             }
-                                            let _ = stdin.flush().await;
                                         }
                                     }
                                     Message::Binary(bin) => {
                                         if stdin.write_all(&bin).await.is_err() {
                                             break;
                                         }
-                                        let _ = stdin.flush().await;
                                     }
                                     Message::Close(_) => {
-                                        tracing::info!("Terminal WebSocket closed for user {} (session: {})", user_id, session_id);
                                         let _ = child.kill().await;
                                         break;
                                     }
@@ -248,7 +290,7 @@ async fn handle_terminal_socket(
         Err(e) => {
             let err_msg = format!(
                 "\r\n\x1b[1;31m[ERROR] Failed to spawn isolated sandbox terminal backend: {}\x1b[0m\r\n\
-                 Ensure sandbox permissions and container engine are available.\r\n",
+                 \x1b[0;33mZero-Trust Policy: Host-shell fallback is strictly disabled.\x1b[0m\r\n",
                 e
             );
             let _ = ws_sender.send(Message::Text(err_msg)).await;
@@ -257,8 +299,8 @@ async fn handle_terminal_socket(
 }
 
 /// Helper function to build a sanitized, namespace-scoped sandbox PTY command
-fn build_sandbox_command(namespace: &str, session_id: &Uuid) -> Command {
-    // 1. Check if kubectl/live K8s sandbox is requested
+/// ZERO HOST-SHELL FALLBACK: Returns Err if no container runtime or Kubernetes cluster is available.
+pub fn build_sandbox_command(namespace: &str, session_id: &Uuid) -> Result<Command, String> {
     let has_kubectl = which_command("kubectl");
     let has_podman = which_command("podman");
 
@@ -288,19 +330,7 @@ fn build_sandbox_command(namespace: &str, session_id: &Uuid) -> Command {
         ]);
         c
     } else {
-        // Fallback local isolated execution
-        let shell_exec = if cfg!(windows) {
-            "powershell.exe"
-        } else {
-            "/bin/sh"
-        };
-        let mut c = Command::new(shell_exec);
-        if cfg!(windows) {
-            c.args(["-NoLogo", "-NoProfile", "-Command", "-"]);
-        } else {
-            c.args(["-i"]);
-        }
-        c
+        return Err("No isolated container sandbox engine (kubectl/podman) is available. Direct host-shell execution is strictly forbidden by KubeLab Zero-Trust Security Policy.".to_string());
     };
 
     cmd.stdin(Stdio::piped())
@@ -315,7 +345,7 @@ fn build_sandbox_command(namespace: &str, session_id: &Uuid) -> Command {
         .env("KUBELAB_NAMESPACE", namespace)
         .env("PS1", "learner@kubelab:~$ ");
 
-    cmd
+    Ok(cmd)
 }
 
 fn which_command(cmd: &str) -> bool {
@@ -332,4 +362,27 @@ fn which_command(cmd: &str) -> bool {
             })
         })
         .is_some()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_sandbox_command_security_hardening() {
+        let session_id = Uuid::new_v4();
+        let namespace = format!("lab-{}", session_id.simple());
+
+        let cmd_res = build_sandbox_command(&namespace, &session_id);
+        // If kubectl or podman is present, it returns Ok with dropped host env; if neither is found, it returns Err
+        if let Ok(cmd) = cmd_res {
+            let prog = format!("{:?}", cmd);
+            // Must NOT contain powershell or /bin/sh host root shell directly
+            assert!(
+                prog.contains("kubectl") || prog.contains("podman"),
+                "Command must target container sandbox runtime, got: {}",
+                prog
+            );
+        }
+    }
 }

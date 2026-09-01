@@ -14,7 +14,7 @@ A: Yes. KubeLab is Apache 2.0 licensed open-source software.
 ## Learning
 
 **Q: How many labs are available?**
-A: 145 labs across 12 tracks, from Linux basics to multi-cluster disaster recovery.
+A: 154 labs across 15 tracks, from Linux basics to multi-cluster disaster recovery.
 
 **Q: Can I use the mobile app for labs?**
 A: Labs with terminals require the desktop web app. The mobile app supports lessons, quizzes, and progress tracking with a "Continue on Desktop" handoff for labs.

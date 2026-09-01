@@ -16,7 +16,7 @@ KubeLab is an open-source, production-grade Cloud-Native Engineering Learning Pl
 
 ### 1. Progressive Learning Curriculum
 - 12 tracks covering Linux → Kubernetes → GitOps → SRE → Incident Response
-- 145 hands-on labs with real infrastructure
+- 154 hands-on labs with real infrastructure
 - Interactive quizzes and assessments
 - Skill tree DAG with prerequisite tracking
 - XP-based progression with levels and badges

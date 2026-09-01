@@ -10,7 +10,7 @@
 - [x] Live PostgreSQL 16, Redis 7, NATS 2.10 integration suite
 - [x] Multi-tenant session and namespace isolation
 - [x] Role-based access control and token security
-- [x] 145 Declarative YAML labs across 14 tracks
+- [x] 154 Declarative YAML labs across 15 tracks
 - [x] Kind v0.24 disposable cluster automation
 - [x] Zero-residue cleanup and purge scripts
 - [x] Full documentation suite (Product Spec, Repository Structure, Setup, Developer Guide, Operations, DR)
@@ -19,7 +19,7 @@
 - [x] Pod Security Standards restricted profile & LimitRange enforcement
 - [x] Removal of auto-pass grading fallbacks
 - [x] Automated PostgreSQL disaster recovery & backup/restore verification (RPO=0, RTO<5s)
-- [x] 145 Declarative lab schema & evaluator runtime certification
+- [x] 154 Declarative lab schema & evaluator runtime certification
 - [x] Unified Prometheus + Tempo + Loki Grafana observability stack
 - [x] Disposable Kind K8s cluster automation & zero-residue cleanup scripts
 - [x] GitHub Actions CI Playwright test execution & security audit scanning

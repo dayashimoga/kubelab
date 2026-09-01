@@ -67,7 +67,7 @@ Tests in `apps/mobile/test/widget_test.dart`:
 ```bash
 cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path labs/
 ```
-Validates all 145 lab YAML definitions against the schema.
+Validates all 154 lab YAML definitions against the schema.
 
 ### Security Tests
 ```bash

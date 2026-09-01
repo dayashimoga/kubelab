@@ -6,8 +6,8 @@
 |---|---|---|---|
 | FR-01 | User registration with email/password and role assignment | P0 | Implemented |
 | FR-02 | JWT-based authentication with session management | P0 | Implemented |
-| FR-03 | Progressive curriculum with 12 tracks from beginner to advanced | P0 | Implemented |
-| FR-04 | 145 declarative labs with real Kubernetes sandbox environments | P0 | Implemented |
+| FR-03 | Progressive curriculum with 15 tracks from beginner to advanced | P0 | Implemented |
+| FR-04 | 154 declarative labs with real Kubernetes sandbox environments | P0 | Implemented |
 | FR-05 | Real xterm.js terminal over WebSocket for lab execution | P0 | Implemented |
 | FR-06 | Monaco editor for YAML manifest editing and application | P0 | Implemented |
 | FR-07 | State-based grading via Kubernetes API assertions | P0 | Implemented |
@@ -44,18 +44,11 @@
 ### FR-04: Declarative Labs
 - Labs defined as YAML in `labs/` directory
 - Each lab has tasks with `StateAssertion` grading rules
-- Validation engine parses and validates all 145 lab schemas
-- Labs span 12 tracks: Linux, Containers, K8s Core, Networking, Security, Helm, GitOps, Service Mesh, Observability, SRE, Platform Engineering, Incident Response
+- Validation engine parses and validates all 154 lab schemas
+- Labs span 15 tracks: Linux & Containers, Kubernetes Core, Storage, Networking, Helm & Kustomize, Administration, Zero-Trust Security, GitOps, Service Mesh, Observability, Troubleshooting, SRE & Performance, Platform Engineering, Incidents, Certification Drills
 
 ### FR-05: Terminal
-- WebSocket connection authenticated via JWT
-- Session ownership verified (claims.sub == session.user_id)
-- Sandboxed shell with sanitized environment variables
-- 30-minute inactivity timeout
-- No access to host filesystem or Docker socket
-
-### FR-07: State-Based Grading
-- Grading queries actual Kubernetes cluster state via JSONPath
-- Supports operators: Equals, Contains, Exists, GreaterThan, Regex
-- No auto-pass fallbacks; unavailable clusters return explicit errors
-- Score aggregation across multiple tasks per lab
+- Authenticated WebSocket endpoint at `/ws/terminal/{sessionId}`
+- Real container shell via `kubectl exec` / `podman exec` inside learner sandbox
+- Zero host shell fallback (fails closed if sandbox container is unavailable)
+- Dropped environment variables and UID 10001 enforcement

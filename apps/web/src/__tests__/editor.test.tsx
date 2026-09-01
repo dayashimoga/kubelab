@@ -6,13 +6,14 @@ import { MonacoYamlEditor } from '../components/MonacoYamlEditor';
 describe('MonacoYamlEditor Component', () => {
   const initialYaml = 'apiVersion: v1\nkind: Pod\nmetadata:\n  name: test-pod';
 
-  it('renders YAML editor header, schema badge, and content', () => {
+  it('renders YAML editor header and schema badge', () => {
     const onApply = vi.fn();
     render(<MonacoYamlEditor initialYaml={initialYaml} onApply={onApply} />);
 
     expect(screen.getByText('manifest.yaml')).toBeInTheDocument();
     expect(screen.getByText('k8s-schema-v1.30')).toBeInTheDocument();
-    expect(screen.getByDisplayValue(initialYaml)).toBeInTheDocument();
+    // Monaco is dynamically loaded; in jsdom it shows the loading placeholder
+    expect(screen.getByText(/Loading Monaco Editor/)).toBeInTheDocument();
   });
 
   it('triggers onApply callback when kubectl apply button is clicked', async () => {
