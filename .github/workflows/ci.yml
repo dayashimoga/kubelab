@@ -184,8 +184,11 @@ jobs:
           pnpm install --frozen-lockfile=false
           pnpm audit --prod --audit-level critical
 
+      - name: Create Target Directory for Artifacts
+        run: mkdir -p target
+
       - name: Generate SBOM (Software Bill of Materials)
-        uses: anchore/sbom-action@v0.17.0
+        uses: anchore/sbom-action@v0.18.0
         with:
           path: ./
           format: 'spdx-json'

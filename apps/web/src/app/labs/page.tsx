@@ -107,7 +107,7 @@ export default function LabsCatalogPage() {
           <span>Live Lab Environments</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
-          Hands-On Declarative <span className="gradient-text-cyan">Lab Catalog</span>
+          Hands-On Labs <span className="gradient-text-cyan">Catalog</span>
         </h1>
         <p className="text-slate-300 text-sm sm:text-base max-w-2xl">
           Every lab provisions a live, sandboxed Kubernetes environment. Solve objectives using real kubectl commands and Monaco YAML manifests.
@@ -146,9 +146,14 @@ export default function LabsCatalogPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <span className="text-[11px] font-mono text-cyan-400 uppercase font-semibold">
-                    {lab.track}
-                  </span>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-mono text-cyan-400 uppercase font-semibold">
+                      {lab.track}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700/60">
+                      {lab.id}
+                    </span>
+                  </div>
                   <h3 className="text-base font-bold text-white">{lab.title}</h3>
                   <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
                     {lab.description}

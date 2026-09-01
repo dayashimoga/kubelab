@@ -8,7 +8,7 @@ test.describe('WCAG 2.2 AA Accessibility & Keyboard Nav', () => {
       await page.goto(route);
 
       // 1. Verify single primary landmark
-      const mainLandmark = page.locator('main, role=main');
+      const mainLandmark = page.locator('main, [role="main"]');
       expect(await mainLandmark.count()).toBeGreaterThanOrEqual(1);
 
       // 2. Ensure heading hierarchy (h1 present)
