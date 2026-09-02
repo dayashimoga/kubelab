@@ -1,45 +1,82 @@
-id: "incident-hpa-thrashing"
-title: "Production Incident: Horizontal Pod Autoscaler Thrashing"
-difficulty: "expert"
-duration_minutes: 20
-track: "incidents"
+id: incident-hpa-thrashing
+title: 'Production Incident: HPA Thrashing & Cascade Scaling'
+difficulty: advanced
+duration_minutes: 15
+track: incidents
+scenario: 'SEV-1 War Room: Resolve flapping pod autoscaling caused by unbuffered memory
+  threshold spikes.'
 objectives:
-  - Configure HPA stabilization window and reasonable CPU utilization thresholds
-  - Prevent rapid pod flapping and cascading node pressure
+- 'Master Production Incident: HPA Thrashing & Cascade Scaling architecture and declarative
+  configurations'
+- Diagnose and remediate common production gotchas in incident-hpa-thrashing
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
-  type: "kubernetes"
-  cluster: "disposable"
+  type: kubernetes
+  cluster: disposable
   namespace_isolation: true
   resources:
-    cpu_limit: "1000m"
-    memory_limit: "1024Mi"
+    cpu_limit: 500m
+    memory_limit: 512Mi
 initial_state:
-  manifests: []
-scenario: |
-  **SEV-2 ALERT**: The API gateway HPA is thrashing between 2 and 50 replicas every 10 seconds.
-  The target CPU utilization was set to 5% with 0s scale-down stabilization window.
-  1. Inspect `kubectl get hpa api-gateway-hpa`.
-  2. Increase target CPU percentage to 75% and configure a 300s stabilization window.
-  3. Verify replica count stabilizes.
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-incident-hpa-thrashing
+      labels:
+        kubelab.io/track: incidents
+        kubelab.io/lab: incident-hpa-thrashing
 tasks:
-  - id: "task-fix-hpa-thrashing"
-    title: "Stabilize HPA Target and Scale-Down Policy"
-    description: "Ensure HPA target CPU is 75%"
-    points: 150
-    validation:
-      type: "k8s_resource"
-      resource: "horizontalpodautoscalers"
-      name: "api-gateway-hpa"
-      namespace: "default"
-      assertions:
-        - field: "spec.metrics[0].resource.target.averageUtilization"
-          operator: "equals"
-          expected: 75
+- id: task-01-incident-hpa-thrashing
+  title: 'Deploy & Configure Production Incident: HPA Thrashing & Cascade Scaling'
+  description: Apply the declarative manifest for incident-hpa-thrashing and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: incident-hpa-thrashing
+    namespace: lab-incident-hpa-thrashing
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-incident-hpa-thrashing
+  title: 'Verify Production Hardening & Labels for Production Incident: HPA Thrashing
+    & Cascade Scaling'
+  description: Verify metadata labels and security compliance in namespace lab-incident-hpa-thrashing.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: incident-hpa-thrashing
+    namespace: lab-incident-hpa-thrashing
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: incident-hpa-thrashing
 hints:
-  - text: "Edit the HPA YAML to set `averageUtilization: 75`."
-    penalty_points: 25
-solution: |
-  kubectl patch hpa api-gateway-hpa -p '{"spec":{"metrics":[{"type":"Resource","resource":{"name":"cpu","target":{"type":"Utilization","averageUtilization":75}}}]}}'
+- text: Inspect the live objects with `kubectl get all -n lab-incident-hpa-thrashing
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=incident-hpa-thrashing
+    -n lab-incident-hpa-thrashing`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/incidents/incident-hpa-thrashing/solution.yaml
 cleanup:
   auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

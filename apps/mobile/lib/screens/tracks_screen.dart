@@ -80,34 +80,108 @@ class _TracksScreenState extends State<TracksScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredTracks = CurriculumRepository.tracks.where((t) {
-      final matchesSearch = t.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+    final allTracks = CurriculumRepository.tracks;
+
+    // CRITICAL: If the repository is empty, show explicit error state
+    if (allTracks.isEmpty) {
+      return Scaffold(
+        backgroundColor: const Color(0xFF0A0E17),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.warning_amber_rounded, color: Color(0xFFF59E0B), size: 56),
+                const SizedBox(height: 16),
+                const Text(
+                  'No Tracks Available',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'CurriculumRepository.tracks is empty.\n'
+                  'The curriculum data may not have loaded correctly.\n'
+                  'Restart the app to retry.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFFFCA5A5),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final filteredTracks = allTracks.where((t) {
+      final matchesSearch = _searchQuery.isEmpty ||
+          t.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           t.description.toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesDiff = _selectedDifficulty == 'all' ||
           t.difficulty.toLowerCase() == _selectedDifficulty.toLowerCase();
       return matchesSearch && matchesDiff;
     }).toList();
 
+    final totalLessons = allTracks.expand((t) => t.modules).expand((m) => m.lessons).length;
+    final totalModules = allTracks.expand((t) => t.modules).length;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0A0E17),
-      appBar: AppBar(
-        title: const Text(
-          '15 ENGINEERING TRACKS',
-          style: TextStyle(
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.2,
-            fontSize: 16,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: const Color(0xFF0F172A),
-        elevation: 0,
-      ),
       body: Column(
         children: [
+          // Header with live counts
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            color: const Color(0xFF0F172A),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '15 Engineering Tracks',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.8,
+                        fontSize: 17,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF06B6D4).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFF06B6D4).withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        '${allTracks.length}T · ${totalModules}M · ${totalLessons}L',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'monospace',
+                          color: Color(0xFF06B6D4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+
           // Search & Filter Bar
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             color: const Color(0xFF0F172A),
             child: Column(
               children: [
@@ -115,7 +189,7 @@ class _TracksScreenState extends State<TracksScreen> {
                   onChanged: (val) => setState(() => _searchQuery = val),
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                   decoration: InputDecoration(
-                    hintText: 'Search 15 tracks or technologies...',
+                    hintText: 'Search tracks, technologies...',
                     hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
                     prefixIcon: const Icon(Icons.search, color: Color(0xFF06B6D4), size: 20),
                     filled: true,
@@ -132,9 +206,10 @@ class _TracksScreenState extends State<TracksScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
+                SizedBox(
+                  height: 36,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
                     children: ['all', 'beginner', 'intermediate', 'advanced', 'expert'].map((diff) {
                       final isSelected = _selectedDifficulty == diff;
                       return Padding(
@@ -151,6 +226,13 @@ class _TracksScreenState extends State<TracksScreen> {
                           selected: isSelected,
                           selectedColor: const Color(0xFF06B6D4),
                           backgroundColor: const Color(0xFF0A0E17),
+                          side: BorderSide(
+                            color: isSelected
+                                ? const Color(0xFF06B6D4)
+                                : const Color(0xFF1E293B),
+                          ),
+                          visualDensity: VisualDensity.compact,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           onSelected: (selected) {
                             if (selected) setState(() => _selectedDifficulty = diff);
                           },
@@ -163,136 +245,169 @@ class _TracksScreenState extends State<TracksScreen> {
             ),
           ),
 
-          // Track List
+          // Track List or Empty Filter State
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: filteredTracks.length,
-              itemBuilder: (context, index) {
-                final track = filteredTracks[index];
-                final trackColor = _parseColor(track.colorHex);
-                final progress = _progressMap[track.slug] ?? 0.0;
-
-                return Card(
-                  color: const Color(0xFF0F172A),
-                  margin: const EdgeInsets.only(bottom: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: Color(0xFF1E293B)),
-                  ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ModulesScreen(track: track),
+            child: filteredTracks.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.filter_list_off, color: Color(0xFF64748B), size: 48),
+                        const SizedBox(height: 12),
+                        Text(
+                          _searchQuery.isNotEmpty
+                              ? 'No tracks match "$_searchQuery"'
+                              : 'No tracks match "$_selectedDifficulty" filter',
+                          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                          textAlign: TextAlign.center,
                         ),
-                      ).then((_) => _loadProgress());
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: trackColor.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: trackColor.withValues(alpha: 0.3)),
-                                ),
-                                child: Icon(_getIconData(track.icon), color: trackColor, size: 24),
+                        const SizedBox(height: 16),
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _searchQuery = '';
+                              _selectedDifficulty = 'all';
+                            });
+                          },
+                          icon: const Icon(Icons.clear_all, size: 18),
+                          label: const Text('Clear Filters'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF06B6D4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filteredTracks.length,
+                    itemBuilder: (context, index) {
+                      final track = filteredTracks[index];
+                      final trackColor = _parseColor(track.colorHex);
+                      final progress = _progressMap[track.slug] ?? 0.0;
+                      final lessonCount = track.modules.expand((m) => m.lessons).length;
+
+                      return Card(
+                        color: const Color(0xFF0F172A),
+                        margin: const EdgeInsets.only(bottom: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(color: Color(0xFF1E293B)),
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ModulesScreen(track: track),
                               ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                            ).then((_) => _loadProgress());
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
                                   children: [
-                                    Text(
-                                      track.title,
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                    Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: trackColor.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: trackColor.withValues(alpha: 0.3)),
                                       ),
+                                      child: Icon(_getIconData(track.icon), color: trackColor, size: 24),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF1E293B),
-                                            borderRadius: BorderRadius.circular(4),
-                                          ),
-                                          child: Text(
-                                            track.difficulty.toUpperCase(),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            track.title,
                                             style: const TextStyle(
-                                              fontSize: 9,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.bold,
-                                              color: Color(0xFF94A3B8),
-                                              fontFamily: 'monospace',
+                                              color: Colors.white,
                                             ),
                                           ),
+                                          const SizedBox(height: 4),
+                                          Wrap(
+                                            spacing: 6,
+                                            runSpacing: 4,
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF1E293B),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  track.difficulty.toUpperCase(),
+                                                  style: const TextStyle(
+                                                    fontSize: 9,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFF94A3B8),
+                                                    fontFamily: 'monospace',
+                                                  ),
+                                                ),
+                                              ),
+                                              Text(
+                                                '$lessonCount Lessons • ${track.totalXp} XP',
+                                                style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const Icon(Icons.chevron_right, color: Color(0xFF64748B)),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  track.description,
+                                  style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8), height: 1.4),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 12),
+                                // Progress bar
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: LinearProgressIndicator(
+                                          value: progress,
+                                          backgroundColor: const Color(0xFF1E293B),
+                                          valueColor: AlwaysStoppedAnimation(trackColor),
+                                          minHeight: 4,
                                         ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          '${track.totalLessons} Lessons • ${track.totalXp} XP',
-                                          style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
-                                        ),
-                                      ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      '${(progress * 100).toInt()}%',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: progress > 0 ? trackColor : const Color(0xFF64748B),
+                                        fontFamily: 'monospace',
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                              const Icon(Icons.chevron_right, color: Color(0xFF64748B)),
-                            ],
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            track.description,
-                            style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8), height: 1.4),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 12),
-                          // Progress bar
-                          Row(
-                            children: [
-                              Expanded(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(4),
-                                  child: LinearProgressIndicator(
-                                    value: progress,
-                                    backgroundColor: const Color(0xFF1E293B),
-                                    valueColor: AlwaysStoppedAnimation(trackColor),
-                                    minHeight: 4,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Text(
-                                '${(progress * 100).toInt()}%',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: progress > 0 ? trackColor : const Color(0xFF64748B),
-                                  fontFamily: 'monospace',
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),

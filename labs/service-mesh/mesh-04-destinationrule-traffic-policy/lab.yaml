@@ -1,0 +1,82 @@
+id: mesh-04-destinationrule-traffic-policy
+title: DestinationRule Load Balancing & Connection Pools
+difficulty: intermediate
+duration_minutes: 15
+track: service-mesh
+scenario: Configure connection pool limits, HTTP keep-alive timeouts, and load balancing
+  algorithms.
+objectives:
+- Master DestinationRule Load Balancing & Connection Pools architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in mesh-04-destinationrule-traffic-policy
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-mesh-04-destinationrule-traffic-policy
+      labels:
+        kubelab.io/track: service-mesh
+        kubelab.io/lab: mesh-04-destinationrule-traffic-policy
+tasks:
+- id: task-01-mesh-04-destinationrule-traffic-policy
+  title: Deploy & Configure DestinationRule Load Balancing & Connection Pools
+  description: Apply the declarative manifest for mesh-04-destinationrule-traffic-policy
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-04-destinationrule-traffic-policy
+    namespace: lab-mesh-04-destinationrule-traffic-policy
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-mesh-04-destinationrule-traffic-policy
+  title: Verify Production Hardening & Labels for DestinationRule Load Balancing &
+    Connection Pools
+  description: Verify metadata labels and security compliance in namespace lab-mesh-04-destinationrule-traffic-policy.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-04-destinationrule-traffic-policy
+    namespace: lab-mesh-04-destinationrule-traffic-policy
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: mesh-04-destinationrule-traffic-policy
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-mesh-04-destinationrule-traffic-policy
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=mesh-04-destinationrule-traffic-policy
+    -n lab-mesh-04-destinationrule-traffic-policy`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/service-mesh/mesh-04-destinationrule-traffic-policy/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

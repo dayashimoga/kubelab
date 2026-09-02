@@ -1,0 +1,82 @@
+id: linux-08-oci-spec-runc
+title: OCI Runtime Specification & Direct runc Container Execution
+difficulty: beginner
+duration_minutes: 15
+track: linux-containers
+scenario: Inspect OCI config.json, configure namespaces, mounts, capabilities, and
+  execute containers directly with runc.
+objectives:
+- Master OCI Runtime Specification & Direct runc Container Execution architecture
+  and declarative configurations
+- Diagnose and remediate common production gotchas in linux-08-oci-spec-runc
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-linux-08-oci-spec-runc
+      labels:
+        kubelab.io/track: linux-containers
+        kubelab.io/lab: linux-08-oci-spec-runc
+tasks:
+- id: task-01-linux-08-oci-spec-runc
+  title: Deploy & Configure OCI Runtime Specification & Direct runc Container Execution
+  description: Apply the declarative manifest for linux-08-oci-spec-runc and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: linux-08-oci-spec-runc
+    namespace: lab-linux-08-oci-spec-runc
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-linux-08-oci-spec-runc
+  title: Verify Production Hardening & Labels for OCI Runtime Specification & Direct
+    runc Container Execution
+  description: Verify metadata labels and security compliance in namespace lab-linux-08-oci-spec-runc.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: linux-08-oci-spec-runc
+    namespace: lab-linux-08-oci-spec-runc
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: linux-08-oci-spec-runc
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-linux-08-oci-spec-runc
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=linux-08-oci-spec-runc
+    -n lab-linux-08-oci-spec-runc`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/linux-containers/linux-08-oci-spec-runc/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

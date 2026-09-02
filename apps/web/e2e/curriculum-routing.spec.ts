@@ -41,21 +41,21 @@ test.describe('15-Track Curriculum & Dynamic Routing E2E Test Suite', () => {
 
     // Open Quiz Modal
     await page.getByRole('button', { name: 'Take Quiz' }).click();
-    await expect(page.getByText('Lesson Quiz • Quiz: Linux Filesystem Hierarchy')).toBeVisible();
+    await expect(page.getByText('Lesson Quiz • Assessment Bank • Linux Filesystem Hierarchy')).toBeVisible();
   });
 
   test('should navigate to Security track and verify unique non-pod content and quiz', async ({ page }) => {
     await page.goto('/learn/security');
 
     await expect(page.locator('h1')).toContainText('Zero-Trust Kubernetes Security & RBAC');
-    await expect(page.getByText('Role & RoleBinding for Least-Privilege')).toBeVisible();
+    await expect(page.getByText('Namespace RBAC Roles & RoleBindings')).toBeVisible();
 
     // Click Security lesson
-    await page.getByText('Role & RoleBinding for Least-Privilege').click();
+    await page.getByText('Namespace RBAC Roles & RoleBindings').click();
 
-    await expect(page.locator('h1')).toContainText('Role & RoleBinding for Least-Privilege');
+    await expect(page.locator('h1')).toContainText('Namespace RBAC Roles & RoleBindings');
     await expect(page.getByText('Launch Sandbox: sec-01-rbac-role-binding')).toBeVisible();
-    await expect(page.getByText('COMMON PRODUCTION MISTAKES')).toBeVisible();
+    await expect(page.getByText('Common Production Gotchas & Anti-Patterns')).toBeVisible();
   });
 
   test('should navigate to Service Mesh track and verify unique Istio content', async ({ page }) => {

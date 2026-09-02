@@ -1,0 +1,82 @@
+id: storage-05-volume-resizing-online
+title: Online Volume Expansion & Filesystem Resizing
+difficulty: advanced
+duration_minutes: 15
+track: storage
+scenario: 'Expand live PersistentVolumeClaims without downtime using allowVolumeExpansion:
+  true.'
+objectives:
+- Master Online Volume Expansion & Filesystem Resizing architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in storage-05-volume-resizing-online
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-storage-05-volume-resizing-online
+      labels:
+        kubelab.io/track: storage
+        kubelab.io/lab: storage-05-volume-resizing-online
+tasks:
+- id: task-01-storage-05-volume-resizing-online
+  title: Deploy & Configure Online Volume Expansion & Filesystem Resizing
+  description: Apply the declarative manifest for storage-05-volume-resizing-online
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-05-volume-resizing-online
+    namespace: lab-storage-05-volume-resizing-online
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-storage-05-volume-resizing-online
+  title: Verify Production Hardening & Labels for Online Volume Expansion & Filesystem
+    Resizing
+  description: Verify metadata labels and security compliance in namespace lab-storage-05-volume-resizing-online.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-05-volume-resizing-online
+    namespace: lab-storage-05-volume-resizing-online
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: storage-05-volume-resizing-online
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-storage-05-volume-resizing-online
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=storage-05-volume-resizing-online
+    -n lab-storage-05-volume-resizing-online`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/storage/storage-05-volume-resizing-online/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

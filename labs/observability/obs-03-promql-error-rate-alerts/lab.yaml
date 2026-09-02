@@ -1,0 +1,82 @@
+id: obs-03-promql-error-rate-alerts
+title: Writing PromQL Alerts for Latency & Error Rates
+difficulty: intermediate
+duration_minutes: 15
+track: observability
+scenario: Author PrometheusRule alert expressions measuring HTTP 5xx rates and p99
+  latency percentiles.
+objectives:
+- Master Writing PromQL Alerts for Latency & Error Rates architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in obs-03-promql-error-rate-alerts
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-obs-03-promql-error-rate-alerts
+      labels:
+        kubelab.io/track: observability
+        kubelab.io/lab: obs-03-promql-error-rate-alerts
+tasks:
+- id: task-01-obs-03-promql-error-rate-alerts
+  title: Deploy & Configure Writing PromQL Alerts for Latency & Error Rates
+  description: Apply the declarative manifest for obs-03-promql-error-rate-alerts
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: obs-03-promql-error-rate-alerts
+    namespace: lab-obs-03-promql-error-rate-alerts
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-obs-03-promql-error-rate-alerts
+  title: Verify Production Hardening & Labels for Writing PromQL Alerts for Latency
+    & Error Rates
+  description: Verify metadata labels and security compliance in namespace lab-obs-03-promql-error-rate-alerts.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: obs-03-promql-error-rate-alerts
+    namespace: lab-obs-03-promql-error-rate-alerts
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: obs-03-promql-error-rate-alerts
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-obs-03-promql-error-rate-alerts
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=obs-03-promql-error-rate-alerts
+    -n lab-obs-03-promql-error-rate-alerts`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/observability/obs-03-promql-error-rate-alerts/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

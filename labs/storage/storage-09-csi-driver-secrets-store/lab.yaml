@@ -1,0 +1,82 @@
+id: storage-09-csi-driver-secrets-store
+title: Secrets Store CSI Driver & Vault Key Injection
+difficulty: intermediate
+duration_minutes: 15
+track: storage
+scenario: Mount cloud vault secrets directly as filesystem files without storing raw
+  secrets in etcd.
+objectives:
+- Master Secrets Store CSI Driver & Vault Key Injection architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in storage-09-csi-driver-secrets-store
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-storage-09-csi-driver-secrets-store
+      labels:
+        kubelab.io/track: storage
+        kubelab.io/lab: storage-09-csi-driver-secrets-store
+tasks:
+- id: task-01-storage-09-csi-driver-secrets-store
+  title: Deploy & Configure Secrets Store CSI Driver & Vault Key Injection
+  description: Apply the declarative manifest for storage-09-csi-driver-secrets-store
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: storage-09-csi-driver-secrets-store
+    namespace: lab-storage-09-csi-driver-secrets-store
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-storage-09-csi-driver-secrets-store
+  title: Verify Production Hardening & Labels for Secrets Store CSI Driver & Vault
+    Key Injection
+  description: Verify metadata labels and security compliance in namespace lab-storage-09-csi-driver-secrets-store.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: storage-09-csi-driver-secrets-store
+    namespace: lab-storage-09-csi-driver-secrets-store
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: storage-09-csi-driver-secrets-store
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-storage-09-csi-driver-secrets-store
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=storage-09-csi-driver-secrets-store
+    -n lab-storage-09-csi-driver-secrets-store`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/storage/storage-09-csi-driver-secrets-store/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

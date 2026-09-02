@@ -1,0 +1,81 @@
+id: platform-03-cluster-api-aws-provision
+title: Declarative Fleet Provisioning with Cluster API (CAPI)
+difficulty: advanced
+duration_minutes: 15
+track: platform-eng
+scenario: Manage the lifecycle of Kubernetes clusters declaratively as custom resources.
+objectives:
+- Master Declarative Fleet Provisioning with Cluster API (CAPI) architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in platform-03-cluster-api-aws-provision
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-platform-03-cluster-api-aws-provision
+      labels:
+        kubelab.io/track: platform-eng
+        kubelab.io/lab: platform-03-cluster-api-aws-provision
+tasks:
+- id: task-01-platform-03-cluster-api-aws-provision
+  title: Deploy & Configure Declarative Fleet Provisioning with Cluster API (CAPI)
+  description: Apply the declarative manifest for platform-03-cluster-api-aws-provision
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: platform-03-cluster-api-aws-provision
+    namespace: lab-platform-03-cluster-api-aws-provision
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-platform-03-cluster-api-aws-provision
+  title: Verify Production Hardening & Labels for Declarative Fleet Provisioning with
+    Cluster API (CAPI)
+  description: Verify metadata labels and security compliance in namespace lab-platform-03-cluster-api-aws-provision.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: platform-03-cluster-api-aws-provision
+    namespace: lab-platform-03-cluster-api-aws-provision
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: platform-03-cluster-api-aws-provision
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-platform-03-cluster-api-aws-provision
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=platform-03-cluster-api-aws-provision
+    -n lab-platform-03-cluster-api-aws-provision`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/platform-eng/platform-03-cluster-api-aws-provision/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

@@ -1,0 +1,82 @@
+id: trouble-10-ingress-503-backend-dead
+title: Troubleshooting Ingress 503 Service Unavailable
+difficulty: advanced
+duration_minutes: 15
+track: troubleshooting
+scenario: Debug Ingress controller routing timeouts and unready backend pod health
+  checks.
+objectives:
+- Master Troubleshooting Ingress 503 Service Unavailable architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in trouble-10-ingress-503-backend-dead
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-trouble-10-ingress-503-backend-dead
+      labels:
+        kubelab.io/track: troubleshooting
+        kubelab.io/lab: trouble-10-ingress-503-backend-dead
+tasks:
+- id: task-01-trouble-10-ingress-503-backend-dead
+  title: Deploy & Configure Troubleshooting Ingress 503 Service Unavailable
+  description: Apply the declarative manifest for trouble-10-ingress-503-backend-dead
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: trouble-10-ingress-503-backend-dead
+    namespace: lab-trouble-10-ingress-503-backend-dead
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-trouble-10-ingress-503-backend-dead
+  title: Verify Production Hardening & Labels for Troubleshooting Ingress 503 Service
+    Unavailable
+  description: Verify metadata labels and security compliance in namespace lab-trouble-10-ingress-503-backend-dead.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: trouble-10-ingress-503-backend-dead
+    namespace: lab-trouble-10-ingress-503-backend-dead
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: trouble-10-ingress-503-backend-dead
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-trouble-10-ingress-503-backend-dead
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=trouble-10-ingress-503-backend-dead
+    -n lab-trouble-10-ingress-503-backend-dead`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/troubleshooting/trouble-10-ingress-503-backend-dead/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

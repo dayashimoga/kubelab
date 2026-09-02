@@ -1,0 +1,80 @@
+id: storage-02-hostpath-local
+title: hostPath Volumes & Node-Locked Workloads
+difficulty: advanced
+duration_minutes: 15
+track: storage
+scenario: Understand hostPath directoryOrCreate mechanics and security implications
+  on single-node setups.
+objectives:
+- Master hostPath Volumes & Node-Locked Workloads architecture and declarative configurations
+- Diagnose and remediate common production gotchas in storage-02-hostpath-local
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-storage-02-hostpath-local
+      labels:
+        kubelab.io/track: storage
+        kubelab.io/lab: storage-02-hostpath-local
+tasks:
+- id: task-01-storage-02-hostpath-local
+  title: Deploy & Configure hostPath Volumes & Node-Locked Workloads
+  description: Apply the declarative manifest for storage-02-hostpath-local and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-02-hostpath-local
+    namespace: lab-storage-02-hostpath-local
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-storage-02-hostpath-local
+  title: Verify Production Hardening & Labels for hostPath Volumes & Node-Locked Workloads
+  description: Verify metadata labels and security compliance in namespace lab-storage-02-hostpath-local.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-02-hostpath-local
+    namespace: lab-storage-02-hostpath-local
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: storage-02-hostpath-local
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-storage-02-hostpath-local
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=storage-02-hostpath-local
+    -n lab-storage-02-hostpath-local`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/storage/storage-02-hostpath-local/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

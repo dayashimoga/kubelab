@@ -1,0 +1,81 @@
+id: obs-06-opentelemetry-collector-pipeline
+title: Building OpenTelemetry Collector Pipelines
+difficulty: intermediate
+duration_minutes: 15
+track: observability
+scenario: Configure OTel receivers, batch processors, and OTLP exporters for unified
+  telemetry.
+objectives:
+- Master Building OpenTelemetry Collector Pipelines architecture and declarative configurations
+- Diagnose and remediate common production gotchas in obs-06-opentelemetry-collector-pipeline
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-obs-06-opentelemetry-collector-pipeline
+      labels:
+        kubelab.io/track: observability
+        kubelab.io/lab: obs-06-opentelemetry-collector-pipeline
+tasks:
+- id: task-01-obs-06-opentelemetry-collector-pipeline
+  title: Deploy & Configure Building OpenTelemetry Collector Pipelines
+  description: Apply the declarative manifest for obs-06-opentelemetry-collector-pipeline
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: obs-06-opentelemetry-collector-pipeline
+    namespace: lab-obs-06-opentelemetry-collector-pipeline
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-obs-06-opentelemetry-collector-pipeline
+  title: Verify Production Hardening & Labels for Building OpenTelemetry Collector
+    Pipelines
+  description: Verify metadata labels and security compliance in namespace lab-obs-06-opentelemetry-collector-pipeline.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: obs-06-opentelemetry-collector-pipeline
+    namespace: lab-obs-06-opentelemetry-collector-pipeline
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: obs-06-opentelemetry-collector-pipeline
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-obs-06-opentelemetry-collector-pipeline
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=obs-06-opentelemetry-collector-pipeline
+    -n lab-obs-06-opentelemetry-collector-pipeline`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/observability/obs-06-opentelemetry-collector-pipeline/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

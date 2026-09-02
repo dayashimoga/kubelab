@@ -1,0 +1,82 @@
+id: net-08-cilium-ebpf-dataplane
+title: Cilium eBPF Dataplane & Kernel Packet Filtering
+difficulty: advanced
+duration_minutes: 15
+track: networking
+scenario: Accelerate network throughput and enforce Layer 7 policies using Cilium
+  eBPF dataplane.
+objectives:
+- Master Cilium eBPF Dataplane & Kernel Packet Filtering architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in net-08-cilium-ebpf-dataplane
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-net-08-cilium-ebpf-dataplane
+      labels:
+        kubelab.io/track: networking
+        kubelab.io/lab: net-08-cilium-ebpf-dataplane
+tasks:
+- id: task-01-net-08-cilium-ebpf-dataplane
+  title: Deploy & Configure Cilium eBPF Dataplane & Kernel Packet Filtering
+  description: Apply the declarative manifest for net-08-cilium-ebpf-dataplane and
+    ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-08-cilium-ebpf-dataplane
+    namespace: lab-net-08-cilium-ebpf-dataplane
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-net-08-cilium-ebpf-dataplane
+  title: Verify Production Hardening & Labels for Cilium eBPF Dataplane & Kernel Packet
+    Filtering
+  description: Verify metadata labels and security compliance in namespace lab-net-08-cilium-ebpf-dataplane.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: net-08-cilium-ebpf-dataplane
+    namespace: lab-net-08-cilium-ebpf-dataplane
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: net-08-cilium-ebpf-dataplane
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-net-08-cilium-ebpf-dataplane
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=net-08-cilium-ebpf-dataplane
+    -n lab-net-08-cilium-ebpf-dataplane`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/networking/net-08-cilium-ebpf-dataplane/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

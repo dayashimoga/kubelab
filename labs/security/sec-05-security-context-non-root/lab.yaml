@@ -1,0 +1,82 @@
+id: sec-05-security-context-non-root
+title: Hardened SecurityContext & Read-Only Root Filesystems
+difficulty: intermediate
+duration_minutes: 15
+track: security
+scenario: 'Lock down container runtimes with runAsNonRoot, allowPrivilegeEscalation:
+  false, and read-only roots.'
+objectives:
+- Master Hardened SecurityContext & Read-Only Root Filesystems architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in sec-05-security-context-non-root
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sec-05-security-context-non-root
+      labels:
+        kubelab.io/track: security
+        kubelab.io/lab: sec-05-security-context-non-root
+tasks:
+- id: task-01-sec-05-security-context-non-root
+  title: Deploy & Configure Hardened SecurityContext & Read-Only Root Filesystems
+  description: Apply the declarative manifest for sec-05-security-context-non-root
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-05-security-context-non-root
+    namespace: lab-sec-05-security-context-non-root
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-sec-05-security-context-non-root
+  title: Verify Production Hardening & Labels for Hardened SecurityContext & Read-Only
+    Root Filesystems
+  description: Verify metadata labels and security compliance in namespace lab-sec-05-security-context-non-root.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-05-security-context-non-root
+    namespace: lab-sec-05-security-context-non-root
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sec-05-security-context-non-root
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sec-05-security-context-non-root
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sec-05-security-context-non-root
+    -n lab-sec-05-security-context-non-root`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/security/sec-05-security-context-non-root/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

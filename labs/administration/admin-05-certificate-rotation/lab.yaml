@@ -1,51 +1,77 @@
 id: admin-05-certificate-rotation
-title: Kubernetes PKI CA & Certificate Renewal
-difficulty: intermediate
-duration_minutes: 20
+title: Kubernetes PKI Certificate Expiration & Renewal
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Check API server and kubelet TLS certificate expiration and execute zero-downtime
+  certificate renewal.
 objectives:
-- Master Kubernetes PKI CA & Certificate Renewal in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Kubernetes PKI Certificate Expiration & Renewal architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in admin-05-certificate-rotation
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Renew API server certificates via kubeadm
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-05-certificate-rotation
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-05-certificate-rotation
 tasks:
-- id: task-verify-admin-05-certificate-rotation
-  title: Verify Kubernetes PKI CA & Certificate Renewal
-  description: Verify metadata.name on pods 'target-resource'
-  points: 100
+- id: task-01-admin-05-certificate-rotation
+  title: Deploy & Configure Kubernetes PKI Certificate Expiration & Renewal
+  description: Apply the declarative manifest for admin-05-certificate-rotation and
+    ensure resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: pods
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: admin-05-certificate-rotation
+    namespace: lab-admin-05-certificate-rotation
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-admin-05-certificate-rotation
+  title: Verify Production Hardening & Labels for Kubernetes PKI Certificate Expiration
+    & Renewal
+  description: Verify metadata labels and security compliance in namespace lab-admin-05-certificate-rotation.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: admin-05-certificate-rotation
+    namespace: lab-admin-05-certificate-rotation
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: admin-05-certificate-rotation
 hints:
-- text: Inspect Kubernetes documentation for `pods` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-05-certificate-rotation
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-05-certificate-rotation.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-05-certificate-rotation
+    -n lab-admin-05-certificate-rotation`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-05-certificate-rotation/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

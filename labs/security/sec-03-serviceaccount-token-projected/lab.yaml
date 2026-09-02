@@ -1,0 +1,82 @@
+id: sec-03-serviceaccount-token-projected
+title: ServiceAccount TokenRequest & Bound Projections
+difficulty: intermediate
+duration_minutes: 15
+track: security
+scenario: Eliminate permanent ServiceAccount secret tokens by projecting short-lived,
+  bound TokenRequest credentials.
+objectives:
+- Master ServiceAccount TokenRequest & Bound Projections architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in sec-03-serviceaccount-token-projected
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sec-03-serviceaccount-token-projected
+      labels:
+        kubelab.io/track: security
+        kubelab.io/lab: sec-03-serviceaccount-token-projected
+tasks:
+- id: task-01-sec-03-serviceaccount-token-projected
+  title: Deploy & Configure ServiceAccount TokenRequest & Bound Projections
+  description: Apply the declarative manifest for sec-03-serviceaccount-token-projected
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-03-serviceaccount-token-projected
+    namespace: lab-sec-03-serviceaccount-token-projected
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-sec-03-serviceaccount-token-projected
+  title: Verify Production Hardening & Labels for ServiceAccount TokenRequest & Bound
+    Projections
+  description: Verify metadata labels and security compliance in namespace lab-sec-03-serviceaccount-token-projected.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-03-serviceaccount-token-projected
+    namespace: lab-sec-03-serviceaccount-token-projected
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sec-03-serviceaccount-token-projected
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sec-03-serviceaccount-token-projected
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sec-03-serviceaccount-token-projected
+    -n lab-sec-03-serviceaccount-token-projected`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/security/sec-03-serviceaccount-token-projected/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

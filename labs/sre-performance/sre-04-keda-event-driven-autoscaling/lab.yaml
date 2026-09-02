@@ -1,0 +1,82 @@
+id: sre-04-keda-event-driven-autoscaling
+title: Event-Driven Autoscaling with KEDA & Message Queues
+difficulty: advanced
+duration_minutes: 15
+track: sre-performance
+scenario: Scale Kubernetes workloads from 0 to N replicas based on Kafka lag and Redis
+  queue depth.
+objectives:
+- Master Event-Driven Autoscaling with KEDA & Message Queues architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in sre-04-keda-event-driven-autoscaling
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sre-04-keda-event-driven-autoscaling
+      labels:
+        kubelab.io/track: sre-performance
+        kubelab.io/lab: sre-04-keda-event-driven-autoscaling
+tasks:
+- id: task-01-sre-04-keda-event-driven-autoscaling
+  title: Deploy & Configure Event-Driven Autoscaling with KEDA & Message Queues
+  description: Apply the declarative manifest for sre-04-keda-event-driven-autoscaling
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: sre-04-keda-event-driven-autoscaling
+    namespace: lab-sre-04-keda-event-driven-autoscaling
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-sre-04-keda-event-driven-autoscaling
+  title: Verify Production Hardening & Labels for Event-Driven Autoscaling with KEDA
+    & Message Queues
+  description: Verify metadata labels and security compliance in namespace lab-sre-04-keda-event-driven-autoscaling.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: sre-04-keda-event-driven-autoscaling
+    namespace: lab-sre-04-keda-event-driven-autoscaling
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sre-04-keda-event-driven-autoscaling
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sre-04-keda-event-driven-autoscaling
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sre-04-keda-event-driven-autoscaling
+    -n lab-sre-04-keda-event-driven-autoscaling`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/sre-performance/sre-04-keda-event-driven-autoscaling/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

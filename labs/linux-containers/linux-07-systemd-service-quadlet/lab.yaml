@@ -1,0 +1,82 @@
+id: linux-07-systemd-service-quadlet
+title: Systemd Quadlet Container Services & Auto-Restart
+difficulty: beginner
+duration_minutes: 15
+track: linux-containers
+scenario: Manage declarative container lifecycles via native Systemd Quadlet unit
+  files and journald logging.
+objectives:
+- Master Systemd Quadlet Container Services & Auto-Restart architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in linux-07-systemd-service-quadlet
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-linux-07-systemd-service-quadlet
+      labels:
+        kubelab.io/track: linux-containers
+        kubelab.io/lab: linux-07-systemd-service-quadlet
+tasks:
+- id: task-01-linux-07-systemd-service-quadlet
+  title: Deploy & Configure Systemd Quadlet Container Services & Auto-Restart
+  description: Apply the declarative manifest for linux-07-systemd-service-quadlet
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: linux-07-systemd-service-quadlet
+    namespace: lab-linux-07-systemd-service-quadlet
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-linux-07-systemd-service-quadlet
+  title: Verify Production Hardening & Labels for Systemd Quadlet Container Services
+    & Auto-Restart
+  description: Verify metadata labels and security compliance in namespace lab-linux-07-systemd-service-quadlet.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: linux-07-systemd-service-quadlet
+    namespace: lab-linux-07-systemd-service-quadlet
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: linux-07-systemd-service-quadlet
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-linux-07-systemd-service-quadlet
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=linux-07-systemd-service-quadlet
+    -n lab-linux-07-systemd-service-quadlet`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/linux-containers/linux-07-systemd-service-quadlet/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

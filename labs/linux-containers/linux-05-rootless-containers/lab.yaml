@@ -1,0 +1,82 @@
+id: linux-05-rootless-containers
+title: Rootless Container Architecture & User Namespace Mapping
+difficulty: beginner
+duration_minutes: 15
+track: linux-containers
+scenario: Run Podman containers in unprivileged user mode with subuid/subgid mapping
+  and slirp4netns.
+objectives:
+- Master Rootless Container Architecture & User Namespace Mapping architecture and
+  declarative configurations
+- Diagnose and remediate common production gotchas in linux-05-rootless-containers
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-linux-05-rootless-containers
+      labels:
+        kubelab.io/track: linux-containers
+        kubelab.io/lab: linux-05-rootless-containers
+tasks:
+- id: task-01-linux-05-rootless-containers
+  title: Deploy & Configure Rootless Container Architecture & User Namespace Mapping
+  description: Apply the declarative manifest for linux-05-rootless-containers and
+    ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: linux-05-rootless-containers
+    namespace: lab-linux-05-rootless-containers
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-linux-05-rootless-containers
+  title: Verify Production Hardening & Labels for Rootless Container Architecture
+    & User Namespace Mapping
+  description: Verify metadata labels and security compliance in namespace lab-linux-05-rootless-containers.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: linux-05-rootless-containers
+    namespace: lab-linux-05-rootless-containers
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: linux-05-rootless-containers
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-linux-05-rootless-containers
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=linux-05-rootless-containers
+    -n lab-linux-05-rootless-containers`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/linux-containers/linux-05-rootless-containers/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

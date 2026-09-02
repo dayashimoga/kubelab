@@ -1,51 +1,77 @@
 id: admin-10-mutating-webhook
-title: Mutating Admission Controller Webhook
-difficulty: intermediate
-duration_minutes: 20
+title: Dynamic Admission Control & Mutating Webhooks
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Implement admission webhooks to intercept, mutate, and validate Kubernetes
+  API requests.
 objectives:
-- Master Mutating Admission Controller Webhook in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Dynamic Admission Control & Mutating Webhooks architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in admin-10-mutating-webhook
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Deploy mutating webhook to inject default sidecars
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-10-mutating-webhook
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-10-mutating-webhook
 tasks:
-- id: task-verify-admin-10-mutating-webhook
-  title: Verify Mutating Admission Controller Webhook
-  description: Verify metadata.name on mutatingwebhookconfigurations 'target-resource'
-  points: 100
+- id: task-01-admin-10-mutating-webhook
+  title: Deploy & Configure Dynamic Admission Control & Mutating Webhooks
+  description: Apply the declarative manifest for admin-10-mutating-webhook and ensure
+    resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: mutatingwebhookconfigurations
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: admin-10-mutating-webhook
+    namespace: lab-admin-10-mutating-webhook
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-admin-10-mutating-webhook
+  title: Verify Production Hardening & Labels for Dynamic Admission Control & Mutating
+    Webhooks
+  description: Verify metadata labels and security compliance in namespace lab-admin-10-mutating-webhook.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: admin-10-mutating-webhook
+    namespace: lab-admin-10-mutating-webhook
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: admin-10-mutating-webhook
 hints:
-- text: Inspect Kubernetes documentation for `mutatingwebhookconfigurations` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-10-mutating-webhook
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-10-mutating-webhook.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-10-mutating-webhook
+    -n lab-admin-10-mutating-webhook`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-10-mutating-webhook/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

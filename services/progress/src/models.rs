@@ -49,3 +49,18 @@ pub struct UserProgressState {
     pub unlocked_badges: Vec<Badge>,
     pub skills: std::collections::HashMap<String, u32>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProgressSyncRequest {
+    pub completed_lessons: Vec<String>,
+    pub completed_labs: Vec<String>,
+    pub total_xp: u32,
+    pub last_active: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProgressSyncResponse {
+    pub user_id: String,
+    pub merged_state: UserProgressState,
+    pub synced_at: String,
+}

@@ -1,0 +1,82 @@
+id: platform-07-external-secrets-operator
+title: Synchronizing Cloud Vaults with External Secrets Operator
+difficulty: intermediate
+duration_minutes: 15
+track: platform-eng
+scenario: Sync secrets automatically from AWS Secrets Manager and HashiCorp Vault
+  into Kubernetes.
+objectives:
+- Master Synchronizing Cloud Vaults with External Secrets Operator architecture and
+  declarative configurations
+- Diagnose and remediate common production gotchas in platform-07-external-secrets-operator
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-platform-07-external-secrets-operator
+      labels:
+        kubelab.io/track: platform-eng
+        kubelab.io/lab: platform-07-external-secrets-operator
+tasks:
+- id: task-01-platform-07-external-secrets-operator
+  title: Deploy & Configure Synchronizing Cloud Vaults with External Secrets Operator
+  description: Apply the declarative manifest for platform-07-external-secrets-operator
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: platform-07-external-secrets-operator
+    namespace: lab-platform-07-external-secrets-operator
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-platform-07-external-secrets-operator
+  title: Verify Production Hardening & Labels for Synchronizing Cloud Vaults with
+    External Secrets Operator
+  description: Verify metadata labels and security compliance in namespace lab-platform-07-external-secrets-operator.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: platform-07-external-secrets-operator
+    namespace: lab-platform-07-external-secrets-operator
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: platform-07-external-secrets-operator
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-platform-07-external-secrets-operator
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=platform-07-external-secrets-operator
+    -n lab-platform-07-external-secrets-operator`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/platform-eng/platform-07-external-secrets-operator/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

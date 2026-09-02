@@ -1,0 +1,82 @@
+id: gitops-05-drift-detection-remediation
+title: Cluster Drift Detection & Automated Reconciliation
+difficulty: advanced
+duration_minutes: 15
+track: gitops
+scenario: Detect manual kubectl modifications and automatically reconcile cluster
+  state to match Git.
+objectives:
+- Master Cluster Drift Detection & Automated Reconciliation architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in gitops-05-drift-detection-remediation
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-gitops-05-drift-detection-remediation
+      labels:
+        kubelab.io/track: gitops
+        kubelab.io/lab: gitops-05-drift-detection-remediation
+tasks:
+- id: task-01-gitops-05-drift-detection-remediation
+  title: Deploy & Configure Cluster Drift Detection & Automated Reconciliation
+  description: Apply the declarative manifest for gitops-05-drift-detection-remediation
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-05-drift-detection-remediation
+    namespace: lab-gitops-05-drift-detection-remediation
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-gitops-05-drift-detection-remediation
+  title: Verify Production Hardening & Labels for Cluster Drift Detection & Automated
+    Reconciliation
+  description: Verify metadata labels and security compliance in namespace lab-gitops-05-drift-detection-remediation.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-05-drift-detection-remediation
+    namespace: lab-gitops-05-drift-detection-remediation
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: gitops-05-drift-detection-remediation
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-gitops-05-drift-detection-remediation
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=gitops-05-drift-detection-remediation
+    -n lab-gitops-05-drift-detection-remediation`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/gitops/gitops-05-drift-detection-remediation/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

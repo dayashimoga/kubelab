@@ -1,0 +1,80 @@
+id: sec-06-seccomp-apparmor-profiles
+title: Seccomp & AppArmor System Call Filtering
+difficulty: intermediate
+duration_minutes: 15
+track: security
+scenario: Restrict dangerous Linux system calls using RuntimeDefault and custom Localhost
+  seccomp profiles.
+objectives:
+- Master Seccomp & AppArmor System Call Filtering architecture and declarative configurations
+- Diagnose and remediate common production gotchas in sec-06-seccomp-apparmor-profiles
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sec-06-seccomp-apparmor-profiles
+      labels:
+        kubelab.io/track: security
+        kubelab.io/lab: sec-06-seccomp-apparmor-profiles
+tasks:
+- id: task-01-sec-06-seccomp-apparmor-profiles
+  title: Deploy & Configure Seccomp & AppArmor System Call Filtering
+  description: Apply the declarative manifest for sec-06-seccomp-apparmor-profiles
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-06-seccomp-apparmor-profiles
+    namespace: lab-sec-06-seccomp-apparmor-profiles
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-sec-06-seccomp-apparmor-profiles
+  title: Verify Production Hardening & Labels for Seccomp & AppArmor System Call Filtering
+  description: Verify metadata labels and security compliance in namespace lab-sec-06-seccomp-apparmor-profiles.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-06-seccomp-apparmor-profiles
+    namespace: lab-sec-06-seccomp-apparmor-profiles
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sec-06-seccomp-apparmor-profiles
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sec-06-seccomp-apparmor-profiles
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sec-06-seccomp-apparmor-profiles
+    -n lab-sec-06-seccomp-apparmor-profiles`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/security/sec-06-seccomp-apparmor-profiles/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

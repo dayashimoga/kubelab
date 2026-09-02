@@ -1,0 +1,81 @@
+id: sec-13-sealed-secrets-gitops
+title: Encrypted Secret Management with Bitnami SealedSecrets
+difficulty: intermediate
+duration_minutes: 15
+track: security
+scenario: Safely commit encrypted SealedSecret manifests to public Git repositories.
+objectives:
+- Master Encrypted Secret Management with Bitnami SealedSecrets architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in sec-13-sealed-secrets-gitops
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sec-13-sealed-secrets-gitops
+      labels:
+        kubelab.io/track: security
+        kubelab.io/lab: sec-13-sealed-secrets-gitops
+tasks:
+- id: task-01-sec-13-sealed-secrets-gitops
+  title: Deploy & Configure Encrypted Secret Management with Bitnami SealedSecrets
+  description: Apply the declarative manifest for sec-13-sealed-secrets-gitops and
+    ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-13-sealed-secrets-gitops
+    namespace: lab-sec-13-sealed-secrets-gitops
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-sec-13-sealed-secrets-gitops
+  title: Verify Production Hardening & Labels for Encrypted Secret Management with
+    Bitnami SealedSecrets
+  description: Verify metadata labels and security compliance in namespace lab-sec-13-sealed-secrets-gitops.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-13-sealed-secrets-gitops
+    namespace: lab-sec-13-sealed-secrets-gitops
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sec-13-sealed-secrets-gitops
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sec-13-sealed-secrets-gitops
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sec-13-sealed-secrets-gitops
+    -n lab-sec-13-sealed-secrets-gitops`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/security/sec-13-sealed-secrets-gitops/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

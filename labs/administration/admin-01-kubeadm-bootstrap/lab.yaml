@@ -1,51 +1,77 @@
 id: admin-01-kubeadm-bootstrap
-title: Bootstrapping Cluster with kubeadm
-difficulty: intermediate
-duration_minutes: 20
+title: Bootstrapping Multi-Node Clusters with kubeadm
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Initialize control plane nodes with kubeadm init and join worker nodes with
+  discovery tokens.
 objectives:
-- Master Bootstrapping Cluster with kubeadm in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Bootstrapping Multi-Node Clusters with kubeadm architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in admin-01-kubeadm-bootstrap
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Control-plane bootstrap and token joining
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-01-kubeadm-bootstrap
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-01-kubeadm-bootstrap
 tasks:
-- id: task-verify-admin-01-kubeadm-bootstrap
-  title: Verify Bootstrapping Cluster with kubeadm
-  description: Verify metadata.name on nodes 'target-resource'
-  points: 100
+- id: task-01-admin-01-kubeadm-bootstrap
+  title: Deploy & Configure Bootstrapping Multi-Node Clusters with kubeadm
+  description: Apply the declarative manifest for admin-01-kubeadm-bootstrap and ensure
+    resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: nodes
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: admin-01-kubeadm-bootstrap
+    namespace: lab-admin-01-kubeadm-bootstrap
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-admin-01-kubeadm-bootstrap
+  title: Verify Production Hardening & Labels for Bootstrapping Multi-Node Clusters
+    with kubeadm
+  description: Verify metadata labels and security compliance in namespace lab-admin-01-kubeadm-bootstrap.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: admin-01-kubeadm-bootstrap
+    namespace: lab-admin-01-kubeadm-bootstrap
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: admin-01-kubeadm-bootstrap
 hints:
-- text: Inspect Kubernetes documentation for `nodes` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-01-kubeadm-bootstrap
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-01-kubeadm-bootstrap.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-01-kubeadm-bootstrap
+    -n lab-admin-01-kubeadm-bootstrap`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-01-kubeadm-bootstrap/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

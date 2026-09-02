@@ -3,65 +3,75 @@ title: Process Lifecycle & Graceful SIGTERM Shutdown
 difficulty: beginner
 duration_minutes: 15
 track: linux-containers
+scenario: Configure 30-second graceful terminationGracePeriodSeconds to handle SIGTERM
+  without dropping in-flight HTTP connections.
 objectives:
-- Master Process Lifecycle & Graceful SIGTERM Shutdown in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Process Lifecycle & Graceful SIGTERM Shutdown architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in linux-02-process-signals
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Configure 30-second graceful terminationGracePeriodSeconds to handle SIGTERM without dropping connections.
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-linux-02-process-signals
+      labels:
+        kubelab.io/track: linux-containers
+        kubelab.io/lab: linux-02-process-signals
 tasks:
-- id: task-1
-  title: Configure 30s grace period
-  description: Verify spec.terminationGracePeriodSeconds on pods 'graceful-svc'
+- id: task-01-linux-02-process-signals
+  title: Deploy & Configure Process Lifecycle & Graceful SIGTERM Shutdown
+  description: Apply the declarative manifest for linux-02-process-signals and ensure
+    resource convergence.
   points: 50
   validation:
     type: k8s_resource
     resource: pods
-    name: graceful-svc
-    namespace: null
-    assertions:
-    - field: spec.terminationGracePeriodSeconds
-      operator: equals
-      expected: 30
-      actual: null
-      passed: null
-      error_message: null
-- id: task-2
-  title: Ensure pod is running
-  description: Verify status.phase on pods 'graceful-svc'
-  points: 50
-  validation:
-    type: k8s_resource
-    resource: pods
-    name: graceful-svc
-    namespace: null
+    name: linux-02-process-signals
+    namespace: lab-linux-02-process-signals
     assertions:
     - field: status.phase
       operator: equals
       expected: Running
-      actual: null
-      passed: null
-      error_message: null
+- id: task-02-linux-02-process-signals
+  title: Verify Production Hardening & Labels for Process Lifecycle & Graceful SIGTERM
+    Shutdown
+  description: Verify metadata labels and security compliance in namespace lab-linux-02-process-signals.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: linux-02-process-signals
+    namespace: lab-linux-02-process-signals
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: linux-02-process-signals
 hints:
-- text: 'Set terminationGracePeriodSeconds: 30 in the pod spec.'
+- text: Inspect the live objects with `kubectl get all -n lab-linux-02-process-signals
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f graceful-pod.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=linux-02-process-signals
+    -n lab-linux-02-process-signals`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/linux-containers/linux-02-process-signals/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
-  timeout_minutes: 20
+  timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

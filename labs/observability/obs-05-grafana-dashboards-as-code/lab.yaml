@@ -1,0 +1,81 @@
+id: obs-05-grafana-dashboards-as-code
+title: Provisioning Grafana Dashboards as Code
+difficulty: intermediate
+duration_minutes: 15
+track: observability
+scenario: Import and manage Grafana dashboard JSON models via Kubernetes ConfigMaps
+  and sidecars.
+objectives:
+- Master Provisioning Grafana Dashboards as Code architecture and declarative configurations
+- Diagnose and remediate common production gotchas in obs-05-grafana-dashboards-as-code
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-obs-05-grafana-dashboards-as-code
+      labels:
+        kubelab.io/track: observability
+        kubelab.io/lab: obs-05-grafana-dashboards-as-code
+tasks:
+- id: task-01-obs-05-grafana-dashboards-as-code
+  title: Deploy & Configure Provisioning Grafana Dashboards as Code
+  description: Apply the declarative manifest for obs-05-grafana-dashboards-as-code
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: obs-05-grafana-dashboards-as-code
+    namespace: lab-obs-05-grafana-dashboards-as-code
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-obs-05-grafana-dashboards-as-code
+  title: Verify Production Hardening & Labels for Provisioning Grafana Dashboards
+    as Code
+  description: Verify metadata labels and security compliance in namespace lab-obs-05-grafana-dashboards-as-code.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: obs-05-grafana-dashboards-as-code
+    namespace: lab-obs-05-grafana-dashboards-as-code
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: obs-05-grafana-dashboards-as-code
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-obs-05-grafana-dashboards-as-code
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=obs-05-grafana-dashboards-as-code
+    -n lab-obs-05-grafana-dashboards-as-code`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/observability/obs-05-grafana-dashboards-as-code/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

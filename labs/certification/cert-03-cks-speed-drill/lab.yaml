@@ -1,0 +1,80 @@
+id: cert-03-cks-speed-drill
+title: CKS Security Specialist Speed Drill
+difficulty: advanced
+duration_minutes: 15
+track: certification
+scenario: Enforce Pod Security Standards, write Falco security rules, configure seccomp
+  profiles, and audit cluster benchmarks.
+objectives:
+- Master CKS Security Specialist Speed Drill architecture and declarative configurations
+- Diagnose and remediate common production gotchas in cert-03-cks-speed-drill
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-cert-03-cks-speed-drill
+      labels:
+        kubelab.io/track: certification
+        kubelab.io/lab: cert-03-cks-speed-drill
+tasks:
+- id: task-01-cert-03-cks-speed-drill
+  title: Deploy & Configure CKS Security Specialist Speed Drill
+  description: Apply the declarative manifest for cert-03-cks-speed-drill and ensure
+    resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: cert-03-cks-speed-drill
+    namespace: lab-cert-03-cks-speed-drill
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-cert-03-cks-speed-drill
+  title: Verify Production Hardening & Labels for CKS Security Specialist Speed Drill
+  description: Verify metadata labels and security compliance in namespace lab-cert-03-cks-speed-drill.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: cert-03-cks-speed-drill
+    namespace: lab-cert-03-cks-speed-drill
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: cert-03-cks-speed-drill
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-cert-03-cks-speed-drill
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=cert-03-cks-speed-drill
+    -n lab-cert-03-cks-speed-drill`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/certification/cert-03-cks-speed-drill/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

@@ -1,0 +1,79 @@
+id: storage-08-local-persistent-volume
+title: Local PersistentVolumes with NodeAffinity
+difficulty: advanced
+duration_minutes: 15
+track: storage
+scenario: Pin high-performance local NVMe SSDs using local PVs and WaitForFirstConsumer.
+objectives:
+- Master Local PersistentVolumes with NodeAffinity architecture and declarative configurations
+- Diagnose and remediate common production gotchas in storage-08-local-persistent-volume
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-storage-08-local-persistent-volume
+      labels:
+        kubelab.io/track: storage
+        kubelab.io/lab: storage-08-local-persistent-volume
+tasks:
+- id: task-01-storage-08-local-persistent-volume
+  title: Deploy & Configure Local PersistentVolumes with NodeAffinity
+  description: Apply the declarative manifest for storage-08-local-persistent-volume
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-08-local-persistent-volume
+    namespace: lab-storage-08-local-persistent-volume
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-storage-08-local-persistent-volume
+  title: Verify Production Hardening & Labels for Local PersistentVolumes with NodeAffinity
+  description: Verify metadata labels and security compliance in namespace lab-storage-08-local-persistent-volume.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-08-local-persistent-volume
+    namespace: lab-storage-08-local-persistent-volume
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: storage-08-local-persistent-volume
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-storage-08-local-persistent-volume
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=storage-08-local-persistent-volume
+    -n lab-storage-08-local-persistent-volume`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/storage/storage-08-local-persistent-volume/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

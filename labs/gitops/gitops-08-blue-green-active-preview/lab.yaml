@@ -1,0 +1,82 @@
+id: gitops-08-blue-green-active-preview
+title: Blue-Green Deployments with Preview Services
+difficulty: advanced
+duration_minutes: 15
+track: gitops
+scenario: Execute Blue-Green deployments with active/preview service switching and
+  manual gate approval.
+objectives:
+- Master Blue-Green Deployments with Preview Services architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in gitops-08-blue-green-active-preview
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-gitops-08-blue-green-active-preview
+      labels:
+        kubelab.io/track: gitops
+        kubelab.io/lab: gitops-08-blue-green-active-preview
+tasks:
+- id: task-01-gitops-08-blue-green-active-preview
+  title: Deploy & Configure Blue-Green Deployments with Preview Services
+  description: Apply the declarative manifest for gitops-08-blue-green-active-preview
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-08-blue-green-active-preview
+    namespace: lab-gitops-08-blue-green-active-preview
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-gitops-08-blue-green-active-preview
+  title: Verify Production Hardening & Labels for Blue-Green Deployments with Preview
+    Services
+  description: Verify metadata labels and security compliance in namespace lab-gitops-08-blue-green-active-preview.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: gitops-08-blue-green-active-preview
+    namespace: lab-gitops-08-blue-green-active-preview
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: gitops-08-blue-green-active-preview
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-gitops-08-blue-green-active-preview
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=gitops-08-blue-green-active-preview
+    -n lab-gitops-08-blue-green-active-preview`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/gitops/gitops-08-blue-green-active-preview/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

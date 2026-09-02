@@ -1,0 +1,82 @@
+id: storage-10-volume-mount-subpath
+title: volumeMounts subPath & Single-File Config Injection
+difficulty: advanced
+duration_minutes: 15
+track: storage
+scenario: Inject specific configuration files into existing directories using subPath
+  without masking directory contents.
+objectives:
+- Master volumeMounts subPath & Single-File Config Injection architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in storage-10-volume-mount-subpath
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-storage-10-volume-mount-subpath
+      labels:
+        kubelab.io/track: storage
+        kubelab.io/lab: storage-10-volume-mount-subpath
+tasks:
+- id: task-01-storage-10-volume-mount-subpath
+  title: Deploy & Configure volumeMounts subPath & Single-File Config Injection
+  description: Apply the declarative manifest for storage-10-volume-mount-subpath
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-10-volume-mount-subpath
+    namespace: lab-storage-10-volume-mount-subpath
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-storage-10-volume-mount-subpath
+  title: Verify Production Hardening & Labels for volumeMounts subPath & Single-File
+    Config Injection
+  description: Verify metadata labels and security compliance in namespace lab-storage-10-volume-mount-subpath.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-10-volume-mount-subpath
+    namespace: lab-storage-10-volume-mount-subpath
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: storage-10-volume-mount-subpath
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-storage-10-volume-mount-subpath
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=storage-10-volume-mount-subpath
+    -n lab-storage-10-volume-mount-subpath`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/storage/storage-10-volume-mount-subpath/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

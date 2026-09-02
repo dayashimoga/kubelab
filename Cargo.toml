@@ -41,7 +41,7 @@ uuid = { version = "1.10", features = ["v4", "serde"] }
 chrono = { version = "0.4", features = ["serde"] }
 jsonwebtoken = { version = "9.3" }
 argon2 = { version = "0.5" }
-reqwest = { version = "0.12", features = ["json", "stream"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
 thiserror = { version = "1.0" }
 anyhow = { version = "1.0" }
 futures = { version = "0.3" }

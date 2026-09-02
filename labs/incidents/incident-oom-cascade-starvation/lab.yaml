@@ -1,0 +1,82 @@
+id: incident-oom-cascade-starvation
+title: 'Production Incident: Unbounded OOM Cascade Node Collapse'
+difficulty: advanced
+duration_minutes: 15
+track: incidents
+scenario: 'SEV-1 War Room: Mitigate noisy-neighbor memory leak taking down shared
+  worker nodes.'
+objectives:
+- 'Master Production Incident: Unbounded OOM Cascade Node Collapse architecture and
+  declarative configurations'
+- Diagnose and remediate common production gotchas in incident-oom-cascade-starvation
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-incident-oom-cascade-starvation
+      labels:
+        kubelab.io/track: incidents
+        kubelab.io/lab: incident-oom-cascade-starvation
+tasks:
+- id: task-01-incident-oom-cascade-starvation
+  title: 'Deploy & Configure Production Incident: Unbounded OOM Cascade Node Collapse'
+  description: Apply the declarative manifest for incident-oom-cascade-starvation
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: incident-oom-cascade-starvation
+    namespace: lab-incident-oom-cascade-starvation
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-incident-oom-cascade-starvation
+  title: 'Verify Production Hardening & Labels for Production Incident: Unbounded
+    OOM Cascade Node Collapse'
+  description: Verify metadata labels and security compliance in namespace lab-incident-oom-cascade-starvation.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: incident-oom-cascade-starvation
+    namespace: lab-incident-oom-cascade-starvation
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: incident-oom-cascade-starvation
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-incident-oom-cascade-starvation
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=incident-oom-cascade-starvation
+    -n lab-incident-oom-cascade-starvation`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/incidents/incident-oom-cascade-starvation/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

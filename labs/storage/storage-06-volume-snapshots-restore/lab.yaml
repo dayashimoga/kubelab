@@ -1,51 +1,76 @@
 id: storage-06-volume-snapshots-restore
-title: VolumeSnapshot Point-in-Time Recovery
-difficulty: intermediate
-duration_minutes: 20
+title: CSI VolumeSnapshots & Point-in-Time Restoration
+difficulty: advanced
+duration_minutes: 15
 track: storage
+scenario: Take point-in-time CSI volume snapshots and restore them into new PersistentVolumeClaims.
 objectives:
-- Master VolumeSnapshot Point-in-Time Recovery in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master CSI VolumeSnapshots & Point-in-Time Restoration architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in storage-06-volume-snapshots-restore
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Create snapshot and restore into fresh PVC
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-storage-06-volume-snapshots-restore
+      labels:
+        kubelab.io/track: storage
+        kubelab.io/lab: storage-06-volume-snapshots-restore
 tasks:
-- id: task-verify-storage-06-volume-snapshots-restore
-  title: Verify VolumeSnapshot Point-in-Time Recovery
-  description: Verify metadata.name on volumesnapshots 'target-resource'
-  points: 100
+- id: task-01-storage-06-volume-snapshots-restore
+  title: Deploy & Configure CSI VolumeSnapshots & Point-in-Time Restoration
+  description: Apply the declarative manifest for storage-06-volume-snapshots-restore
+    and ensure resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: volumesnapshots
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: storage-06-volume-snapshots-restore
+    namespace: lab-storage-06-volume-snapshots-restore
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-storage-06-volume-snapshots-restore
+  title: Verify Production Hardening & Labels for CSI VolumeSnapshots & Point-in-Time
+    Restoration
+  description: Verify metadata labels and security compliance in namespace lab-storage-06-volume-snapshots-restore.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: storage-06-volume-snapshots-restore
+    namespace: lab-storage-06-volume-snapshots-restore
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: storage-06-volume-snapshots-restore
 hints:
-- text: Inspect Kubernetes documentation for `volumesnapshots` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-storage-06-volume-snapshots-restore
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f storage-06-volume-snapshots-restore.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=storage-06-volume-snapshots-restore
+    -n lab-storage-06-volume-snapshots-restore`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/storage/storage-06-volume-snapshots-restore/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

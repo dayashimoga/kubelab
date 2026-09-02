@@ -46,6 +46,7 @@ def verify_curriculum():
     lab_ids_in_curriculum = set()
     
     total_lessons = 0
+    total_xp = 0
     total_quizzes = len(quizzes)
     
     for t in tracks:
@@ -76,6 +77,7 @@ def verify_curriculum():
                 
             for l in lessons:
                 total_lessons += 1
+                total_xp += l.get('xp', 100)
                 if l['id'] in lesson_ids:
                     errors.append(f"Duplicate lesson id: {l['id']}")
                 lesson_ids.add(l['id'])
@@ -136,7 +138,7 @@ def verify_curriculum():
         print(f"  - Total Lessons: {total_lessons}")
         print(f"  - Total Unique Quizzes: {total_quizzes}")
         print(f"  - Total Labs Bound: {len(lab_ids_in_curriculum)}")
-        print(f"  - Total XP in Matrix: {stats.get('totalXp', 0)}")
+        print(f"  - Total XP in Matrix: {total_xp:,}")
         print(f"  - Content Completeness: 100.0%")
         print(f"  - Orphan Count: 0")
 

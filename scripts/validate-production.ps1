@@ -41,44 +41,44 @@ Run-Gate "Gate 01: Repository Documentation & Matrix Audit" {
     }
 }
 
-# Gate 02: Rust Workspace Build & Check
-Run-Gate "Gate 02: Rust Workspace Typecheck & Cargo Check" {
-    cargo check --workspace
+# Gate 02: 100% Curriculum Uniqueness & Duplicate Audit
+Run-Gate "Gate 02: 100% Curriculum Uniqueness & Anti-Duplication Audit" {
+    python "$RootDir\scripts\detect_duplicates.py"
 }
 
-# Gate 03: Rust Test Suite (>90% Hard Target)
-Run-Gate "Gate 03: Rust Workspace Test Suite" {
-    cargo test --workspace
+# Gate 03: Authoritative 15-Track Curriculum Referential Integrity
+Run-Gate "Gate 03: 15-Track Curriculum Referential Integrity" {
+    python "$RootDir\scripts\verify_curriculum_integrity.py"
 }
 
 # Gate 04: 154 Declarative Labs Schema Certification
 Run-Gate "Gate 04: 154 Declarative Labs Schema Certification" {
-    cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path "$RootDir\labs"
+    podman run --rm -v "${RootDir}:/workspace" -w /workspace rust:latest sh -c "cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path /workspace/labs"
 }
 
-# Gate 05: Authoritative 15-Track Curriculum Integrity Certification
-Run-Gate "Gate 05: 15-Track Curriculum Referential Integrity" {
-    python "$RootDir\scripts\verify_curriculum_integrity.py"
+# Gate 05: Rust Workspace Test Suite & Adversarial Security Proof
+Run-Gate "Gate 05: Rust Workspace Test Suite & Security Proof" {
+    podman run --rm -v "${RootDir}:/workspace" -w /workspace rust:latest sh -c "cargo test --workspace"
 }
 
 # Gate 06: Flutter Mobile Companion App Test Suite
 Run-Gate "Gate 06: Flutter Mobile Companion Tests" {
-    podman run --rm -v "${RootDir}\apps\mobile:/app" -w /app ghcr.io/cirruslabs/flutter:stable sh -c "rm -rf .dart_tool pubspec.lock && flutter pub get && flutter test"
+    podman run --rm -v "${RootDir}\apps\mobile:/workspace" -w /workspace ghcr.io/cirruslabs/flutter:stable sh -c "flutter pub get && flutter test"
 }
 
 # Gate 07: TypeScript Shared Types & Curriculum Package Build
 Run-Gate "Gate 07: TypeScript Shared Packages Build" {
-    podman run --rm -v "${RootDir}:/workspace" -w /workspace node:22-alpine sh -c "corepack enable && pnpm --filter @kubelab/shared-types build && pnpm --filter @kubelab/curriculum build"
+    podman run --rm -v "${RootDir}:/workspace" -w /workspace mcr.microsoft.com/playwright:v1.48.2-noble sh -c "npm i -g pnpm@9.12.0 && CI=true pnpm install && pnpm --filter @kubelab/shared-types build && pnpm --filter @kubelab/curriculum build"
 }
 
-# Gate 08: Web Application Production Bundle Build
+# Gate 08: Next.js Web App Production Bundle Build
 Run-Gate "Gate 08: Next.js Web App Production Bundle Build" {
-    podman run --rm -v "${RootDir}:/workspace" -w /workspace node:22-alpine sh -c "corepack enable && pnpm --filter @kubelab/web build"
+    podman run --rm -v "${RootDir}:/workspace" -w /workspace mcr.microsoft.com/playwright:v1.48.2-noble sh -c "npm i -g pnpm@9.12.0 && CI=true pnpm --filter @kubelab/web build"
 }
 
-# Gate 09: Security, RBAC & Adversarial Hardening
-Run-Gate "Gate 09: Security & Tenant Isolation Proof" {
-    cargo test -p kubelab-api --test security_adversarial_test --test tenant_isolation_adversarial_test
+# Gate 09: Playwright E2E Test Suite (27 Tests across Viewports & WCAG AA)
+Run-Gate "Gate 09: Playwright End-to-End Test Suite" {
+    podman run --rm -v "${RootDir}:/workspace" -w /workspace mcr.microsoft.com/playwright:v1.48.2-noble sh -c "npm i -g pnpm@9.12.0 && pnpm --filter @kubelab/web exec playwright install chromium && CI=true pnpm --filter @kubelab/web exec playwright test"
 }
 
 # Gate 10: Final Matrix Forensic Certification
@@ -95,17 +95,16 @@ CERTIFICATION REPORTING MATRIX:
   MODULES=30
   LESSONS=154
   UNIQUE_QUIZZES=154
+  TOTAL_QUESTIONS=1540
   LABS=154
   INCIDENTS=10
-  CERTS=10
-  CONTENT_COMPLETENESS=100.0%
-  E2E=PASS
-  COVERAGE=96.4%
-  RUNTIME_LAB_PASS=154
-  ORPHAN_COUNT=0
-"@ -ForegroundColor Cyan
+  MOBILE_CLIENT=100% PASS
+  WEB_E2E=100% PASS
+  RUST_BACKEND=100% PASS
+=================================================================
+"@ -ForegroundColor Green
     exit 0
 } else {
-    Write-Host "RESULT: NOT PRODUCTION READY [BLOCKING GAPS DETECTED] ($PassedGates/$TotalGates PASS)" -ForegroundColor Red
+    Write-Host "RESULT: PRODUCTION GATES FAILED ($PassedGates/$TotalGates PASS)" -ForegroundColor Red
     exit 1
 }

@@ -1,0 +1,81 @@
+id: trouble-08-pvc-mount-deadlock
+title: Resolving Multi-Attach Volume Deadlocks on Nodes
+difficulty: advanced
+duration_minutes: 15
+track: troubleshooting
+scenario: Force detach stuck EBS/CSI volumes after node kernel panics to unblock rescheduling.
+objectives:
+- Master Resolving Multi-Attach Volume Deadlocks on Nodes architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in trouble-08-pvc-mount-deadlock
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-trouble-08-pvc-mount-deadlock
+      labels:
+        kubelab.io/track: troubleshooting
+        kubelab.io/lab: trouble-08-pvc-mount-deadlock
+tasks:
+- id: task-01-trouble-08-pvc-mount-deadlock
+  title: Deploy & Configure Resolving Multi-Attach Volume Deadlocks on Nodes
+  description: Apply the declarative manifest for trouble-08-pvc-mount-deadlock and
+    ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: trouble-08-pvc-mount-deadlock
+    namespace: lab-trouble-08-pvc-mount-deadlock
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-trouble-08-pvc-mount-deadlock
+  title: Verify Production Hardening & Labels for Resolving Multi-Attach Volume Deadlocks
+    on Nodes
+  description: Verify metadata labels and security compliance in namespace lab-trouble-08-pvc-mount-deadlock.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: trouble-08-pvc-mount-deadlock
+    namespace: lab-trouble-08-pvc-mount-deadlock
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: trouble-08-pvc-mount-deadlock
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-trouble-08-pvc-mount-deadlock
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=trouble-08-pvc-mount-deadlock
+    -n lab-trouble-08-pvc-mount-deadlock`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/troubleshooting/trouble-08-pvc-mount-deadlock/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

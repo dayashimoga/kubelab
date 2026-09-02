@@ -1,0 +1,82 @@
+id: sec-09-kyverno-policy-validation
+title: Kubernetes Native Policy Validation with Kyverno
+difficulty: intermediate
+duration_minutes: 15
+track: security
+scenario: Enforce best practices, mutations, and image verification using native Kyverno
+  ClusterPolicies.
+objectives:
+- Master Kubernetes Native Policy Validation with Kyverno architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in sec-09-kyverno-policy-validation
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-sec-09-kyverno-policy-validation
+      labels:
+        kubelab.io/track: security
+        kubelab.io/lab: sec-09-kyverno-policy-validation
+tasks:
+- id: task-01-sec-09-kyverno-policy-validation
+  title: Deploy & Configure Kubernetes Native Policy Validation with Kyverno
+  description: Apply the declarative manifest for sec-09-kyverno-policy-validation
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-09-kyverno-policy-validation
+    namespace: lab-sec-09-kyverno-policy-validation
+    assertions:
+    - field: status.phase
+      operator: equals
+      expected: Running
+- id: task-02-sec-09-kyverno-policy-validation
+  title: Verify Production Hardening & Labels for Kubernetes Native Policy Validation
+    with Kyverno
+  description: Verify metadata labels and security compliance in namespace lab-sec-09-kyverno-policy-validation.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: pods
+    name: sec-09-kyverno-policy-validation
+    namespace: lab-sec-09-kyverno-policy-validation
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: sec-09-kyverno-policy-validation
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-sec-09-kyverno-policy-validation
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=sec-09-kyverno-policy-validation
+    -n lab-sec-09-kyverno-policy-validation`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/security/sec-09-kyverno-policy-validation/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

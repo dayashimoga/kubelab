@@ -172,4 +172,45 @@ impl ProgressService {
         map.insert(user_id.to_string(), progress.clone());
         progress
     }
+
+    pub async fn sync_progress(
+        &self,
+        user_id: &str,
+        req: crate::models::ProgressSyncRequest,
+    ) -> crate::models::ProgressSyncResponse {
+        let mut progress = self.get_user_progress(user_id).await;
+
+        // Merge completed lessons (set union)
+        for lid in req.completed_lessons {
+            if !progress.completed_lesson_ids.contains(&lid) {
+                progress.completed_lesson_ids.push(lid);
+            }
+        }
+
+        // Merge completed labs (set union)
+        for lab_id in req.completed_labs {
+            if !progress.completed_lab_ids.contains(&lab_id) {
+                progress.completed_lab_ids.push(lab_id);
+            }
+        }
+
+        // Max XP
+        if req.total_xp > progress.total_xp {
+            progress.total_xp = req.total_xp;
+            progress.level = (progress.total_xp / 500) + 1;
+        }
+
+        if let Some(la) = req.last_active {
+            progress.last_active_date = la;
+        }
+
+        let mut map = self.user_progress.write().await;
+        map.insert(user_id.to_string(), progress.clone());
+
+        crate::models::ProgressSyncResponse {
+            user_id: user_id.to_string(),
+            merged_state: progress,
+            synced_at: chrono::Utc::now().to_rfc3339(),
+        }
+    }
 }

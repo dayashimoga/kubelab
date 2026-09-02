@@ -1,0 +1,82 @@
+id: mesh-08-circuit-breaking-outlier-detection
+title: Circuit Breaking & Outlier Detection Ejection
+difficulty: intermediate
+duration_minutes: 15
+track: service-mesh
+scenario: Automatically eject unhealthy upstream host instances when consecutive 5xx
+  errors occur.
+objectives:
+- Master Circuit Breaking & Outlier Detection Ejection architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in mesh-08-circuit-breaking-outlier-detection
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-mesh-08-circuit-breaking-outlier-detection
+      labels:
+        kubelab.io/track: service-mesh
+        kubelab.io/lab: mesh-08-circuit-breaking-outlier-detection
+tasks:
+- id: task-01-mesh-08-circuit-breaking-outlier-detection
+  title: Deploy & Configure Circuit Breaking & Outlier Detection Ejection
+  description: Apply the declarative manifest for mesh-08-circuit-breaking-outlier-detection
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-08-circuit-breaking-outlier-detection
+    namespace: lab-mesh-08-circuit-breaking-outlier-detection
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-mesh-08-circuit-breaking-outlier-detection
+  title: Verify Production Hardening & Labels for Circuit Breaking & Outlier Detection
+    Ejection
+  description: Verify metadata labels and security compliance in namespace lab-mesh-08-circuit-breaking-outlier-detection.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-08-circuit-breaking-outlier-detection
+    namespace: lab-mesh-08-circuit-breaking-outlier-detection
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: mesh-08-circuit-breaking-outlier-detection
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-mesh-08-circuit-breaking-outlier-detection
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=mesh-08-circuit-breaking-outlier-detection
+    -n lab-mesh-08-circuit-breaking-outlier-detection`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/service-mesh/mesh-08-circuit-breaking-outlier-detection/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

@@ -1,51 +1,76 @@
 id: admin-07-audit-logging-policy
-title: API Server Audit Logging Policy
-difficulty: intermediate
-duration_minutes: 20
+title: Kubernetes API Server Audit Policy Logging
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Configure structured security audit logging rules for sensitive API requests
+  and authentication events.
 objectives:
-- Master API Server Audit Logging Policy in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Kubernetes API Server Audit Policy Logging architecture and declarative configurations
+- Diagnose and remediate common production gotchas in admin-07-audit-logging-policy
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Configure advanced audit policy with metadata logging
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-07-audit-logging-policy
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-07-audit-logging-policy
 tasks:
-- id: task-verify-admin-07-audit-logging-policy
-  title: Verify API Server Audit Logging Policy
-  description: Verify metadata.name on pods 'target-resource'
-  points: 100
+- id: task-01-admin-07-audit-logging-policy
+  title: Deploy & Configure Kubernetes API Server Audit Policy Logging
+  description: Apply the declarative manifest for admin-07-audit-logging-policy and
+    ensure resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: pods
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: admin-07-audit-logging-policy
+    namespace: lab-admin-07-audit-logging-policy
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-admin-07-audit-logging-policy
+  title: Verify Production Hardening & Labels for Kubernetes API Server Audit Policy
+    Logging
+  description: Verify metadata labels and security compliance in namespace lab-admin-07-audit-logging-policy.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: admin-07-audit-logging-policy
+    namespace: lab-admin-07-audit-logging-policy
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: admin-07-audit-logging-policy
 hints:
-- text: Inspect Kubernetes documentation for `pods` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-07-audit-logging-policy
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-07-audit-logging-policy.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-07-audit-logging-policy
+    -n lab-admin-07-audit-logging-policy`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-07-audit-logging-policy/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

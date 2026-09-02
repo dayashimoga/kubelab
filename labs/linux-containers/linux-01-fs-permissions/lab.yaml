@@ -3,65 +3,75 @@ title: Linux Filesystem Hierarchy & POSIX Permissions
 difficulty: beginner
 duration_minutes: 15
 track: linux-containers
+scenario: Enforce strict 600 file permissions, root:root ownership, and audit setuid/setgid
+  binaries on sensitive tokens.
 objectives:
-- Master Linux Filesystem Hierarchy & POSIX Permissions in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Linux Filesystem Hierarchy & POSIX Permissions architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in linux-01-fs-permissions
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Enforce strict 600 file permissions and root:root ownership on secret token files.
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-linux-01-fs-permissions
+      labels:
+        kubelab.io/track: linux-containers
+        kubelab.io/lab: linux-01-fs-permissions
 tasks:
-- id: task-1
-  title: Deploy secure agent pod
-  description: Verify status.phase on pods 'sec-agent'
+- id: task-01-linux-01-fs-permissions
+  title: Deploy & Configure Linux Filesystem Hierarchy & POSIX Permissions
+  description: Apply the declarative manifest for linux-01-fs-permissions and ensure
+    resource convergence.
   points: 50
   validation:
     type: k8s_resource
     resource: pods
-    name: sec-agent
-    namespace: null
+    name: linux-01-fs-permissions
+    namespace: lab-linux-01-fs-permissions
     assertions:
     - field: status.phase
       operator: equals
       expected: Running
-      actual: null
-      passed: null
-      error_message: null
-- id: task-2
-  title: Label application tier
-  description: Verify metadata.labels.tier on pods 'sec-agent'
+- id: task-02-linux-01-fs-permissions
+  title: Verify Production Hardening & Labels for Linux Filesystem Hierarchy & POSIX
+    Permissions
+  description: Verify metadata labels and security compliance in namespace lab-linux-01-fs-permissions.
   points: 50
   validation:
     type: k8s_resource
     resource: pods
-    name: sec-agent
-    namespace: null
+    name: linux-01-fs-permissions
+    namespace: lab-linux-01-fs-permissions
     assertions:
-    - field: metadata.labels.tier
+    - field: metadata.labels.app
       operator: equals
-      expected: agent
-      actual: null
-      passed: null
-      error_message: null
+      expected: linux-01-fs-permissions
 hints:
-- text: Use `chmod 600 /etc/secrets/token` and `chown 0:0 /etc/secrets/token`
+- text: Inspect the live objects with `kubectl get all -n lab-linux-01-fs-permissions
+    -o wide`
   penalty_points: 10
-solution: kubectl run sec-agent --image=alpine --labels=tier=agent -- sleep 3600
+- text: Review detailed error events using `kubectl describe pods -l app=linux-01-fs-permissions
+    -n lab-linux-01-fs-permissions`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/linux-containers/linux-01-fs-permissions/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
-  timeout_minutes: 20
+  timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

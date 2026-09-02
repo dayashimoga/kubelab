@@ -1,0 +1,82 @@
+id: helm-06-kustomize-base-overlays
+title: Kustomize Bases & Multi-Environment Overlays
+difficulty: advanced
+duration_minutes: 15
+track: helm-kustomize
+scenario: Structure dry declarative Kubernetes manifests for dev, staging, and prod
+  using Kustomize.
+objectives:
+- Master Kustomize Bases & Multi-Environment Overlays architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in helm-06-kustomize-base-overlays
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-helm-06-kustomize-base-overlays
+      labels:
+        kubelab.io/track: helm-kustomize
+        kubelab.io/lab: helm-06-kustomize-base-overlays
+tasks:
+- id: task-01-helm-06-kustomize-base-overlays
+  title: Deploy & Configure Kustomize Bases & Multi-Environment Overlays
+  description: Apply the declarative manifest for helm-06-kustomize-base-overlays
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: helm-06-kustomize-base-overlays
+    namespace: lab-helm-06-kustomize-base-overlays
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-helm-06-kustomize-base-overlays
+  title: Verify Production Hardening & Labels for Kustomize Bases & Multi-Environment
+    Overlays
+  description: Verify metadata labels and security compliance in namespace lab-helm-06-kustomize-base-overlays.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: helm-06-kustomize-base-overlays
+    namespace: lab-helm-06-kustomize-base-overlays
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: helm-06-kustomize-base-overlays
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-helm-06-kustomize-base-overlays
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=helm-06-kustomize-base-overlays
+    -n lab-helm-06-kustomize-base-overlays`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/helm-kustomize/helm-06-kustomize-base-overlays/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

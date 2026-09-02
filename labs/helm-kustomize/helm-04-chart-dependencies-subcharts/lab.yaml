@@ -1,0 +1,81 @@
+id: helm-04-chart-dependencies-subcharts
+title: Subcharts, Chart Dependencies & Value Overrides
+difficulty: advanced
+duration_minutes: 15
+track: helm-kustomize
+scenario: Manage multi-tier microservice dependencies and pass global values to subcharts.
+objectives:
+- Master Subcharts, Chart Dependencies & Value Overrides architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in helm-04-chart-dependencies-subcharts
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-helm-04-chart-dependencies-subcharts
+      labels:
+        kubelab.io/track: helm-kustomize
+        kubelab.io/lab: helm-04-chart-dependencies-subcharts
+tasks:
+- id: task-01-helm-04-chart-dependencies-subcharts
+  title: Deploy & Configure Subcharts, Chart Dependencies & Value Overrides
+  description: Apply the declarative manifest for helm-04-chart-dependencies-subcharts
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: helm-04-chart-dependencies-subcharts
+    namespace: lab-helm-04-chart-dependencies-subcharts
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-helm-04-chart-dependencies-subcharts
+  title: Verify Production Hardening & Labels for Subcharts, Chart Dependencies &
+    Value Overrides
+  description: Verify metadata labels and security compliance in namespace lab-helm-04-chart-dependencies-subcharts.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: helm-04-chart-dependencies-subcharts
+    namespace: lab-helm-04-chart-dependencies-subcharts
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: helm-04-chart-dependencies-subcharts
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-helm-04-chart-dependencies-subcharts
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=helm-04-chart-dependencies-subcharts
+    -n lab-helm-04-chart-dependencies-subcharts`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/helm-kustomize/helm-04-chart-dependencies-subcharts/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

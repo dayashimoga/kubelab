@@ -1,51 +1,77 @@
 id: admin-04-node-drain-cordon
-title: Graceful Node Maintenance & Eviction
-difficulty: intermediate
-duration_minutes: 20
+title: Node Maintenance, Cordoning & Graceful Drain
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Safely evict workloads before hardware maintenance with kubectl cordon and
+  drain.
 objectives:
-- Master Graceful Node Maintenance & Eviction in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Node Maintenance, Cordoning & Graceful Drain architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in admin-04-node-drain-cordon
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Cordon and drain worker node safely
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-04-node-drain-cordon
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-04-node-drain-cordon
 tasks:
-- id: task-verify-admin-04-node-drain-cordon
-  title: Verify Graceful Node Maintenance & Eviction
-  description: Verify metadata.name on nodes 'target-resource'
-  points: 100
+- id: task-01-admin-04-node-drain-cordon
+  title: Deploy & Configure Node Maintenance, Cordoning & Graceful Drain
+  description: Apply the declarative manifest for admin-04-node-drain-cordon and ensure
+    resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: nodes
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: admin-04-node-drain-cordon
+    namespace: lab-admin-04-node-drain-cordon
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-admin-04-node-drain-cordon
+  title: Verify Production Hardening & Labels for Node Maintenance, Cordoning & Graceful
+    Drain
+  description: Verify metadata labels and security compliance in namespace lab-admin-04-node-drain-cordon.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: admin-04-node-drain-cordon
+    namespace: lab-admin-04-node-drain-cordon
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: admin-04-node-drain-cordon
 hints:
-- text: Inspect Kubernetes documentation for `nodes` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-04-node-drain-cordon
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-04-node-drain-cordon.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-04-node-drain-cordon
+    -n lab-admin-04-node-drain-cordon`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-04-node-drain-cordon/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

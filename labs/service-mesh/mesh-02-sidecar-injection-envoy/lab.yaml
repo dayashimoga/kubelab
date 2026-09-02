@@ -1,0 +1,80 @@
+id: mesh-02-sidecar-injection-envoy
+title: Envoy Sidecar Proxy Automatic Injection
+difficulty: intermediate
+duration_minutes: 15
+track: service-mesh
+scenario: Enable namespace sidecar injection, inspect iptables packet interception,
+  and configure Envoy sidecars.
+objectives:
+- Master Envoy Sidecar Proxy Automatic Injection architecture and declarative configurations
+- Diagnose and remediate common production gotchas in mesh-02-sidecar-injection-envoy
+- Verify live Kubernetes cluster state deterministically
+prerequisites: []
+environment:
+  type: kubernetes
+  cluster: disposable
+  namespace_isolation: true
+  resources:
+    cpu_limit: 500m
+    memory_limit: 512Mi
+initial_state:
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-mesh-02-sidecar-injection-envoy
+      labels:
+        kubelab.io/track: service-mesh
+        kubelab.io/lab: mesh-02-sidecar-injection-envoy
+tasks:
+- id: task-01-mesh-02-sidecar-injection-envoy
+  title: Deploy & Configure Envoy Sidecar Proxy Automatic Injection
+  description: Apply the declarative manifest for mesh-02-sidecar-injection-envoy
+    and ensure resource convergence.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-02-sidecar-injection-envoy
+    namespace: lab-mesh-02-sidecar-injection-envoy
+    assertions:
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-mesh-02-sidecar-injection-envoy
+  title: Verify Production Hardening & Labels for Envoy Sidecar Proxy Automatic Injection
+  description: Verify metadata labels and security compliance in namespace lab-mesh-02-sidecar-injection-envoy.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: mesh-02-sidecar-injection-envoy
+    namespace: lab-mesh-02-sidecar-injection-envoy
+    assertions:
+    - field: metadata.labels.app
+      operator: equals
+      expected: mesh-02-sidecar-injection-envoy
+hints:
+- text: Inspect the live objects with `kubectl get all -n lab-mesh-02-sidecar-injection-envoy
+    -o wide`
+  penalty_points: 10
+- text: Review detailed error events using `kubectl describe pods -l app=mesh-02-sidecar-injection-envoy
+    -n lab-mesh-02-sidecar-injection-envoy`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/service-mesh/mesh-02-sidecar-injection-envoy/solution.yaml
+cleanup:
+  auto: true
+limits:
+  max_attempts: 5
+  timeout_minutes: 25
+security:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile: RuntimeDefault
+resources:
+  cpu: 250m
+  memory: 256Mi
+tested_versions:
+- v1.28.0
+- v1.29.0
+- v1.30.0

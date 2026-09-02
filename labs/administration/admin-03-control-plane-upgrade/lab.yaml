@@ -1,51 +1,77 @@
 id: admin-03-control-plane-upgrade
-title: Control-Plane & Kubelet Rolling Upgrade
-difficulty: intermediate
-duration_minutes: 20
+title: Zero-Downtime Control Plane & Kubelet Upgrades
+difficulty: advanced
+duration_minutes: 15
 track: administration
+scenario: Execute step-by-step kubeadm, kubelet, and kubectl version upgrades following
+  Kubernetes skew policies.
 objectives:
-- Master Control-Plane & Kubelet Rolling Upgrade in Kubernetes
-- Execute and verify deterministic live cluster state
+- Master Zero-Downtime Control Plane & Kubelet Upgrades architecture and declarative
+  configurations
+- Diagnose and remediate common production gotchas in admin-03-control-plane-upgrade
+- Verify live Kubernetes cluster state deterministically
 prerequisites: []
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
 initial_state:
-  manifests: []
-scenario: Upgrade kubeadm, kubelet, and drain nodes
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-admin-03-control-plane-upgrade
+      labels:
+        kubelab.io/track: administration
+        kubelab.io/lab: admin-03-control-plane-upgrade
 tasks:
-- id: task-verify-admin-03-control-plane-upgrade
-  title: Verify Control-Plane & Kubelet Rolling Upgrade
-  description: Verify metadata.name on nodes 'target-resource'
-  points: 100
+- id: task-01-admin-03-control-plane-upgrade
+  title: Deploy & Configure Zero-Downtime Control Plane & Kubelet Upgrades
+  description: Apply the declarative manifest for admin-03-control-plane-upgrade and
+    ensure resource convergence.
+  points: 50
   validation:
     type: k8s_resource
-    resource: nodes
-    name: target-resource
-    namespace: null
+    resource: deployments
+    name: admin-03-control-plane-upgrade
+    namespace: lab-admin-03-control-plane-upgrade
     assertions:
-    - field: metadata.name
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 1
+- id: task-02-admin-03-control-plane-upgrade
+  title: Verify Production Hardening & Labels for Zero-Downtime Control Plane & Kubelet
+    Upgrades
+  description: Verify metadata labels and security compliance in namespace lab-admin-03-control-plane-upgrade.
+  points: 50
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: admin-03-control-plane-upgrade
+    namespace: lab-admin-03-control-plane-upgrade
+    assertions:
+    - field: metadata.labels.app
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: admin-03-control-plane-upgrade
 hints:
-- text: Inspect Kubernetes documentation for `nodes` resource specifications.
+- text: Inspect the live objects with `kubectl get all -n lab-admin-03-control-plane-upgrade
+    -o wide`
   penalty_points: 10
-solution: kubectl apply -f admin-03-control-plane-upgrade.yaml
+- text: Review detailed error events using `kubectl describe pods -l app=admin-03-control-plane-upgrade
+    -n lab-admin-03-control-plane-upgrade`
+  penalty_points: 20
+solution: kubectl apply -f https://raw.githubusercontent.com/dayashimoga/kubelab/main/labs/administration/admin-03-control-plane-upgrade/solution.yaml
 cleanup:
   auto: true
 limits:
   max_attempts: 5
   timeout_minutes: 25
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m
