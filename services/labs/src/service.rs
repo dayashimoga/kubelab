@@ -281,7 +281,10 @@ impl LabService {
             match fetch_live_k8s_resource(client, res_type, res_name, &session.namespace).await {
                 Ok(live_json) if !live_json.is_null() => live_json,
                 Ok(_) => {
-                    warn!("Live K8s resource {}/{} not found in namespace '{}'", res_type, res_name, session.namespace);
+                    warn!(
+                        "Live K8s resource {}/{} not found in namespace '{}'",
+                        res_type, res_name, session.namespace
+                    );
                     json!({ "status": { "phase": "NotFound" } })
                 }
                 Err(e) => {

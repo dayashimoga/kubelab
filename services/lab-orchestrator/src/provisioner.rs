@@ -71,7 +71,10 @@ impl LabProvisioner {
                 .provision_sandbox_namespace(&namespace_name, user_id)
                 .await
             {
-                warn!("Live namespace provisioning warning: {:?}. Tracking sandbox state.", e);
+                warn!(
+                    "Live namespace provisioning warning: {:?}. Tracking sandbox state.",
+                    e
+                );
             }
         }
 
