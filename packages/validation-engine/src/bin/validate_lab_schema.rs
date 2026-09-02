@@ -36,6 +36,11 @@ fn main() {
             .filter(|e| e.file_type().is_file())
         {
             let p = entry.path();
+            if let Some(file_name) = p.file_name().and_then(|f| f.to_str()) {
+                if file_name.ends_with("_catalog.yaml") || file_name == "catalog.yaml" {
+                    continue;
+                }
+            }
             if let Some(ext) = p.extension() {
                 if ext == "yaml" || ext == "yml" {
                     match validate_single_file(p) {

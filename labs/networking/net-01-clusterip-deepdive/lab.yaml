@@ -1,51 +1,153 @@
 id: net-01-clusterip-deepdive
-title: ClusterIP Service Deep Dive & iptables
+title: ClusterIP Service Deep Dive — Selectors, EndpointSlices & kube-proxy Rules
 difficulty: intermediate
-duration_minutes: 20
+duration_minutes: 25
 track: networking
 objectives:
-- Master ClusterIP Service Deep Dive & iptables in Kubernetes
-- Execute and verify deterministic live cluster state
-prerequisites: []
+- Create a ClusterIP Service with explicit selectors targeting backend Pods
+- Verify EndpointSlice objects are created with correct Pod IP addresses
+- Inspect kube-proxy iptables/IPVS rules for the ClusterIP VIP
+- Test intra-cluster connectivity from a debug Pod to the Service VIP
+prerequisites:
+- net-00-clusterip-basics
 environment:
+  type: kubernetes
   cluster: disposable
   namespace_isolation: true
   resources:
     cpu_limit: 500m
     memory_limit: 512Mi
-  type: kubernetes
+scenario: >
+  Deploy a 2-replica backend Deployment with label app=web-backend on port 8080,
+  create a ClusterIP Service selecting those Pods, then verify EndpointSlices and
+  kube-proxy iptables chains. Finally, curl the Service VIP from a debug Pod
+  to prove intra-cluster routing.
 initial_state:
-  manifests: []
-scenario: Verify service endpoints and kube-proxy rules
+  manifests:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: lab-net-01-clusterip-deepdive
+      labels:
+        kubelab.io/track: networking
+        kubelab.io/lab: net-01-clusterip-deepdive
 tasks:
-- id: task-verify-net-01-clusterip-deepdive
-  title: Verify ClusterIP Service Deep Dive & iptables
-  description: Verify metadata.name on services 'target-resource'
-  points: 100
+- id: task-01-create-deployment
+  title: Create the Backend Deployment
+  description: >
+    Create a Deployment named 'web-backend' with 2 replicas running
+    nginx:alpine on containerPort 8080, labeled app=web-backend.
+  points: 25
+  validation:
+    type: k8s_resource
+    resource: deployments
+    name: web-backend
+    namespace: lab-net-01-clusterip-deepdive
+    assertions:
+    - field: spec.replicas
+      operator: equals
+      expected: 2
+    - field: spec.selector.matchLabels.app
+      operator: equals
+      expected: web-backend
+    - field: spec.template.spec.containers[0].ports[0].containerPort
+      operator: equals
+      expected: 8080
+    - field: status.readyReplicas
+      operator: greater_than_or_equal
+      expected: 2
+
+- id: task-02-create-clusterip-service
+  title: Create the ClusterIP Service
+  description: >
+    Create a Service named 'web-backend-svc' of type ClusterIP with selector
+    app=web-backend, mapping port 80 to targetPort 8080.
+  points: 30
   validation:
     type: k8s_resource
     resource: services
-    name: target-resource
-    namespace: null
+    name: web-backend-svc
+    namespace: lab-net-01-clusterip-deepdive
     assertions:
-    - field: metadata.name
+    - field: spec.type
       operator: equals
-      expected: target-resource
-      actual: null
-      passed: null
-      error_message: null
+      expected: ClusterIP
+    - field: spec.selector.app
+      operator: equals
+      expected: web-backend
+    - field: spec.ports[0].port
+      operator: equals
+      expected: 80
+    - field: spec.ports[0].targetPort
+      operator: equals
+      expected: 8080
+
+- id: task-03-verify-endpointslice
+  title: Verify EndpointSlice Created
+  description: >
+    Verify that Kubernetes has auto-created an EndpointSlice for 'web-backend-svc'
+    with at least 2 endpoint addresses corresponding to the backend Pods.
+  points: 25
+  validation:
+    type: k8s_resource
+    resource: endpointslices
+    name: web-backend-svc
+    namespace: lab-net-01-clusterip-deepdive
+    assertions:
+    - field: metadata.labels.kubernetes.io/service-name
+      operator: equals
+      expected: web-backend-svc
+
+- id: task-04-verify-cluster-connectivity
+  title: Verify Intra-Cluster Service Connectivity
+  description: >
+    From a debug Pod, curl the Service's cluster IP or DNS name
+    (web-backend-svc.lab-net-01-clusterip-deepdive.svc.cluster.local)
+    to confirm kube-proxy routing works end-to-end.
+  points: 20
+  validation:
+    type: k8s_resource
+    resource: services
+    name: web-backend-svc
+    namespace: lab-net-01-clusterip-deepdive
+    assertions:
+    - field: spec.clusterIP
+      operator: matches_regex
+      expected: "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$"
+
 hints:
-- text: Inspect Kubernetes documentation for `services` resource specifications.
+- text: >
+    Create the deployment:
+    kubectl create deployment web-backend --image=nginx:alpine --replicas=2
+    -n lab-net-01-clusterip-deepdive
+    Then set the containerPort:
+    kubectl patch deploy web-backend -n lab-net-01-clusterip-deepdive
+    --type=json -p='[{"op":"add","path":"/spec/template/spec/containers/0/ports","value":[{"containerPort":8080}]}]'
   penalty_points: 10
-solution: kubectl apply -f net-01-clusterip-deepdive.yaml
+- text: >
+    Create the Service:
+    kubectl expose deployment web-backend --name=web-backend-svc
+    --port=80 --target-port=8080 -n lab-net-01-clusterip-deepdive
+  penalty_points: 10
+- text: >
+    Check EndpointSlices:
+    kubectl get endpointslices -n lab-net-01-clusterip-deepdive -l kubernetes.io/service-name=web-backend-svc
+    Test connectivity:
+    kubectl run debug --rm -it --image=curlimages/curl -n lab-net-01-clusterip-deepdive
+    -- curl -s http://web-backend-svc/
+  penalty_points: 20
+solution: |
+  kubectl create deployment web-backend --image=nginx:alpine --replicas=2 -n lab-net-01-clusterip-deepdive
+  kubectl patch deploy web-backend -n lab-net-01-clusterip-deepdive --type=json -p='[{"op":"add","path":"/spec/template/spec/containers/0/ports","value":[{"containerPort":8080}]}]'
+  kubectl expose deployment web-backend --name=web-backend-svc --port=80 --target-port=8080 -n lab-net-01-clusterip-deepdive
 cleanup:
   auto: true
 limits:
   max_attempts: 5
-  timeout_minutes: 25
+  timeout_minutes: 30
 security:
-  allowPrivilegeEscalation: false
   runAsNonRoot: true
+  allowPrivilegeEscalation: false
   seccompProfile: RuntimeDefault
 resources:
   cpu: 250m

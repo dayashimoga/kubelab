@@ -80,15 +80,15 @@ spec:
 
   Future<void> _startLabSession() async {
     setState(() => _isSessionStarting = true);
-    _appendTerminal('🚀 Initializing isolated sandbox for ${widget.labId}...');
-    _appendTerminal('📦 Namespace: $_namespace');
+    _appendTerminal('🚀 Provisioning isolated sandbox for ${widget.labId}...');
+    _appendTerminal('📦 Target namespace: $_namespace');
 
     try {
       final res = await http.post(
         Uri.parse('http://10.0.2.2:8080/v1/labs/start'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'lab_id': widget.labId}),
-      ).timeout(const Duration(seconds: 4));
+      ).timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -96,19 +96,27 @@ spec:
         _namespace = data['namespace'] ?? _namespace;
         _isBackendConnected = true;
         _appendTerminal('✅ Connected to live cluster session: $_sessionId');
+        _appendTerminal('🔒 Namespace isolation active: $_namespace');
+        if (mounted) {
+          setState(() => _isSessionStarting = false);
+        }
+        _refreshResources();
       } else {
         _isBackendConnected = false;
-        _appendTerminal('⚡ Running in local interactive sandbox simulation.');
+        _appendTerminal('❌ Failed to provision sandbox (HTTP ${res.statusCode})');
+        _appendTerminal('⛔ Lab requires a live Kubernetes cluster. Local simulation is disabled.');
+        if (mounted) {
+          setState(() => _isSessionStarting = false);
+        }
       }
-    } catch (_) {
+    } catch (e) {
       _isBackendConnected = false;
-      _appendTerminal('⚡ Running in local interactive sandbox simulation.');
-    } finally {
+      _appendTerminal('❌ Cannot reach KubeLab API server.');
+      _appendTerminal('⛔ Lab requires a live backend connection. Simulated execution is forbidden.');
+      _appendTerminal('   Error: $e');
+      _appendTerminal('   Tap the refresh button to retry.');
       if (mounted) {
         setState(() => _isSessionStarting = false);
-        _refreshResources();
-        _appendTerminal('\$ kubectl get pods -n $_namespace');
-        _appendTerminal('NAME READY STATUS RESTARTS AGE\n${widget.labId} 1/1 Running 0 12s');
       }
     }
   }
@@ -135,146 +143,244 @@ spec:
       return;
     }
 
-    if (trimmed.startsWith('kubectl apply')) {
-      _appendTerminal('pod/${widget.labId} configured (live apply successful)');
-      _refreshResources();
+    if (!_isBackendConnected) {
+      _appendTerminal('⛔ [SECURITY] Terminal commands require a live backend connection.');
+      _appendTerminal('   Host-shell fallback is disabled by Zero-Trust policy.');
       return;
     }
 
-    if (trimmed.startsWith('kubectl get pods') || trimmed == 'kgp') {
-      _appendTerminal('NAME READY STATUS RESTARTS AGE\n${widget.labId} 1/1 Running 0 45s');
-      return;
-    }
+    // Send command to backend API for execution in the isolated sandbox
+    _executeRemoteCommand(trimmed);
+  }
 
-    if (trimmed.startsWith('kubectl describe')) {
-      _appendTerminal('Name: ${widget.labId}\nNamespace: $_namespace\nStatus: Running\nIP: 10.244.1.42\nContainers:\n  app:\n    Image: nginx:alpine\n    State: Running\nEvents:\n  Type Reason Age From Message\n  Normal Scheduled 1m default-scheduler Successfully assigned to node-01\n  Normal Pulled 55s kubelet Container image pulled\n  Normal Created 54s kubelet Created container app\n  Normal Started 53s kubelet Started container app');
-      return;
-    }
+  Future<void> _executeRemoteCommand(String cmd) async {
+    try {
+      final res = await http.post(
+        Uri.parse('http://10.0.2.2:8080/v1/labs/sessions/$_sessionId/exec'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'command': cmd, 'namespace': _namespace}),
+      ).timeout(const Duration(seconds: 10));
 
-    if (trimmed.startsWith('kubectl get events') || trimmed == 'kge') {
-      _appendTerminal('LAST SEEN TYPE REASON OBJECT MESSAGE\n1m Normal Scheduled pod/${widget.labId} Successfully assigned to node-01\n55s Normal Pulled pod/${widget.labId} Container image pulled\n53s Normal Started pod/${widget.labId} Started container app');
-      return;
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final output = data['output'] as String? ?? '';
+        if (output.isNotEmpty) {
+          _appendTerminal(output);
+        }
+        if (cmd.startsWith('kubectl apply')) {
+          _refreshResources();
+        }
+      } else {
+        _appendTerminal('Error (HTTP ${res.statusCode}): ${res.body}');
+      }
+    } catch (e) {
+      _appendTerminal('⚠️ Command execution failed: $e');
     }
-
-    // Generic command fallback
-    _appendTerminal('[KubeLab] Executed: $trimmed (exit code 0)');
   }
 
   Future<void> _applyYaml() async {
     final yaml = _yamlController.text;
     _appendTerminal('\$ kubectl apply -f manifest.yaml');
-    
-    try {
-      if (_isBackendConnected) {
-        final res = await http.post(
-          Uri.parse('http://10.0.2.2:8080/v1/labs/sessions/$_sessionId/apply'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'manifest': yaml}),
-        ).timeout(const Duration(seconds: 4));
 
-        if (res.statusCode == 200) {
-          _appendTerminal('✅ manifest applied to cluster namespace $_namespace');
-        } else {
-          _appendTerminal('⚠️ Apply status: ${res.statusCode}');
-        }
-      } else {
-        _appendTerminal('✅ [Sandbox] Manifest parsed and applied successfully.');
-      }
-    } catch (e) {
-      _appendTerminal('✅ [Sandbox] Manifest applied.');
+    if (!_isBackendConnected) {
+      _appendTerminal('⛔ [SECURITY] YAML apply requires a live backend connection.');
+      _appendTerminal('   Simulated apply is disabled by Zero-Trust policy.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cannot apply: no live cluster connection'),
+          backgroundColor: Color(0xFFDC2626),
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('YAML Manifest Applied to Cluster!'), duration: Duration(seconds: 2)),
-    );
+    try {
+      final res = await http.post(
+        Uri.parse('http://10.0.2.2:8080/v1/labs/sessions/$_sessionId/apply'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'yaml_content': yaml}),
+      ).timeout(const Duration(seconds: 10));
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final applied = data['applied_resources'] as List<dynamic>? ?? [];
+        _appendTerminal('✅ Server-side apply: ${applied.length} resource(s) applied to $_namespace');
+        for (final r in applied) {
+          _appendTerminal('   ${r['kind']}/${r['name']} ${r['action']}');
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${applied.length} resource(s) applied via server-side apply'),
+            backgroundColor: const Color(0xFF10B981),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        _appendTerminal('❌ Server-side apply failed (HTTP ${res.statusCode})');
+        _appendTerminal('   ${res.body}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Apply failed: HTTP ${res.statusCode}'),
+            backgroundColor: const Color(0xFFDC2626),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      _appendTerminal('⚠️ Apply request failed: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Apply request failed — check connection'),
+          backgroundColor: Color(0xFFDC2626),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
     _refreshResources();
   }
 
   Future<void> _refreshResources() async {
+    if (!_isBackendConnected) {
+      setState(() {
+        _k8sResources = [];
+        _k8sEvents = ['⛔ No live cluster connection — resource list unavailable'];
+      });
+      return;
+    }
+
     setState(() => _isLoadingResources = true);
-    await Future.delayed(const Duration(milliseconds: 300));
 
-    setState(() {
-      _isLoadingResources = false;
-      _k8sResources = [
-        {
-          'kind': 'Pod',
-          'name': widget.labId,
-          'status': 'Running',
-          'ready': '1/1',
-          'age': '1m',
-          'ip': '10.244.1.42',
-        },
-        {
-          'kind': 'Service',
-          'name': '${widget.labId}-svc',
-          'status': 'Active',
-          'ready': '80/TCP',
-          'age': '1m',
-          'ip': '10.96.124.89',
-        },
-        {
-          'kind': 'ConfigMap',
-          'name': '${widget.labId}-config',
-          'status': 'Configured',
-          'ready': '2 keys',
-          'age': '1m',
-          'ip': '-',
-        }
-      ];
+    try {
+      // Fetch live resources from backend API
+      final resResponse = await http.get(
+        Uri.parse('http://10.0.2.2:8080/v1/labs/sessions/$_sessionId/resources'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 5));
 
-      _k8sEvents = [
-        '55s ago • Normal • Scheduled • Successfully assigned to worker-node-01',
-        '50s ago • Normal • Pulled • Container image nginx:alpine pulled in 1.2s',
-        '48s ago • Normal • Created • Created container app',
-        '47s ago • Normal • Started • Started container app',
-      ];
-    });
+      if (resResponse.statusCode == 200) {
+        final data = jsonDecode(resResponse.body);
+        final resources = data['resources'] as List<dynamic>? ?? [];
+        setState(() {
+          _k8sResources = resources.map<Map<String, dynamic>>((r) => {
+            'kind': r['kind']?.toString() ?? 'Unknown',
+            'name': r['name']?.toString() ?? 'unnamed',
+            'status': r['status']?.toString() ?? 'Unknown',
+            'ready': r['details']?.toString() ?? '-',
+            'age': r['age']?.toString() ?? '-',
+            'ip': r['namespace']?.toString() ?? '-',
+          }).toList();
+        });
+      } else {
+        setState(() {
+          _k8sResources = [];
+        });
+      }
+
+      // Fetch live events
+      final evResponse = await http.get(
+        Uri.parse('http://10.0.2.2:8080/v1/labs/sessions/$_sessionId/events'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 5));
+
+      if (evResponse.statusCode == 200) {
+        final evData = jsonDecode(evResponse.body);
+        final events = evData['events'] as List<dynamic>? ?? [];
+        setState(() {
+          _k8sEvents = events.map<String>((e) => e.toString()).toList();
+        });
+      } else {
+        setState(() {
+          _k8sEvents = ['Failed to fetch events (HTTP ${evResponse.statusCode})'];
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _k8sResources = [];
+        _k8sEvents = ['⚠️ Failed to fetch cluster state: $e'];
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingResources = false);
+      }
+    }
   }
 
   Future<void> _runValidation() async {
-    setState(() => _isValidating = true);
-    _appendTerminal('🧪 Running deterministic cluster state validation...');
-
-    try {
-      if (_isBackendConnected) {
-        final res = await http.post(
-          Uri.parse('http://10.0.2.2:8080/v1/labs/sessions/$_sessionId/validate'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'task_id': 'all'}),
-        ).timeout(const Duration(seconds: 5));
-
-        if (res.statusCode == 200) {
-          final data = jsonDecode(res.body);
-          setState(() {
-            _validationResult = {
-              'passed': data['passed'] ?? true,
-              'score': data['score'] ?? 100,
-              'message': data['message'] ?? 'All lab tasks verified successfully!',
-            };
-          });
-        }
-      }
-    } catch (_) {}
-
-    if (_validationResult == null) {
-      // Local deterministic scoring
-      final score = 100 - (_revealedHints * 10);
+    if (!_isBackendConnected) {
       setState(() {
         _validationResult = {
-          'passed': true,
-          'score': score.clamp(50, 100),
-          'message': 'All verification criteria passed! Live cluster converged.',
+          'passed': false,
+          'score': 0,
+          'message': '⛔ Validation requires a live backend connection. Simulated grading is disabled.',
         };
       });
+      _appendTerminal('⛔ Cannot grade: no live cluster connection. Simulated scoring is forbidden.');
+      return;
     }
 
-    if (_validationResult!['passed'] == true) {
-      await ProgressService.instance.markLessonCompleted(widget.labId, 150);
-      _appendTerminal('🎉 LAB COMPLETED! Score: ${_validationResult!['score']}/100 (+150 XP)');
-    }
+    setState(() => _isValidating = true);
+    _appendTerminal('🧪 Querying live Kubernetes cluster state for validation...');
 
-    setState(() => _isValidating = false);
+    try {
+      final res = await http.post(
+        Uri.parse('http://10.0.2.2:8080/v1/labs/sessions/$_sessionId/validate'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'task_id': 'all'}),
+      ).timeout(const Duration(seconds: 10));
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final passed = data['passed'] == true;
+        final score = data['score'] ?? 0;
+        final message = data['message'] ?? (passed ? 'All assertions passed against live cluster state.' : 'One or more assertions failed.');
+
+        setState(() {
+          _validationResult = {
+            'passed': passed,
+            'score': score,
+            'message': message,
+          };
+        });
+
+        if (passed) {
+          await ProgressService.instance.markLessonCompleted(widget.labId, score as int);
+          _appendTerminal('🎉 LAB PASSED! Score: $score (live cluster state verified)');
+        } else {
+          _appendTerminal('❌ Validation FAILED: $message');
+          // Show assertion details if available
+          final assertions = data['assertions'] as List<dynamic>?;
+          if (assertions != null) {
+            for (final a in assertions) {
+              final aPassed = a['passed'] == true;
+              final field = a['field'] ?? '';
+              final error = a['error_message'] ?? '';
+              _appendTerminal('   ${aPassed ? '✅' : '❌'} $field${aPassed ? '' : ': $error'}');
+            }
+          }
+        }
+      } else {
+        setState(() {
+          _validationResult = {
+            'passed': false,
+            'score': 0,
+            'message': 'Validation request failed (HTTP ${res.statusCode})',
+          };
+        });
+        _appendTerminal('❌ Validation request failed: HTTP ${res.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _validationResult = {
+          'passed': false,
+          'score': 0,
+          'message': 'Validation request error: $e',
+        };
+      });
+      _appendTerminal('⚠️ Validation request failed: $e');
+    } finally {
+      setState(() => _isValidating = false);
+    }
   }
 
   @override
@@ -305,8 +411,8 @@ spec:
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  _isBackendConnected ? 'LIVE CLUSTER • $_namespace' : 'SANDBOX SIM • $_namespace',
-                  style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                  _isBackendConnected ? 'LIVE CLUSTER • $_namespace' : 'DISCONNECTED • $_namespace',
+                  style: TextStyle(fontSize: 10, color: _isBackendConnected ? const Color(0xFF94A3B8) : const Color(0xFFF87171)),
                 ),
               ],
             ),

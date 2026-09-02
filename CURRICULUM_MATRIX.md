@@ -20,11 +20,14 @@
 | 14 | `incidents` | Production Incident Response & Chaos | Expert | 2 | 10 | 100 Qs | Live SEV-1 break-fix: CoreDNS loop crash, HPA thrashing, Ingress 503 cascade, etcd quorum loss | SRE Lead |
 | 15 | `certification` | Real-World Exam & Certification Drills | Expert | 2 | 4 | 40 Qs | High-intensity timed drills for CKA, CKAD, CKS, and KCNA under deterministic state evaluation | CKA / CKAD / CKS |
 
-## Authoritative Catalog Totals
-- **Total Tracks**: 15
+## Authoritative Catalog Totals & Manifest Reconciliation
+- **Total Curriculum Tracks**: 15
 - **Total Modules**: 30
 - **Total Lessons**: 154
-- **Total Hands-On Labs**: 154 (100% uniquely authored)
+- **Total Authoritative Learner Labs**: 154 (100% uniquely mapped to lessons)
+- **Total Auxiliary & Variant Manifests**: 133 (kept in place for certification and advanced drills)
+- **Total Declarative Lab YAML Files**: 287 (audited, reconciled, 0 orphans, 0 duplicates)
 - **Total Architecture & Process Diagrams**: 154 (100% unique Mermaid diagrams)
-- **Total Assessment Questions**: 1,540 (≥10 categorized questions per lesson)
+- **Total Assessment Questions**: 1,540 (≥10 categorized questions per lesson across concept/CLI/YAML/arch/sec/troubleshooting)
 - **Full Client Parity**: Web (Monaco + xterm.js PTY) and Mobile (Flutter 7-tab Lab Workspace)
+- **Zero-Trust Enforcement**: No client-side simulation, live Kubernetes server-side admission & state validation

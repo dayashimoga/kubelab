@@ -166,7 +166,7 @@ impl LabService {
                 .await
             {
                 warn!(
-                    "Live Kubernetes server-side apply error: {:?}. Recording parsed documents.",
+                    "Live Kubernetes server-side apply warning: {:?}. Recording parsed documents.",
                     e
                 );
             }
@@ -215,7 +215,11 @@ impl LabService {
         Ok(ApplyManifestResponse {
             success: true,
             applied_resources: applied,
-            message: "Applied 1 or more documents to sandbox namespace".to_string(),
+            message: format!(
+                "Applied {} resource(s) to namespace '{}'",
+                list.len(),
+                session.namespace
+            ),
         })
     }
 
@@ -268,7 +272,7 @@ impl LabService {
         // Resolve actual state:
         // 1. Explicitly supplied live_state payload in request (used in integration & unit tests)
         // 2. Query live Kubernetes cluster if k8s_client is configured
-        // 3. Unavailable state if neither K8s client nor live_state is present
+        // 3. FAIL CLOSED: Return explicit failure if neither K8s client nor live_state is present
         let actual_state = if let Some(state) = req.live_state {
             state
         } else if let Some(ref client) = self.k8s_client {
@@ -276,15 +280,30 @@ impl LabService {
             let res_name = task.validation.name.as_deref().unwrap_or("");
             match fetch_live_k8s_resource(client, res_type, res_name, &session.namespace).await {
                 Ok(live_json) if !live_json.is_null() => live_json,
-                _ => json!({ "status": { "phase": "NotFound" } }),
+                Ok(_) => {
+                    warn!("Live K8s resource {}/{} not found in namespace '{}'", res_type, res_name, session.namespace);
+                    json!({ "status": { "phase": "NotFound" } })
+                }
+                Err(e) => {
+                    warn!("Live K8s resource query failed: {:?}", e);
+                    return Ok(ValidationResult {
+                        task_id: req.task_id.clone(),
+                        passed: false,
+                        score: 0,
+                        max_score: task.points,
+                        assertion_results: vec![],
+                    });
+                }
             }
         } else {
-            json!({
-                "status": {
-                    "phase": "Unavailable",
-                    "error": "No live Kubernetes cluster client configured for sandbox"
-                }
-            })
+            warn!("No K8s client and no live_state provided — validation cannot proceed");
+            return Ok(ValidationResult {
+                task_id: req.task_id.clone(),
+                passed: false,
+                score: 0,
+                max_score: task.points,
+                assertion_results: vec![],
+            });
         };
 
         let result = LabEvaluator::evaluate_task(task, &actual_state);

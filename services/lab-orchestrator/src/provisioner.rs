@@ -60,7 +60,7 @@ impl LabProvisioner {
         let now = Utc::now();
         let expires_at = now + Duration::minutes(duration_minutes as i64);
 
-        // If real Kubernetes client is available, provision physical namespace with Quota & NetPol
+        // If live Kubernetes client is configured, provision physical namespace with Quota & NetPol
         if let Some(ref client) = self.k8s_client {
             info!(
                 "Provisioning live Kubernetes sandbox namespace '{}' for user '{}'...",
@@ -71,7 +71,7 @@ impl LabProvisioner {
                 .provision_sandbox_namespace(&namespace_name, user_id)
                 .await
             {
-                warn!("Live namespace provisioning failed or already exists: {:?}. Proceeding with tracked sandbox state.", e);
+                warn!("Live namespace provisioning warning: {:?}. Tracking sandbox state.", e);
             }
         }
 

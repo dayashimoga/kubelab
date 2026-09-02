@@ -288,7 +288,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
 
-      - name: Validate 145 Lab Schemas
+      - name: Validate All Declarative Lab Schemas (154 learner + auxiliary)
         run: cargo run -p kubelab-validation-engine --bin validate_lab_schema -- --path labs/
 
       - name: Run Validation Engine Tests

@@ -1,0 +1,1445 @@
+metadata:
+  generated_by: scripts/reconcile_labs.py
+  curriculum_source: packages/curriculum/src/curriculum.json
+  total_learner_labs: 154
+  total_auxiliary_labs: 133
+  total_lab_yamls: 287
+  duplicates: 0
+  orphans: 0
+learner_labs:
+  admin-01-kubeadm-bootstrap:
+    path: labs/administration/admin-01-kubeadm-bootstrap/lab.yaml
+    track: administration
+    title: Bootstrapping Multi-Node Clusters with kubeadm
+    classification: learner
+  admin-02-etcd-backup-restore:
+    path: labs/administration/admin-02-etcd-backup-restore/lab.yaml
+    track: administration
+    title: etcd Snapshot Backup & Disaster Recovery
+    classification: learner
+  admin-03-control-plane-upgrade:
+    path: labs/administration/admin-03-control-plane-upgrade/lab.yaml
+    track: administration
+    title: Zero-Downtime Control Plane & Kubelet Upgrades
+    classification: learner
+  admin-04-node-drain-cordon:
+    path: labs/administration/admin-04-node-drain-cordon/lab.yaml
+    track: administration
+    title: Node Maintenance, Cordoning & Graceful Drain
+    classification: learner
+  admin-05-certificate-rotation:
+    path: labs/administration/admin-05-certificate-rotation/lab.yaml
+    track: administration
+    title: Kubernetes PKI Certificate Expiration & Renewal
+    classification: learner
+  admin-06-static-pods-debug:
+    path: labs/administration/admin-06-static-pods-debug/lab.yaml
+    track: administration
+    title: Static Pod Architecture & Kubelet Manifest Watcher
+    classification: learner
+  admin-07-audit-logging-policy:
+    path: labs/administration/admin-07-audit-logging-policy/lab.yaml
+    track: administration
+    title: Kubernetes API Server Audit Policy Logging
+    classification: learner
+  admin-08-custom-scheduler:
+    path: labs/administration/admin-08-custom-scheduler/lab.yaml
+    track: administration
+    title: Deploying & Using Custom Secondary Schedulers
+    classification: learner
+  admin-09-api-priority-fairness:
+    path: labs/administration/admin-09-api-priority-fairness/lab.yaml
+    track: administration
+    title: API Priority and Fairness (APF) Rate Limiting
+    classification: learner
+  admin-10-mutating-webhook:
+    path: labs/administration/admin-10-mutating-webhook/lab.yaml
+    track: administration
+    title: Dynamic Admission Control & Mutating Webhooks
+    classification: learner
+  cert-01-cka-speed-drill:
+    path: labs/certification/cert-01-cka-speed-drill/lab.yaml
+    track: certification
+    title: CKA Comprehensive Administration Speed Drill
+    classification: learner
+  cert-02-ckad-speed-drill:
+    path: labs/certification/cert-02-ckad-speed-drill/lab.yaml
+    track: certification
+    title: CKAD Application Developer Speed Drill
+    classification: learner
+  cert-03-cks-speed-drill:
+    path: labs/certification/cert-03-cks-speed-drill/lab.yaml
+    track: certification
+    title: CKS Security Specialist Speed Drill
+    classification: learner
+  cert-04-kcna-comprehensive-drill:
+    path: labs/certification/cert-04-kcna-comprehensive-drill/lab.yaml
+    track: certification
+    title: KCNA Cloud Native Associate Speed Drill
+    classification: learner
+  gitops-01-argocd-bootstrap:
+    path: labs/gitops/gitops-01-argocd-bootstrap/lab.yaml
+    track: gitops
+    title: Bootstrapping Argo CD in Kubernetes
+    classification: learner
+  gitops-02-app-of-apps-pattern:
+    path: labs/gitops/gitops-02-app-of-apps-pattern/lab.yaml
+    track: gitops
+    title: Enterprise App-of-Apps Architecture
+    classification: learner
+  gitops-03-automated-sync-prune:
+    path: labs/gitops/gitops-03-automated-sync-prune/lab.yaml
+    track: gitops
+    title: Automated Synchronization, Self-Healing & Pruning
+    classification: learner
+  gitops-04-sync-waves-hooks:
+    path: labs/gitops/gitops-04-sync-waves-hooks/lab.yaml
+    track: gitops
+    title: Argo CD Sync Waves & Phased Migration Hooks
+    classification: learner
+  gitops-05-drift-detection-remediation:
+    path: labs/gitops/gitops-05-drift-detection-remediation/lab.yaml
+    track: gitops
+    title: Cluster Drift Detection & Automated Reconciliation
+    classification: learner
+  gitops-06-argo-rollouts-canary:
+    path: labs/gitops/gitops-06-argo-rollouts-canary/lab.yaml
+    track: gitops
+    title: Progressive Delivery with Argo Rollouts Canary
+    classification: learner
+  gitops-07-analysis-template-prometheus:
+    path: labs/gitops/gitops-07-analysis-template-prometheus/lab.yaml
+    track: gitops
+    title: Automated Canary Metric Analysis with Prometheus
+    classification: learner
+  gitops-08-blue-green-active-preview:
+    path: labs/gitops/gitops-08-blue-green-active-preview/lab.yaml
+    track: gitops
+    title: Blue-Green Deployments with Preview Services
+    classification: learner
+  gitops-09-flux-kustomization-controller:
+    path: labs/gitops/gitops-09-flux-kustomization-controller/lab.yaml
+    track: gitops
+    title: GitOps Automation with Flux CD & Source Controller
+    classification: learner
+  gitops-10-multi-cluster-argocd:
+    path: labs/gitops/gitops-10-multi-cluster-argocd/lab.yaml
+    track: gitops
+    title: Multi-Cluster Fleet Management with Argo CD
+    classification: learner
+  helm-01-chart-structure-scaffold:
+    path: labs/helm-kustomize/helm-01-chart-structure-scaffold/lab.yaml
+    track: helm-kustomize
+    title: Helm Chart Layout & Chart.yaml Metadata
+    classification: learner
+  helm-02-values-override-templating:
+    path: labs/helm-kustomize/helm-02-values-override-templating/lab.yaml
+    track: helm-kustomize
+    title: Go Templating & Values Overrides in Helm
+    classification: learner
+  helm-03-named-templates-helpers:
+    path: labs/helm-kustomize/helm-03-named-templates-helpers/lab.yaml
+    track: helm-kustomize
+    title: Named Template Partials (_helpers.tpl) & Indentation
+    classification: learner
+  helm-04-chart-dependencies-subcharts:
+    path: labs/helm-kustomize/helm-04-chart-dependencies-subcharts/lab.yaml
+    track: helm-kustomize
+    title: Subcharts, Chart Dependencies & Value Overrides
+    classification: learner
+  helm-05-hooks-lifecycle-post-install:
+    path: labs/helm-kustomize/helm-05-hooks-lifecycle-post-install/lab.yaml
+    track: helm-kustomize
+    title: Helm Lifecycle Hooks (Pre-Install & Post-Upgrade)
+    classification: learner
+  helm-06-kustomize-base-overlays:
+    path: labs/helm-kustomize/helm-06-kustomize-base-overlays/lab.yaml
+    track: helm-kustomize
+    title: Kustomize Bases & Multi-Environment Overlays
+    classification: learner
+  helm-07-kustomize-configmap-secret-generator:
+    path: labs/helm-kustomize/helm-07-kustomize-configmap-secret-generator/lab.yaml
+    track: helm-kustomize
+    title: ConfigMap & Secret Generators with Hash Suffixes
+    classification: learner
+  helm-08-kustomize-json6902-patches:
+    path: labs/helm-kustomize/helm-08-kustomize-json6902-patches/lab.yaml
+    track: helm-kustomize
+    title: JSON 6902 Strategic Merge Patches
+    classification: learner
+  helm-09-kustomize-components-composition:
+    path: labs/helm-kustomize/helm-09-kustomize-components-composition/lab.yaml
+    track: helm-kustomize
+    title: Kustomize Components for Cross-Cutting Features
+    classification: learner
+  helm-10-helm-kustomize-post-renderer:
+    path: labs/helm-kustomize/helm-10-helm-kustomize-post-renderer/lab.yaml
+    track: helm-kustomize
+    title: Combining Helm with Kustomize Post-Renderers
+    classification: learner
+  incident-cert-expiration-outage:
+    path: labs/incidents/incident-cert-expiration-outage/lab.yaml
+    track: incidents
+    title: 'Production Incident: Expired Control Plane TLS Certificates'
+    classification: learner
+  incident-cni-ip-exhaustion:
+    path: labs/incidents/incident-cni-ip-exhaustion/lab.yaml
+    track: incidents
+    title: 'Production Incident: CNI IPAM Pool Exhaustion Outage'
+    classification: learner
+  incident-coredns-failure:
+    path: labs/incidents/incident-coredns-failure/lab.yaml
+    track: incidents
+    title: 'Production Incident: CoreDNS Outage & Cascading 503 Errors'
+    classification: learner
+  incident-etcd-quorum-loss:
+    path: labs/incidents/incident-etcd-quorum-loss/lab.yaml
+    track: incidents
+    title: 'Production Incident: etcd Split-Brain & Quorum Loss'
+    classification: learner
+  incident-gitops-sync-jam:
+    path: labs/incidents/incident-gitops-sync-jam/lab.yaml
+    track: incidents
+    title: 'Production Incident: GitOps Sync Deadlock & Immutable Fields'
+    classification: learner
+  incident-hpa-thrashing:
+    path: labs/incidents/incident-hpa-thrashing/lab.yaml
+    track: incidents
+    title: 'Production Incident: HPA Thrashing & Cascade Scaling'
+    classification: learner
+  incident-ingress-503-outage:
+    path: labs/incidents/incident-ingress-503-outage/lab.yaml
+    track: incidents
+    title: 'Production Incident: Ingress Gateway 503 Outage'
+    classification: learner
+  incident-istio-mtls-breakage:
+    path: labs/incidents/incident-istio-mtls-breakage/lab.yaml
+    track: incidents
+    title: 'Production Incident: Broken STRICT mTLS Communication'
+    classification: learner
+  incident-oom-cascade-starvation:
+    path: labs/incidents/incident-oom-cascade-starvation/lab.yaml
+    track: incidents
+    title: 'Production Incident: Unbounded OOM Cascade Node Collapse'
+    classification: learner
+  incident-pvc-deadlock-multiattach:
+    path: labs/incidents/incident-pvc-deadlock-multiattach/lab.yaml
+    track: incidents
+    title: 'Production Incident: Multi-Attach Storage Deadlock'
+    classification: learner
+  k8s-01-pod-lifecycle-phases:
+    path: labs/kubernetes/k8s-01-pod-lifecycle-phases/lab.yaml
+    track: kubernetes
+    title: Pod Lifecycle Phases, Conditions & Container Statuses
+    classification: learner
+  k8s-02-init-containers-dependency:
+    path: labs/kubernetes/k8s-02-init-containers-dependency/lab.yaml
+    track: kubernetes
+    title: Sequential InitContainers & Service Dependency Initialization
+    classification: learner
+  k8s-03-sidecar-containers-k8s128:
+    path: labs/kubernetes/k8s-03-sidecar-containers-k8s128/lab.yaml
+    track: kubernetes
+    title: Native Sidecar Containers in Kubernetes 1.28+
+    classification: learner
+  k8s-04-multi-container-shared-volume:
+    path: labs/kubernetes/k8s-04-multi-container-shared-volume/lab.yaml
+    track: kubernetes
+    title: Multi-Container Pods & Inter-Process Volume Sharing
+    classification: learner
+  k8s-05-configmap-env-volume:
+    path: labs/kubernetes/k8s-05-configmap-env-volume/lab.yaml
+    track: kubernetes
+    title: ConfigMap Environment Variables & Volume Projections
+    classification: learner
+  k8s-06-secrets-base64-tls:
+    path: labs/kubernetes/k8s-06-secrets-base64-tls/lab.yaml
+    track: kubernetes
+    title: Kubernetes Secrets, TLS Certificates & Immutable Keys
+    classification: learner
+  k8s-07-resource-requests-limits:
+    path: labs/kubernetes/k8s-07-resource-requests-limits/lab.yaml
+    track: kubernetes
+    title: Quality of Service (QoS) Classes & Resource Bounds
+    classification: learner
+  k8s-08-liveness-readiness-startup-probes:
+    path: labs/kubernetes/k8s-08-liveness-readiness-startup-probes/lab.yaml
+    track: kubernetes
+    title: Liveness, Readiness & Startup Probes Deep Dive
+    classification: learner
+  k8s-09-deployments-rolling-update:
+    path: labs/kubernetes/k8s-09-deployments-rolling-update/lab.yaml
+    track: kubernetes
+    title: Deployment Rolling Updates, MaxSurge & Rollbacks
+    classification: learner
+  k8s-10-replicaset-reconciliation:
+    path: labs/kubernetes/k8s-10-replicaset-reconciliation/lab.yaml
+    track: kubernetes
+    title: ReplicaSet Controller & Label Selector Reconciliation
+    classification: learner
+  k8s-11-daemonset-node-affinity:
+    path: labs/kubernetes/k8s-11-daemonset-node-affinity/lab.yaml
+    track: kubernetes
+    title: DaemonSet Workload Scheduling & Tolerations
+    classification: learner
+  k8s-12-statefulset-stable-network:
+    path: labs/kubernetes/k8s-12-statefulset-stable-network/lab.yaml
+    track: kubernetes
+    title: StatefulSets, Ordinal Indices & Headless Services
+    classification: learner
+  k8s-13-jobs-cronjobs-completions:
+    path: labs/kubernetes/k8s-13-jobs-cronjobs-completions/lab.yaml
+    track: kubernetes
+    title: Batch Jobs, Parallel Completions & CronJobs
+    classification: learner
+  k8s-14-hpa-cpu-scaling:
+    path: labs/kubernetes/k8s-14-hpa-cpu-scaling/lab.yaml
+    track: kubernetes
+    title: Horizontal Pod Autoscaler (HPA v2) & Metrics Server
+    classification: learner
+  k8s-15-pod-disruption-budget:
+    path: labs/kubernetes/k8s-15-pod-disruption-budget/lab.yaml
+    track: kubernetes
+    title: PodDisruptionBudgets (PDB) & High Availability Drains
+    classification: learner
+  k8s-16-node-taints-tolerations:
+    path: labs/kubernetes/k8s-16-node-taints-tolerations/lab.yaml
+    track: kubernetes
+    title: Node Taints, Tolerations & Advanced Scheduling
+    classification: learner
+  linux-01-fs-permissions:
+    path: labs/linux-containers/linux-01-fs-permissions/lab.yaml
+    track: linux-containers
+    title: Linux Filesystem Hierarchy & POSIX Permissions
+    classification: learner
+  linux-02-process-signals:
+    path: labs/linux-containers/linux-02-process-signals/lab.yaml
+    track: linux-containers
+    title: Process Lifecycle & Graceful SIGTERM Shutdown
+    classification: learner
+  linux-03-namespaces-isolation:
+    path: labs/linux-containers/linux-03-namespaces-isolation/lab.yaml
+    track: linux-containers
+    title: Linux Namespaces & Container Process Isolation
+    classification: learner
+  linux-04-cgroupsv2-limits:
+    path: labs/linux-containers/linux-04-cgroupsv2-limits/lab.yaml
+    track: linux-containers
+    title: Control Groups v2 (cgroups v2) CPU & Memory Throttling
+    classification: learner
+  linux-05-rootless-containers:
+    path: labs/linux-containers/linux-05-rootless-containers/lab.yaml
+    track: linux-containers
+    title: Rootless Container Architecture & User Namespace Mapping
+    classification: learner
+  linux-06-multistage-containerfile:
+    path: labs/linux-containers/linux-06-multistage-containerfile/lab.yaml
+    track: linux-containers
+    title: Multi-Stage Containerfile Optimization & Distroless Base
+    classification: learner
+  linux-07-systemd-service-quadlet:
+    path: labs/linux-containers/linux-07-systemd-service-quadlet/lab.yaml
+    track: linux-containers
+    title: Systemd Quadlet Container Services & Auto-Restart
+    classification: learner
+  linux-08-oci-spec-runc:
+    path: labs/linux-containers/linux-08-oci-spec-runc/lab.yaml
+    track: linux-containers
+    title: OCI Runtime Specification & Direct runc Container Execution
+    classification: learner
+  mesh-01-istio-control-plane:
+    path: labs/service-mesh/mesh-01-istio-control-plane/lab.yaml
+    track: service-mesh
+    title: Deploying Istio Service Mesh Operator
+    classification: learner
+  mesh-02-sidecar-injection-envoy:
+    path: labs/service-mesh/mesh-02-sidecar-injection-envoy/lab.yaml
+    track: service-mesh
+    title: Envoy Sidecar Proxy Automatic Injection
+    classification: learner
+  mesh-03-virtualservice-canary-routing:
+    path: labs/service-mesh/mesh-03-virtualservice-canary-routing/lab.yaml
+    track: service-mesh
+    title: VirtualService Dynamic Traffic Shifting & Canary
+    classification: learner
+  mesh-04-destinationrule-traffic-policy:
+    path: labs/service-mesh/mesh-04-destinationrule-traffic-policy/lab.yaml
+    track: service-mesh
+    title: DestinationRule Load Balancing & Connection Pools
+    classification: learner
+  mesh-05-strict-mtls-peerauthentication:
+    path: labs/service-mesh/mesh-05-strict-mtls-peerauthentication/lab.yaml
+    track: service-mesh
+    title: Enforcing STRICT Mutual TLS Across Service Mesh
+    classification: learner
+  mesh-06-authorizationpolicy-rbac:
+    path: labs/service-mesh/mesh-06-authorizationpolicy-rbac/lab.yaml
+    track: service-mesh
+    title: Fine-Grained Service Mesh Authorization Policies
+    classification: learner
+  mesh-07-fault-injection-latency:
+    path: labs/service-mesh/mesh-07-fault-injection-latency/lab.yaml
+    track: service-mesh
+    title: Chaos Engineering & Fault Injection in Istio
+    classification: learner
+  mesh-08-circuit-breaking-outlier-detection:
+    path: labs/service-mesh/mesh-08-circuit-breaking-outlier-detection/lab.yaml
+    track: service-mesh
+    title: Circuit Breaking & Outlier Detection Ejection
+    classification: learner
+  mesh-09-ingress-gateway-tls-termination:
+    path: labs/service-mesh/mesh-09-ingress-gateway-tls-termination/lab.yaml
+    track: service-mesh
+    title: Istio Ingress Gateway & TLS Termination
+    classification: learner
+  mesh-10-egress-gateway-external-access:
+    path: labs/service-mesh/mesh-10-egress-gateway-external-access/lab.yaml
+    track: service-mesh
+    title: Egress Gateway & Controlled External API Access
+    classification: learner
+  mesh-11-envoyfilter-lua-scripting:
+    path: labs/service-mesh/mesh-11-envoyfilter-lua-scripting/lab.yaml
+    track: service-mesh
+    title: EnvoyFilter Custom Lua Scripting & Wasm Plugins
+    classification: learner
+  net-00-clusterip-basics:
+    path: labs/networking/net-00-clusterip-basics/lab.yaml
+    track: networking
+    title: ClusterIP Service & kube-proxy Packet Routing
+    classification: learner
+  net-01-nodeport-external:
+    path: labs/networking/net-01-nodeport-external/lab.yaml
+    track: networking
+    title: NodePort Services & externalTrafficPolicy Routing
+    classification: learner
+  net-02-loadbalancer-cloud:
+    path: labs/networking/net-02-loadbalancer-cloud/lab.yaml
+    track: networking
+    title: LoadBalancer Services & Cloud Provider Integration
+    classification: learner
+  net-03-ingress-controller-routing:
+    path: labs/networking/net-03-ingress-controller-routing/lab.yaml
+    track: networking
+    title: Ingress Controllers & Path-Based HTTP Routing
+    classification: learner
+  net-04-networkpolicy-default-deny:
+    path: labs/networking/net-04-networkpolicy-default-deny/lab.yaml
+    track: networking
+    title: Zero-Trust Default-Deny NetworkPolicies
+    classification: learner
+  net-05-networkpolicy-ingress-egress:
+    path: labs/networking/net-05-networkpolicy-ingress-egress/lab.yaml
+    track: networking
+    title: Fine-Grained Ingress & Egress NetworkPolicies
+    classification: learner
+  net-06-coredns-custom-records:
+    path: labs/networking/net-06-coredns-custom-records/lab.yaml
+    track: networking
+    title: CoreDNS Custom Records & Upstream Forwarding
+    classification: learner
+  net-07-metallb-baremetal-bgp:
+    path: labs/networking/net-07-metallb-baremetal-bgp/lab.yaml
+    track: networking
+    title: MetalLB LoadBalancer for Bare-Metal Clusters
+    classification: learner
+  net-08-cilium-ebpf-dataplane:
+    path: labs/networking/net-08-cilium-ebpf-dataplane/lab.yaml
+    track: networking
+    title: Cilium eBPF Dataplane & Kernel Packet Filtering
+    classification: learner
+  net-09-calico-bgp-peering:
+    path: labs/networking/net-09-calico-bgp-peering/lab.yaml
+    track: networking
+    title: Calico CNI IPPools & BGP Route Distribution
+    classification: learner
+  net-10-gateway-api-httproute:
+    path: labs/networking/net-10-gateway-api-httproute/lab.yaml
+    track: networking
+    title: Kubernetes Gateway API & HTTPRoute Splitting
+    classification: learner
+  net-11-dual-stack-ipv4-ipv6:
+    path: labs/networking/net-11-dual-stack-ipv4-ipv6/lab.yaml
+    track: networking
+    title: IPv4/IPv6 Dual-Stack Service & Pod Networking
+    classification: learner
+  obs-01-prometheus-operator-crds:
+    path: labs/observability/obs-01-prometheus-operator-crds/lab.yaml
+    track: observability
+    title: Deploying Prometheus Operator & Core CRDs
+    classification: learner
+  obs-02-servicemonitor-metric-scrape:
+    path: labs/observability/obs-02-servicemonitor-metric-scrape/lab.yaml
+    track: observability
+    title: Configuring Declarative ServiceMonitor Metrics
+    classification: learner
+  obs-03-promql-error-rate-alerts:
+    path: labs/observability/obs-03-promql-error-rate-alerts/lab.yaml
+    track: observability
+    title: Writing PromQL Alerts for Latency & Error Rates
+    classification: learner
+  obs-04-alertmanager-routing-receivers:
+    path: labs/observability/obs-04-alertmanager-routing-receivers/lab.yaml
+    track: observability
+    title: Alertmanager Notification Routing & Inhabitation
+    classification: learner
+  obs-05-grafana-dashboards-as-code:
+    path: labs/observability/obs-05-grafana-dashboards-as-code/lab.yaml
+    track: observability
+    title: Provisioning Grafana Dashboards as Code
+    classification: learner
+  obs-06-opentelemetry-collector-pipeline:
+    path: labs/observability/obs-06-opentelemetry-collector-pipeline/lab.yaml
+    track: observability
+    title: Building OpenTelemetry Collector Pipelines
+    classification: learner
+  obs-07-distributed-tracing-tempo:
+    path: labs/observability/obs-07-distributed-tracing-tempo/lab.yaml
+    track: observability
+    title: Distributed Context Tracing with Grafana Tempo
+    classification: learner
+  obs-08-loki-promtail-log-pipeline:
+    path: labs/observability/obs-08-loki-promtail-log-pipeline/lab.yaml
+    track: observability
+    title: Log Aggregation with Grafana Loki & Promtail
+    classification: learner
+  obs-09-kube-state-metrics-deployment:
+    path: labs/observability/obs-09-kube-state-metrics-deployment/lab.yaml
+    track: observability
+    title: Cluster Health Metrics with kube-state-metrics
+    classification: learner
+  obs-10-blackbox-exporter-probes:
+    path: labs/observability/obs-10-blackbox-exporter-probes/lab.yaml
+    track: observability
+    title: Synthetic Endpoint Monitoring with Blackbox Exporter
+    classification: learner
+  platform-01-custom-resource-definition:
+    path: labs/platform-eng/platform-01-custom-resource-definition/lab.yaml
+    track: platform-eng
+    title: Designing Custom Resource Definitions (CRDs)
+    classification: learner
+  platform-02-crossplane-xrd-composition:
+    path: labs/platform-eng/platform-02-crossplane-xrd-composition/lab.yaml
+    track: platform-eng
+    title: Cloud Infrastructure Composition with Crossplane
+    classification: learner
+  platform-03-cluster-api-aws-provision:
+    path: labs/platform-eng/platform-03-cluster-api-aws-provision/lab.yaml
+    track: platform-eng
+    title: Declarative Fleet Provisioning with Cluster API (CAPI)
+    classification: learner
+  platform-04-vcluster-virtual-tenancy:
+    path: labs/platform-eng/platform-04-vcluster-virtual-tenancy/lab.yaml
+    track: platform-eng
+    title: Multi-Tenancy Isolation with vCluster
+    classification: learner
+  platform-05-backstage-software-template:
+    path: labs/platform-eng/platform-05-backstage-software-template/lab.yaml
+    track: platform-eng
+    title: Internal Developer Platforms & Backstage Templates
+    classification: learner
+  platform-06-kargo-stage-promotion:
+    path: labs/platform-eng/platform-06-kargo-stage-promotion/lab.yaml
+    track: platform-eng
+    title: Multi-Stage Artifact Promotion with Kargo
+    classification: learner
+  platform-07-external-secrets-operator:
+    path: labs/platform-eng/platform-07-external-secrets-operator/lab.yaml
+    track: platform-eng
+    title: Synchronizing Cloud Vaults with External Secrets Operator
+    classification: learner
+  platform-08-karpenter-node-autoscaling:
+    path: labs/platform-eng/platform-08-karpenter-node-autoscaling/lab.yaml
+    track: platform-eng
+    title: Fast Just-in-Time Node Autoscaling with Karpenter
+    classification: learner
+  platform-09-telepresence-local-intercept:
+    path: labs/platform-eng/platform-09-telepresence-local-intercept/lab.yaml
+    track: platform-eng
+    title: Rapid Local Development Loops with Telepresence
+    classification: learner
+  platform-10-devspace-rapid-inner-loop:
+    path: labs/platform-eng/platform-10-devspace-rapid-inner-loop/lab.yaml
+    track: platform-eng
+    title: Hot-Reload Container Workflows with DevSpace
+    classification: learner
+  sec-01-rbac-role-binding:
+    path: labs/security/sec-01-rbac-role-binding/lab.yaml
+    track: security
+    title: Namespace RBAC Roles & RoleBindings
+    classification: learner
+  sec-02-clusterrole-clusterbinding:
+    path: labs/security/sec-02-clusterrole-clusterbinding/lab.yaml
+    track: security
+    title: Cluster-Wide RBAC ClusterRoles & Bindings
+    classification: learner
+  sec-03-serviceaccount-token-projected:
+    path: labs/security/sec-03-serviceaccount-token-projected/lab.yaml
+    track: security
+    title: ServiceAccount TokenRequest & Bound Projections
+    classification: learner
+  sec-04-pod-security-admission:
+    path: labs/security/sec-04-pod-security-admission/lab.yaml
+    track: security
+    title: Pod Security Standards (Privileged, Baseline, Restricted)
+    classification: learner
+  sec-05-security-context-non-root:
+    path: labs/security/sec-05-security-context-non-root/lab.yaml
+    track: security
+    title: Hardened SecurityContext & Read-Only Root Filesystems
+    classification: learner
+  sec-06-seccomp-apparmor-profiles:
+    path: labs/security/sec-06-seccomp-apparmor-profiles/lab.yaml
+    track: security
+    title: Seccomp & AppArmor System Call Filtering
+    classification: learner
+  sec-07-image-vulnerability-trivy:
+    path: labs/security/sec-07-image-vulnerability-trivy/lab.yaml
+    track: security
+    title: Container Image Vulnerability Scanning with Trivy
+    classification: learner
+  sec-08-opa-gatekeeper-constraint:
+    path: labs/security/sec-08-opa-gatekeeper-constraint/lab.yaml
+    track: security
+    title: Policy-as-Code with OPA Gatekeeper & Rego
+    classification: learner
+  sec-09-kyverno-policy-validation:
+    path: labs/security/sec-09-kyverno-policy-validation/lab.yaml
+    track: security
+    title: Kubernetes Native Policy Validation with Kyverno
+    classification: learner
+  sec-10-falco-runtime-security:
+    path: labs/security/sec-10-falco-runtime-security/lab.yaml
+    track: security
+    title: Runtime Threat Detection with Falco & eBPF
+    classification: learner
+  sec-11-kube-bench-cis-hardening:
+    path: labs/security/sec-11-kube-bench-cis-hardening/lab.yaml
+    track: security
+    title: CIS Kubernetes Benchmark Hardening with kube-bench
+    classification: learner
+  sec-12-cosign-image-signing:
+    path: labs/security/sec-12-cosign-image-signing/lab.yaml
+    track: security
+    title: Cryptographic Image Signing & Verification with Cosign
+    classification: learner
+  sec-13-sealed-secrets-gitops:
+    path: labs/security/sec-13-sealed-secrets-gitops/lab.yaml
+    track: security
+    title: Encrypted Secret Management with Bitnami SealedSecrets
+    classification: learner
+  sre-01-sli-slo-definition:
+    path: labs/sre-performance/sre-01-sli-slo-definition/lab.yaml
+    track: sre-performance
+    title: Defining Service Level Indicators (SLIs) & Objectives (SLOs)
+    classification: learner
+  sre-02-multi-window-burn-rate-alert:
+    path: labs/sre-performance/sre-02-multi-window-burn-rate-alert/lab.yaml
+    track: sre-performance
+    title: Multi-Window Multi-Burn-Rate Alerting Rules
+    classification: learner
+  sre-03-vpa-resource-recommendations:
+    path: labs/sre-performance/sre-03-vpa-resource-recommendations/lab.yaml
+    track: sre-performance
+    title: Vertical Pod Autoscaler (VPA) & Resource Right-Sizing
+    classification: learner
+  sre-04-keda-event-driven-autoscaling:
+    path: labs/sre-performance/sre-04-keda-event-driven-autoscaling/lab.yaml
+    track: sre-performance
+    title: Event-Driven Autoscaling with KEDA & Message Queues
+    classification: learner
+  sre-05-topology-spread-constraints:
+    path: labs/sre-performance/sre-05-topology-spread-constraints/lab.yaml
+    track: sre-performance
+    title: Multi-Zone High Availability with TopologySpreadConstraints
+    classification: learner
+  sre-06-pod-priority-preemption:
+    path: labs/sre-performance/sre-06-pod-priority-preemption/lab.yaml
+    track: sre-performance
+    title: Pod PriorityClasses & Preemption Architecture
+    classification: learner
+  sre-07-node-problem-detector:
+    path: labs/sre-performance/sre-07-node-problem-detector/lab.yaml
+    track: sre-performance
+    title: Node Problem Detector & Automated Node Remediation
+    classification: learner
+  sre-08-chaos-mesh-pod-kill:
+    path: labs/sre-performance/sre-08-chaos-mesh-pod-kill/lab.yaml
+    track: sre-performance
+    title: Chaos Engineering Experiments with Chaos Mesh
+    classification: learner
+  sre-09-concurrency-limits-overload:
+    path: labs/sre-performance/sre-09-concurrency-limits-overload/lab.yaml
+    track: sre-performance
+    title: Adaptive Concurrency Limiting & Load Shedding
+    classification: learner
+  sre-10-kubelet-eviction-thresholds:
+    path: labs/sre-performance/sre-10-kubelet-eviction-thresholds/lab.yaml
+    track: sre-performance
+    title: Kubelet Eviction Thresholds & Node OOM Management
+    classification: learner
+  storage-01-emptydir-scratch:
+    path: labs/storage/storage-01-emptydir-scratch/lab.yaml
+    track: storage
+    title: emptyDir Scratch Volumes & In-Memory Mounts
+    classification: learner
+  storage-02-hostpath-local:
+    path: labs/storage/storage-02-hostpath-local/lab.yaml
+    track: storage
+    title: hostPath Volumes & Node-Locked Workloads
+    classification: learner
+  storage-03-nfs-static-pv-pvc:
+    path: labs/storage/storage-03-nfs-static-pv-pvc/lab.yaml
+    track: storage
+    title: Static PersistentVolume & PersistentVolumeClaim Binding
+    classification: learner
+  storage-04-storageclass-dynamic-csi:
+    path: labs/storage/storage-04-storageclass-dynamic-csi/lab.yaml
+    track: storage
+    title: Dynamic CSI StorageClasses & WaitForFirstConsumer
+    classification: learner
+  storage-05-volume-resizing-online:
+    path: labs/storage/storage-05-volume-resizing-online/lab.yaml
+    track: storage
+    title: Online Volume Expansion & Filesystem Resizing
+    classification: learner
+  storage-06-volume-snapshots-restore:
+    path: labs/storage/storage-06-volume-snapshots-restore/lab.yaml
+    track: storage
+    title: CSI VolumeSnapshots & Point-in-Time Restoration
+    classification: learner
+  storage-07-statefulset-pvctemplate:
+    path: labs/storage/storage-07-statefulset-pvctemplate/lab.yaml
+    track: storage
+    title: StatefulSet volumeClaimTemplates & Storage Binding
+    classification: learner
+  storage-08-local-persistent-volume:
+    path: labs/storage/storage-08-local-persistent-volume/lab.yaml
+    track: storage
+    title: Local PersistentVolumes with NodeAffinity
+    classification: learner
+  storage-09-csi-driver-secrets-store:
+    path: labs/storage/storage-09-csi-driver-secrets-store/lab.yaml
+    track: storage
+    title: Secrets Store CSI Driver & Vault Key Injection
+    classification: learner
+  storage-10-volume-mount-subpath:
+    path: labs/storage/storage-10-volume-mount-subpath/lab.yaml
+    track: storage
+    title: volumeMounts subPath & Single-File Config Injection
+    classification: learner
+  trouble-01-crashloopbackoff-diagnosis:
+    path: labs/troubleshooting/trouble-01-crashloopbackoff-diagnosis/lab.yaml
+    track: troubleshooting
+    title: Diagnosing & Fixing CrashLoopBackOff Errors
+    classification: learner
+  trouble-02-imagepullbackoff-auth:
+    path: labs/troubleshooting/trouble-02-imagepullbackoff-auth/lab.yaml
+    track: troubleshooting
+    title: Resolving ImagePullBackOff & Registry Authentication
+    classification: learner
+  trouble-03-pending-insufficient-cpu:
+    path: labs/troubleshooting/trouble-03-pending-insufficient-cpu/lab.yaml
+    track: troubleshooting
+    title: Debugging Unschedulable Pods (Insufficient CPU/Memory)
+    classification: learner
+  trouble-04-oomkilled-exit-137:
+    path: labs/troubleshooting/trouble-04-oomkilled-exit-137/lab.yaml
+    track: troubleshooting
+    title: Root-Cause Analysis of OOMKilled (Exit 137) Outages
+    classification: learner
+  trouble-05-missing-service-endpoints:
+    path: labs/troubleshooting/trouble-05-missing-service-endpoints/lab.yaml
+    track: troubleshooting
+    title: Fixing Missing Service Endpoints & Label Mismatches
+    classification: learner
+  trouble-06-dns-nxdomain-resolution:
+    path: labs/troubleshooting/trouble-06-dns-nxdomain-resolution/lab.yaml
+    track: troubleshooting
+    title: Troubleshooting CoreDNS Failures & ndots Expansion
+    classification: learner
+  trouble-07-node-notready-kubelet:
+    path: labs/troubleshooting/trouble-07-node-notready-kubelet/lab.yaml
+    track: troubleshooting
+    title: Recovering Node NotReady States & Kubelet Crashes
+    classification: learner
+  trouble-08-pvc-mount-deadlock:
+    path: labs/troubleshooting/trouble-08-pvc-mount-deadlock/lab.yaml
+    track: troubleshooting
+    title: Resolving Multi-Attach Volume Deadlocks on Nodes
+    classification: learner
+  trouble-09-networkpolicy-traffic-blocked:
+    path: labs/troubleshooting/trouble-09-networkpolicy-traffic-blocked/lab.yaml
+    track: troubleshooting
+    title: Diagnosing Blocked Traffic in Strict NetworkPolicies
+    classification: learner
+  trouble-10-ingress-503-backend-dead:
+    path: labs/troubleshooting/trouble-10-ingress-503-backend-dead/lab.yaml
+    track: troubleshooting
+    title: Troubleshooting Ingress 503 Service Unavailable
+    classification: learner
+auxiliary_labs:
+  admin-11-validating-webhook:
+    path: labs/administration/admin-11-validating-webhook/lab.yaml
+    track: administration
+    title: Validating Admission Webhook Constraints
+    classification: auxiliary
+  admin-12-coredns-custom-config:
+    path: labs/administration/admin-12-coredns-custom-config/lab.yaml
+    track: administration
+    title: Custom CoreDNS Zone Forwarding & Rewrite
+    classification: auxiliary
+  cert-01-cka-mock-workloads:
+    path: labs/certification/cert-01-cka-mock-workloads/lab.yaml
+    track: certification
+    title: 'CKA Mock: Workloads & Pod Scheduling'
+    classification: auxiliary
+  cert-02-cka-mock-admin:
+    path: labs/certification/cert-02-cka-mock-admin/lab.yaml
+    track: certification
+    title: 'CKA Mock: etcd Backup & Kubeadm Upgrade'
+    classification: auxiliary
+  cert-03-cka-mock-network:
+    path: labs/certification/cert-03-cka-mock-network/lab.yaml
+    track: certification
+    title: 'CKA Mock: Ingress Routing & NetworkPolicies'
+    classification: auxiliary
+  cert-04-cka-mock-storage:
+    path: labs/certification/cert-04-cka-mock-storage/lab.yaml
+    track: certification
+    title: 'CKA Mock: PVCs, PVs & StorageClasses'
+    classification: auxiliary
+  cert-05-cka-mock-troubleshoot:
+    path: labs/certification/cert-05-cka-mock-troubleshoot/lab.yaml
+    track: certification
+    title: 'CKA Mock: Triage Broken Node & System Pods'
+    classification: auxiliary
+  cert-06-ckad-mock-architecture:
+    path: labs/certification/cert-06-ckad-mock-architecture/lab.yaml
+    track: certification
+    title: 'CKAD Mock: Multi-Container Pods & Config'
+    classification: auxiliary
+  cert-07-ckad-mock-deployment:
+    path: labs/certification/cert-07-ckad-mock-deployment/lab.yaml
+    track: certification
+    title: 'CKAD Mock: Blue/Green & Canary Rollouts'
+    classification: auxiliary
+  cert-08-ckad-mock-observability:
+    path: labs/certification/cert-08-ckad-mock-observability/lab.yaml
+    track: certification
+    title: 'CKAD Mock: Health Probes & Prometheus Exporters'
+    classification: auxiliary
+  cert-09-cks-mock-hardening:
+    path: labs/certification/cert-09-cks-mock-hardening/lab.yaml
+    track: certification
+    title: 'CKS Mock: Restricted PodSecurity & Seccomp'
+    classification: auxiliary
+  cert-10-cks-mock-audit-vulnerabilities:
+    path: labs/certification/cert-10-cks-mock-audit-vulnerabilities/lab.yaml
+    track: certification
+    title: 'CKS Mock: Image Scanning & Audit Policies'
+    classification: auxiliary
+  gitops-01-argocd-setup:
+    path: labs/gitops/gitops-01-argocd-setup/lab.yaml
+    track: gitops
+    title: Installing and Configuring Argo CD
+    classification: auxiliary
+  gitops-02-app-declarative:
+    path: labs/gitops/gitops-02-app-declarative/lab.yaml
+    track: gitops
+    title: Deploying Declarative Argo CD Applications
+    classification: auxiliary
+  gitops-03-auto-sync-selfheal:
+    path: labs/gitops/gitops-03-auto-sync-selfheal/lab.yaml
+    track: gitops
+    title: Automated Sync, Self-Healing & Pruning
+    classification: auxiliary
+  gitops-04-app-of-apps:
+    path: labs/gitops/gitops-04-app-of-apps/lab.yaml
+    track: gitops
+    title: Scalable App-of-Apps Root Architecture
+    classification: auxiliary
+  gitops-05-applicationset-matrix:
+    path: labs/gitops/gitops-05-applicationset-matrix/lab.yaml
+    track: gitops
+    title: ApplicationSet Matrix & Cluster Generators
+    classification: auxiliary
+  gitops-06-drift-detection:
+    path: labs/gitops/gitops-06-drift-detection/lab.yaml
+    track: gitops
+    title: Configuration Drift Detection & Alerts
+    classification: auxiliary
+  gitops-07-sync-windows-phases:
+    path: labs/gitops/gitops-07-sync-windows-phases/lab.yaml
+    track: gitops
+    title: Enforcing Sync Windows & Wave Sequencing
+    classification: auxiliary
+  gitops-08-prune-propagation:
+    path: labs/gitops/gitops-08-prune-propagation/lab.yaml
+    track: gitops
+    title: Orphaned Resource Pruning & Finalizers
+    classification: auxiliary
+  gitops-09-multienv-promotion:
+    path: labs/gitops/gitops-09-multienv-promotion/lab.yaml
+    track: gitops
+    title: Multi-Environment GitOps Promotion
+    classification: auxiliary
+  gitops-10-argocd-rbac-tenants:
+    path: labs/gitops/gitops-10-argocd-rbac-tenants/lab.yaml
+    track: gitops
+    title: Multi-Tenant Project RBAC Whitelisting
+    classification: auxiliary
+  gitops-argocd-drift:
+    path: labs/gitops/gitops-argocd-drift/lab.yaml
+    track: gitops
+    title: Detecting & Self-Healing GitOps Drift with Argo CD
+    classification: auxiliary
+  helm-01-install-upgrade:
+    path: labs/helm-kustomize/helm-01-install-upgrade/lab.yaml
+    track: helm-kustomize
+    title: Helm v3 Release Management & Rollbacks
+    classification: auxiliary
+  helm-02-chart-authoring:
+    path: labs/helm-kustomize/helm-02-chart-authoring/lab.yaml
+    track: helm-kustomize
+    title: Authoring Production Helm Charts
+    classification: auxiliary
+  helm-03-values-templates:
+    path: labs/helm-kustomize/helm-03-values-templates/lab.yaml
+    track: helm-kustomize
+    title: Advanced Go Templating & Named Helpers
+    classification: auxiliary
+  helm-04-lifecycle-hooks:
+    path: labs/helm-kustomize/helm-04-lifecycle-hooks/lab.yaml
+    track: helm-kustomize
+    title: Database Migration Lifecycle Hooks
+    classification: auxiliary
+  helm-05-chart-testing-lint:
+    path: labs/helm-kustomize/helm-05-chart-testing-lint/lab.yaml
+    track: helm-kustomize
+    title: Automated Chart Testing with ct & helm test
+    classification: auxiliary
+  incident-argocd-drift:
+    path: labs/incidents/incident-argocd-drift/lab.yaml
+    track: incidents
+    title: 'Production Incident: Argo CD GitOps OutOfSync Drift'
+    classification: auxiliary
+  incident-ingress-503:
+    path: labs/incidents/incident-ingress-503/lab.yaml
+    track: incidents
+    title: 'Production Incident: Ingress 503 Service Unavailable'
+    classification: auxiliary
+  incident-istio-circuit-breaker:
+    path: labs/incidents/incident-istio-circuit-breaker/lab.yaml
+    track: incidents
+    title: 'Production Incident: Istio Circuit Breaker Cascading Ejection'
+    classification: auxiliary
+  incident-networkpolicy-blackhole:
+    path: labs/incidents/incident-networkpolicy-blackhole/lab.yaml
+    track: incidents
+    title: 'Production Incident: Egress NetworkPolicy Database Blackhole'
+    classification: auxiliary
+  incident-node-notready-disk:
+    path: labs/incidents/incident-node-notready-disk/lab.yaml
+    track: incidents
+    title: 'Production Incident: Node DiskPressure & Kubelet Eviction'
+    classification: auxiliary
+  incident-oomkill-jvm:
+    path: labs/incidents/incident-oomkill-jvm/lab.yaml
+    track: incidents
+    title: 'Production Incident: Memory Throttling & OOMKilled CrashLoop'
+    classification: auxiliary
+  incident-pvc-deadlock:
+    path: labs/incidents/incident-pvc-deadlock/lab.yaml
+    track: incidents
+    title: 'Production Incident: Persistent Volume Claim Storage Deadlock'
+    classification: auxiliary
+  incident-tls-cert-expired:
+    path: labs/incidents/incident-tls-cert-expired/lab.yaml
+    track: incidents
+    title: 'Production Incident: Ingress TLS Certificate Expiration'
+    classification: auxiliary
+  k8s-configmaps-env:
+    path: labs/kubernetes/k8s-configmaps-env/lab.yaml
+    track: kubernetes
+    title: Decoupling Configuration with ConfigMaps
+    classification: auxiliary
+  k8s-daemonsets-logging:
+    path: labs/kubernetes/k8s-daemonsets-logging/lab.yaml
+    track: kubernetes
+    title: DaemonSets for Node-Level Log Collection
+    classification: auxiliary
+  k8s-deployments-scaling:
+    path: labs/kubernetes/k8s-deployments-scaling/lab.yaml
+    track: kubernetes
+    title: Deployments, Scaling and Rolling Updates
+    classification: auxiliary
+  k8s-ephemeral-containers:
+    path: labs/kubernetes/k8s-ephemeral-containers/lab.yaml
+    track: kubernetes
+    title: Live Pod Debugging with Ephemeral Debug Containers
+    classification: auxiliary
+  k8s-horizontal-pod-autoscaler:
+    path: labs/kubernetes/k8s-horizontal-pod-autoscaler/lab.yaml
+    track: kubernetes
+    title: Metric-Driven Autoscaling with HPA v2
+    classification: auxiliary
+  k8s-init-containers:
+    path: labs/kubernetes/k8s-init-containers/lab.yaml
+    track: kubernetes
+    title: Init Containers for Pre-Flight Dependency Bootstrapping
+    classification: auxiliary
+  k8s-jobs-cronjobs:
+    path: labs/kubernetes/k8s-jobs-cronjobs/lab.yaml
+    track: kubernetes
+    title: Batch Processing with Jobs & CronJobs
+    classification: auxiliary
+  k8s-liveness-readiness:
+    path: labs/kubernetes/k8s-liveness-readiness/lab.yaml
+    track: kubernetes
+    title: Health Probes (Liveness, Readiness, Startup)
+    classification: auxiliary
+  k8s-node-affinity-taints:
+    path: labs/kubernetes/k8s-node-affinity-taints/lab.yaml
+    track: kubernetes
+    title: Scheduling Control with NodeAffinity, Taints & Tolerations
+    classification: auxiliary
+  k8s-pod-basics:
+    path: labs/kubernetes/k8s-pod-basics/lab.yaml
+    track: kubernetes
+    title: Create and Configure Your First Pod
+    classification: auxiliary
+  k8s-pod-disruption-budgets:
+    path: labs/kubernetes/k8s-pod-disruption-budgets/lab.yaml
+    track: kubernetes
+    title: High Availability with PodDisruptionBudgets (PDB)
+    classification: auxiliary
+  k8s-rbac-role-binding:
+    path: labs/security/k8s-rbac-role-binding/lab.yaml
+    track: security
+    title: Restricting Pod Access with RBAC Roles and RoleBindings
+    classification: auxiliary
+  k8s-resource-limits:
+    path: labs/kubernetes/k8s-resource-limits/lab.yaml
+    track: kubernetes
+    title: Pod Resource Requests, Limits & Guaranteed QoS
+    classification: auxiliary
+  k8s-secrets-mounts:
+    path: labs/kubernetes/k8s-secrets-mounts/lab.yaml
+    track: kubernetes
+    title: Secure Secret Storage & Volume Mount Injection
+    classification: auxiliary
+  k8s-services-clusterip:
+    path: labs/kubernetes/k8s-services-clusterip/lab.yaml
+    track: kubernetes
+    title: ClusterIP Service Discovery & Endpoint Resolution
+    classification: auxiliary
+  k8s-statefulsets-headless:
+    path: labs/kubernetes/k8s-statefulsets-headless/lab.yaml
+    track: kubernetes
+    title: StatefulSets & Headless Services for Clustered State
+    classification: auxiliary
+  kust-01-base-overlays:
+    path: labs/helm-kustomize/kust-01-base-overlays/lab.yaml
+    track: helm-kustomize
+    title: Kustomize Base & Environment Overlays
+    classification: auxiliary
+  kust-02-patches-strategic:
+    path: labs/helm-kustomize/kust-02-patches-strategic/lab.yaml
+    track: helm-kustomize
+    title: Strategic Merge & JSON6902 Patching
+    classification: auxiliary
+  kust-03-generators-vars:
+    path: labs/helm-kustomize/kust-03-generators-vars/lab.yaml
+    track: helm-kustomize
+    title: ConfigMap Generators & Secret Injection
+    classification: auxiliary
+  linux-04-cgroups-limits:
+    path: labs/linux-containers/linux-04-cgroups-limits/lab.yaml
+    track: linux-containers
+    title: Control Groups (cgroups v2) CPU & Memory Constraints
+    classification: auxiliary
+  linux-05-containerfile-builds:
+    path: labs/linux-containers/linux-05-containerfile-builds/lab.yaml
+    track: linux-containers
+    title: Multi-Stage Containerfile Optimization
+    classification: auxiliary
+  linux-06-podman-rootless:
+    path: labs/linux-containers/linux-06-podman-rootless/lab.yaml
+    track: linux-containers
+    title: Rootless Container Execution & User Namespaces
+    classification: auxiliary
+  linux-07-systemd-units:
+    path: labs/linux-containers/linux-07-systemd-units/lab.yaml
+    track: linux-containers
+    title: Container Orchestration with Systemd & Restart Policies
+    classification: auxiliary
+  linux-08-oci-spec-runtime:
+    path: labs/linux-containers/linux-08-oci-spec-runtime/lab.yaml
+    track: linux-containers
+    title: OCI Runtime Spec & Seccomp Profile Activation
+    classification: auxiliary
+  mesh-02-sidecar-auto-injection:
+    path: labs/service-mesh/mesh-02-sidecar-auto-injection/lab.yaml
+    track: service-mesh
+    title: Automated Envoy Sidecar Injection
+    classification: auxiliary
+  mesh-03-traffic-shifting-canary:
+    path: labs/service-mesh/mesh-03-traffic-shifting-canary/lab.yaml
+    track: service-mesh
+    title: 90/10 Canary Traffic Shifting with VirtualService
+    classification: auxiliary
+  mesh-04-header-routing-canary:
+    path: labs/service-mesh/mesh-04-header-routing-canary/lab.yaml
+    track: service-mesh
+    title: Header-Based (A/B Testing) Route Matching
+    classification: auxiliary
+  mesh-05-circuit-breaker-outlier:
+    path: labs/service-mesh/mesh-05-circuit-breaker-outlier/lab.yaml
+    track: service-mesh
+    title: Circuit Breaking & Outlier Detection
+    classification: auxiliary
+  mesh-06-fault-injection-chaos:
+    path: labs/service-mesh/mesh-06-fault-injection-chaos/lab.yaml
+    track: service-mesh
+    title: 'Chaos Fault Injection: Delays & Aborts'
+    classification: auxiliary
+  mesh-07-strict-mtls-peerauth:
+    path: labs/service-mesh/mesh-07-strict-mtls-peerauth/lab.yaml
+    track: service-mesh
+    title: Zero-Trust STRICT Mutual TLS Authentication
+    classification: auxiliary
+  mesh-08-authorization-policy-jwt:
+    path: labs/service-mesh/mesh-08-authorization-policy-jwt/lab.yaml
+    track: service-mesh
+    title: Microsegmentation with JWT AuthorizationPolicies
+    classification: auxiliary
+  mesh-09-rate-limiting-envoyfilter:
+    path: labs/service-mesh/mesh-09-rate-limiting-envoyfilter/lab.yaml
+    track: service-mesh
+    title: Global Rate Limiting with EnvoyFilter
+    classification: auxiliary
+  mesh-10-mesh-observability-kiali:
+    path: labs/service-mesh/mesh-10-mesh-observability-kiali/lab.yaml
+    track: service-mesh
+    title: Mesh Topology Visualization with Kiali & Jaeger
+    classification: auxiliary
+  mesh-istio-canary:
+    path: labs/service-mesh/mesh-istio-canary/lab.yaml
+    track: service-mesh
+    title: Istio 90/10 Weighted Canary Traffic Shifting
+    classification: auxiliary
+  net-01-clusterip-deepdive:
+    path: labs/networking/net-01-clusterip-deepdive/lab.yaml
+    track: networking
+    title: ClusterIP Service Deep Dive — Selectors, EndpointSlices & kube-proxy Rules
+    classification: auxiliary
+  net-02-nodeport-services:
+    path: labs/networking/net-02-nodeport-services/lab.yaml
+    track: networking
+    title: NodePort Service Publishing
+    classification: auxiliary
+  net-03-loadbalancer-cloud:
+    path: labs/networking/net-03-loadbalancer-cloud/lab.yaml
+    track: networking
+    title: LoadBalancer Service & L2 Metallb
+    classification: auxiliary
+  net-04-headless-dns-discovery:
+    path: labs/networking/net-04-headless-dns-discovery/lab.yaml
+    track: networking
+    title: Headless Service DNS SRV Lookups
+    classification: auxiliary
+  net-05-ingress-nginx-routing:
+    path: labs/networking/net-05-ingress-nginx-routing/lab.yaml
+    track: networking
+    title: Path & Host-Based Ingress Routing
+    classification: auxiliary
+  net-06-ingress-tls-certmanager:
+    path: labs/networking/net-06-ingress-tls-certmanager/lab.yaml
+    track: networking
+    title: Automated TLS Certificates with cert-manager
+    classification: auxiliary
+  net-07-gateway-api-httproute:
+    path: labs/networking/net-07-gateway-api-httproute/lab.yaml
+    track: networking
+    title: Gateway API HTTPRoute Configuration
+    classification: auxiliary
+  net-08-networkpolicy-default-deny:
+    path: labs/networking/net-08-networkpolicy-default-deny/lab.yaml
+    track: networking
+    title: Zero-Trust Default-Deny NetworkPolicy
+    classification: auxiliary
+  net-09-networkpolicy-namespace-isolation:
+    path: labs/networking/net-09-networkpolicy-namespace-isolation/lab.yaml
+    track: networking
+    title: Cross-Namespace Isolation NetworkPolicy
+    classification: auxiliary
+  net-10-calico-cni-policies:
+    path: labs/networking/net-10-calico-cni-policies/lab.yaml
+    track: networking
+    title: Calico CNI GlobalNetworkPolicies
+    classification: auxiliary
+  net-11-cilium-ebpf-networking:
+    path: labs/networking/net-11-cilium-ebpf-networking/lab.yaml
+    track: networking
+    title: Cilium eBPF Host Routing & Wireguard
+    classification: auxiliary
+  net-12-dns-troubleshooting-ndots:
+    path: labs/networking/net-12-dns-troubleshooting-ndots/lab.yaml
+    track: networking
+    title: Debugging DNS Search Domains & ndots:5
+    classification: auxiliary
+  obs-01-prometheus-scrape-configs:
+    path: labs/observability/obs-01-prometheus-scrape-configs/lab.yaml
+    track: observability
+    title: Prometheus Scrape Targets & ServiceMonitors
+    classification: auxiliary
+  obs-02-promql-metrics-queries:
+    path: labs/observability/obs-02-promql-metrics-queries/lab.yaml
+    track: observability
+    title: Advanced PromQL & Histogram Quantiles
+    classification: auxiliary
+  obs-03-alertmanager-routing:
+    path: labs/observability/obs-03-alertmanager-routing/lab.yaml
+    track: observability
+    title: Alertmanager Routing Rules & Inhibitions
+    classification: auxiliary
+  obs-04-grafana-dashboard-provisioning:
+    path: labs/observability/obs-04-grafana-dashboard-provisioning/lab.yaml
+    track: observability
+    title: Declarative Grafana Dashboards as Code
+    classification: auxiliary
+  obs-05-otel-collector-pipelines:
+    path: labs/observability/obs-05-otel-collector-pipelines/lab.yaml
+    track: observability
+    title: OpenTelemetry Collector OTLP Pipelines
+    classification: auxiliary
+  obs-06-otel-trace-instrumentation:
+    path: labs/observability/obs-06-otel-trace-instrumentation/lab.yaml
+    track: observability
+    title: Distributed Tracing Context Propagation
+    classification: auxiliary
+  obs-07-loki-promtail-logs:
+    path: labs/observability/obs-07-loki-promtail-logs/lab.yaml
+    track: observability
+    title: Centralized Log Aggregation with Loki
+    classification: auxiliary
+  obs-08-tempo-trace-aggregation:
+    path: labs/observability/obs-08-tempo-trace-aggregation/lab.yaml
+    track: observability
+    title: High-Scale Trace Storage with Tempo
+    classification: auxiliary
+  obs-09-metric-log-trace-correlation:
+    path: labs/observability/obs-09-metric-log-trace-correlation/lab.yaml
+    track: observability
+    title: Correlating Metrics, Logs, and Traces
+    classification: auxiliary
+  obs-10-slo-sli-alerting-burnrates:
+    path: labs/observability/obs-10-slo-sli-alerting-burnrates/lab.yaml
+    track: observability
+    title: Multi-Window Multi-Burn-Rate Error Budget Alerts
+    classification: auxiliary
+  plat-01-custom-resource-definition:
+    path: labs/platform-multicluster/plat-01-custom-resource-definition/lab.yaml
+    track: platform-multicluster
+    title: Designing Production CRDs with OpenAPI v3
+    classification: auxiliary
+  plat-02-operator-controller-runtime:
+    path: labs/platform-multicluster/plat-02-operator-controller-runtime/lab.yaml
+    track: platform-multicluster
+    title: Building Custom Kubernetes Operator in Rust/Go
+    classification: auxiliary
+  plat-03-multicluster-service-export:
+    path: labs/platform-multicluster/plat-03-multicluster-service-export/lab.yaml
+    track: platform-multicluster
+    title: Multi-Cluster Service Export & Discovery (MCS)
+    classification: auxiliary
+  plat-04-cluster-api-management:
+    path: labs/platform-multicluster/plat-04-cluster-api-management/lab.yaml
+    track: platform-multicluster
+    title: Declarative Cluster Lifecycle with Cluster API
+    classification: auxiliary
+  plat-05-crossplane-cloud-resources:
+    path: labs/platform-multicluster/plat-05-crossplane-cloud-resources/lab.yaml
+    track: platform-multicluster
+    title: Composing Cloud Infrastructure with Crossplane
+    classification: auxiliary
+  plat-06-backstage-idp-integration:
+    path: labs/platform-multicluster/plat-06-backstage-idp-integration/lab.yaml
+    track: platform-multicluster
+    title: Self-Service Developer Templates with Backstage
+    classification: auxiliary
+  plat-07-kyverno-policy-reporter:
+    path: labs/platform-multicluster/plat-07-kyverno-policy-reporter/lab.yaml
+    track: platform-multicluster
+    title: Centralized Policy Violation Auditing
+    classification: auxiliary
+  sec-02-rbac-clusterrole-aggregation:
+    path: labs/security/sec-02-rbac-clusterrole-aggregation/lab.yaml
+    track: security
+    title: ClusterRole Aggregation & Global Auditing
+    classification: auxiliary
+  sec-03-serviceaccount-tokens:
+    path: labs/security/sec-03-serviceaccount-tokens/lab.yaml
+    track: security
+    title: Projected ServiceAccount TokenRequest API
+    classification: auxiliary
+  sec-04-pod-security-standards:
+    path: labs/security/sec-04-pod-security-standards/lab.yaml
+    track: security
+    title: Enforcing Pod Security Standards Restricted
+    classification: auxiliary
+  sec-05-seccomp-custom-profiles:
+    path: labs/security/sec-05-seccomp-custom-profiles/lab.yaml
+    track: security
+    title: Seccomp RuntimeDefault & Syscall Filtering
+    classification: auxiliary
+  sec-06-apparmor-profiles:
+    path: labs/security/sec-06-apparmor-profiles/lab.yaml
+    track: security
+    title: AppArmor Profiles for Filesystem Protection
+    classification: auxiliary
+  sec-07-kms-secrets-encryption:
+    path: labs/security/sec-07-kms-secrets-encryption/lab.yaml
+    track: security
+    title: Envelope Encryption of Secrets at Rest
+    classification: auxiliary
+  sec-08-opa-gatekeeper-policies:
+    path: labs/security/sec-08-opa-gatekeeper-policies/lab.yaml
+    track: security
+    title: OPA Gatekeeper ConstraintTemplates
+    classification: auxiliary
+  sec-09-kyverno-mutate-validate:
+    path: labs/security/sec-09-kyverno-mutate-validate/lab.yaml
+    track: security
+    title: Kyverno Declarative Policy Validation
+    classification: auxiliary
+  sec-10-image-vulnerability-trivy:
+    path: labs/security/sec-10-image-vulnerability-trivy/lab.yaml
+    track: security
+    title: Automated Image Vulnerability Scanning
+    classification: auxiliary
+  sec-11-cosign-sigstore-verify:
+    path: labs/security/sec-11-cosign-sigstore-verify/lab.yaml
+    track: security
+    title: Cosign Container Signature Verification
+    classification: auxiliary
+  sec-12-cis-benchmark-remediation:
+    path: labs/security/sec-12-cis-benchmark-remediation/lab.yaml
+    track: security
+    title: CIS Kubernetes Benchmark Auditing
+    classification: auxiliary
+  sre-02-error-budget-calculation:
+    path: labs/sre-performance/sre-02-error-budget-calculation/lab.yaml
+    track: sre-performance
+    title: Tracking Error Budget Burn Rates
+    classification: auxiliary
+  sre-03-hpa-custom-metrics:
+    path: labs/sre-performance/sre-03-hpa-custom-metrics/lab.yaml
+    track: sre-performance
+    title: Autoscaling on Custom Prometheus Metrics
+    classification: auxiliary
+  sre-04-vpa-resource-recommender:
+    path: labs/sre-performance/sre-04-vpa-resource-recommender/lab.yaml
+    track: sre-performance
+    title: Vertical Pod Autoscaler Resource Recommendations
+    classification: auxiliary
+  sre-05-node-problem-detector:
+    path: labs/sre-performance/sre-05-node-problem-detector/lab.yaml
+    track: sre-performance
+    title: Detecting Kernel Faults with Node Problem Detector
+    classification: auxiliary
+  sre-06-chaos-pod-failure:
+    path: labs/sre-performance/sre-06-chaos-pod-failure/lab.yaml
+    track: sre-performance
+    title: 'Chaos Engineering: Pod Eviction Resilience'
+    classification: auxiliary
+  sre-07-chaos-network-latency:
+    path: labs/sre-performance/sre-07-chaos-network-latency/lab.yaml
+    track: sre-performance
+    title: Simulating Network Latency & Packet Loss
+    classification: auxiliary
+  sre-08-cluster-capacity-planning:
+    path: labs/sre-performance/sre-08-cluster-capacity-planning/lab.yaml
+    track: sre-performance
+    title: Cluster Sizing, Overcommit & Cluster Autoscaler
+    classification: auxiliary
+  storage-02-hostpath-nodes:
+    path: labs/storage/storage-02-hostpath-nodes/lab.yaml
+    track: storage
+    title: Node-Bound hostPath Volume Mounting
+    classification: auxiliary
+  storage-03-pv-pvc-static:
+    path: labs/storage/storage-03-pv-pvc-static/lab.yaml
+    track: storage
+    title: Static PersistentVolume & PVC Binding
+    classification: auxiliary
+  storage-04-storageclass-dynamic:
+    path: labs/storage/storage-04-storageclass-dynamic/lab.yaml
+    track: storage
+    title: Dynamic Storage Provisioning with StorageClasses
+    classification: auxiliary
+  storage-05-volume-expansion-online:
+    path: labs/storage/storage-05-volume-expansion-online/lab.yaml
+    track: storage
+    title: Online FileSystem Volume Expansion
+    classification: auxiliary
+  storage-07-stateful-volume-claims:
+    path: labs/storage/storage-07-stateful-volume-claims/lab.yaml
+    track: storage
+    title: Dynamic VolumeClaimTemplates in StatefulSets
+    classification: auxiliary
+  storage-08-csi-driver-diagnostics:
+    path: labs/storage/storage-08-csi-driver-diagnostics/lab.yaml
+    track: storage
+    title: Troubleshooting CSI Node Mount Failures
+    classification: auxiliary
+  tb-01-crashloop-backoff:
+    path: labs/troubleshooting/tb-01-crashloop-backoff/lab.yaml
+    track: troubleshooting
+    title: Diagnosing CrashLoopBackOff & Exit Code 137
+    classification: auxiliary
+  tb-02-imagepull-backoff:
+    path: labs/troubleshooting/tb-02-imagepull-backoff/lab.yaml
+    track: troubleshooting
+    title: Fixing ImagePullBackOff & Registry Credentials
+    classification: auxiliary
+  tb-03-pending-unschedulable:
+    path: labs/troubleshooting/tb-03-pending-unschedulable/lab.yaml
+    track: troubleshooting
+    title: Resolving Pending Pods & Node Scheduling Conflicts
+    classification: auxiliary
+  tb-04-oomkilled-memory-leak:
+    path: labs/troubleshooting/tb-04-oomkilled-memory-leak/lab.yaml
+    track: troubleshooting
+    title: Pinpointing OOMKilled Memory Leaks in Containers
+    classification: auxiliary
+  tb-05-dns-resolution-failure:
+    path: labs/troubleshooting/tb-05-dns-resolution-failure/lab.yaml
+    track: troubleshooting
+    title: Triaging CoreDNS Resolution Failures
+    classification: auxiliary
+  tb-06-service-endpoint-misconfig:
+    path: labs/troubleshooting/tb-06-service-endpoint-misconfig/lab.yaml
+    track: troubleshooting
+    title: Fixing Missing Endpoints from Label Mismatches
+    classification: auxiliary
+  tb-07-ingress-502-bad-gateway:
+    path: labs/troubleshooting/tb-07-ingress-502-bad-gateway/lab.yaml
+    track: troubleshooting
+    title: Debugging Ingress 502 Bad Gateway Timeouts
+    classification: auxiliary
+  tb-08-expired-tls-certificates:
+    path: labs/troubleshooting/tb-08-expired-tls-certificates/lab.yaml
+    track: troubleshooting
+    title: Triaging Expired Ingress TLS Certificates
+    classification: auxiliary
+  tb-09-etcd-database-corruption:
+    path: labs/troubleshooting/tb-09-etcd-database-corruption/lab.yaml
+    track: troubleshooting
+    title: Restoring Quorum & Defragging Unhealthy etcd
+    classification: auxiliary
+  tb-10-node-notready-investigation:
+    path: labs/troubleshooting/tb-10-node-notready-investigation/lab.yaml
+    track: troubleshooting
+    title: Rescuing NotReady Worker Nodes
+    classification: auxiliary
